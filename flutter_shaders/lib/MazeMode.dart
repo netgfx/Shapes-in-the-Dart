@@ -2,6 +2,12 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_shaders/MazeGenerator.dart';
+import 'package:flutter_shaders/MazePainter.dart';
+import 'package:flutter_shaders/ParticleEmitter.dart';
+
+import 'MazeGeneratorV2.dart';
+import 'ShapeMaster.dart';
 
 class MazeMode extends StatefulWidget {
   MazeMode({required Key key}) : super(key: key);
@@ -10,16 +16,79 @@ class MazeMode extends StatefulWidget {
   _MazeModeState createState() => _MazeModeState();
 }
 
-class _MazeModeState extends State<MazeMode> {
+class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   Color selectedColor = Colors.black;
   Color pickerColor = Colors.black;
-  double strokeWidth = 25.0;
+  double strokeWidth = 50.0;
   List<DrawingPoints?> points = [];
   bool showBottomList = false;
   double opacity = 1.0;
   StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
   SelectedMode selectedMode = SelectedMode.StrokeWidth;
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
+  Map<String, dynamic>? mazeData;
+  late AnimationController _controller;
+  @override
+  void initState() {
+    super.initState();
+
+    MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    //_controller.addListener(() {setState(() {});}); no need to setState
+    _controller.repeat();
+    //_controller.forward();
+    mazeData = mzg.init();
+
+    print(mazeData);
+  }
+
+  List<Widget> getCircles() {
+    List<Widget> finalList = [];
+
+    for (var i = 0; i < points.length; i++) {
+      if (points[i] == null) {
+        continue;
+      }
+      finalList.add(
+        Transform.translate(
+            offset: Offset(points[i]!.points.dx - 20, points[i]!.points.dy - 20),
+            child: PhysicalModel(
+                color: Colors.yellow,
+                shape: BoxShape.circle,
+                elevation: 5,
+                shadowColor: Colors.orange.shade300,
+                child: Container(
+                  key: UniqueKey(),
+                  width: 40,
+                  height: 40,
+                  constraints: BoxConstraints(maxWidth: 100, maxHeight: 100),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black, // Color does not matter but should not be transparent
+                      //borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(blurRadius: 4, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 2), BoxShadow(blurRadius: 2, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 8)]),
+                  child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.yellow.withOpacity(0.0),
+                            Colors.yellow.withOpacity(0.6),
+                          ],
+                          center: AlignmentDirectional(0.0, 0.0),
+                          focal: AlignmentDirectional(0.0, 0.0),
+                          radius: 0.6,
+                          focalRadius: 0.001,
+                          stops: [0.75, 1.0],
+                        ),
+                      )),
+                ))),
+      );
+    }
+
+    return finalList;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,7 +198,7 @@ class _MazeModeState extends State<MazeMode> {
                       tileMode: TileMode.clamp,
                     ).createShader(bounds);
                   },
-                  blendMode: BlendMode.srcOut,
+                  //blendMode: BlendMode.srcOut,
                   child: Stack(children: [
                     Container(
                       width: viewportConstraints.maxWidth,
@@ -137,13 +206,36 @@ class _MazeModeState extends State<MazeMode> {
                       color: Colors.transparent,
                       clipBehavior: Clip.none,
                     ),
-                    CustomPaint(
-                      size: Size.infinite,
-                      painter: DrawingPainter(
-                        pointsList: points,
-                      ),
+                    // mazeData != null
+                    //     ? Padding(
+                    //         padding: EdgeInsets.only(top: 50, left: 5),
+                    //         child: CustomPaint(
+                    //           key: UniqueKey(),
+                    //           painter: MazePainter(mazeData!, viewportConstraints.maxWidth, viewportConstraints.maxHeight, (data) {}),
+                    //           isComplex: true,
+                    //           willChange: false,
+                    //           child: Container(),
+                    //         ))
+                    //   : Container(),
+
+                    Stack(
+                      children: getCircles(),
                     ),
-                  ]))
+                    // CustomPaint(
+                    //   size: Size.infinite,
+                    //   painter: DrawingPainter(
+                    //     pointsList: points,
+                    //   ),
+                    // ),
+                  ])),
+              Transform.translate(
+                  offset: Offset(100, 700),
+                  child: CustomPaint(
+                      key: UniqueKey(),
+                      isComplex: true,
+                      willChange: true,
+                      child: Container(),
+                      painter: ParticleEmitter(listenable: _controller, size: Size(50, 50), center: Offset.zero, color: Colors.orange.shade800, radius: 50, type: ShapeType.Circle))),
             ]),
           );
         }));
@@ -158,12 +250,20 @@ class DrawingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
-        canvas.drawLine(pointsList[i]!.points, pointsList[i + 1]!.points, pointsList[i]!.paint);
+        var path = Path();
+        path.addOval(Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
+        //canvas.drawLine(pointsList[i]!.points, pointsList[i + 1]!.points, pointsList[i]!.paint);
+        canvas.drawShadow(path.shift(Offset(pointsList[i]!.points.dx - 5, pointsList[i]!.points.dy - 5)), Colors.black54, 5.0, true);
+        canvas.drawPath(path, pointsList[i]!.paint);
       } else if (pointsList[i] != null && pointsList[i + 1] == null) {
         offsetPoints.clear();
-        offsetPoints.add(pointsList[i]!.points);
-        offsetPoints.add(Offset(pointsList[i]!.points.dx + 0.1, pointsList[i]!.points.dy + 0.1));
-        canvas.drawPoints(PointMode.points, offsetPoints, pointsList[i]!.paint);
+        // offsetPoints.add(pointsList[i]!.points);
+        // offsetPoints.add(Offset(pointsList[i]!.points.dx + 0.1, pointsList[i]!.points.dy + 0.1));
+        // canvas.drawPoints(PointMode.points, offsetPoints, pointsList[i]!.paint);
+        var path = Path();
+        path.addOval(Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
+        canvas.drawShadow(path, Colors.black87, 5.0, true);
+        canvas.drawPath(path, pointsList[i]!.paint);
       }
     }
   }
