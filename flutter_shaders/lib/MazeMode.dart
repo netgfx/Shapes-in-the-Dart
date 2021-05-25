@@ -230,12 +230,13 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   ])),
               Transform.translate(
                   offset: Offset(100, 700),
-                  child: CustomPaint(
-                      key: UniqueKey(),
-                      isComplex: true,
-                      willChange: true,
-                      child: Container(),
-                      painter: ParticleEmitter(listenable: _controller, size: Size(50, 50), center: Offset.zero, color: Colors.orange.shade800, radius: 50, type: ShapeType.Circle))),
+                  child: RepaintBoundary(
+                      child: CustomPaint(
+                          key: UniqueKey(),
+                          isComplex: true,
+                          willChange: true,
+                          child: Container(),
+                          painter: ParticleEmitter(listenable: _controller, size: Size(50, 50), center: Offset.zero, color: Colors.orange.shade800, radius: 50, type: ShapeType.Circle)))),
             ]),
           );
         }));

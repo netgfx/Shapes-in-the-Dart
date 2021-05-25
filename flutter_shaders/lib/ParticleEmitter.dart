@@ -22,16 +22,6 @@ class ParticleEmitter extends CustomPainter {
   int maxDistance = 200;
   int currentTime = DateTime.now().millisecondsSinceEpoch;
   ParticleEmitter({required this.type, required this.size, required this.radius, required this.center, required this.color, required this.listenable}) : super(repaint: listenable);
-  // {
-  //   this.listenable = listenable;
-
-  //   this.type = type;
-  //   this.size = size ?? Size(20, 20);
-  //   this.color = color ?? material.Colors.black;
-  //   this.radius = radius ?? 50.0;
-  //   this.center = center;
-  //   this.angle = angle ?? 0.0;
-  // }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -63,6 +53,11 @@ class ParticleEmitter extends CustomPainter {
     final Paint painter = Paint()
       ..color = this.color
       ..style = PaintingStyle.fill;
+
+    if (this.running == false) {
+      print("stopping...");
+      return;
+    }
 
     switch (type) {
       case ShapeType.Circle:
@@ -112,20 +107,6 @@ class ParticleEmitter extends CustomPainter {
         break;
     }
 
-    if (this.running == false) {
-      print("stopping...");
-      return;
-    }
-
-    // if (static == true) {
-    //   for (var i = 0; i < particles.length; i++) {
-    //     drawCircle(Offset(particles[i]["x"].toDouble(), particles[i]["y"].toDouble()), particles[i]["radius"], painter);
-    //     //particles[i] = Point(particles[i].x, particles[i].y);
-    //   }
-
-    //   return;
-    // }
-
     // then create some particles
     if (particles.length == 0) {
       for (var i = 0; i < minParticles; i++) {
@@ -149,28 +130,26 @@ class ParticleEmitter extends CustomPainter {
         particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay});
       }
     }
+
     List<Map<String, dynamic>> tempArr = [];
     for (var i = 0; i < particles.length; i++) {
-      double rand = ((maxDistance) * particles[i]["delay"]).toDouble();
-      //print("${maxDistance} -- ${particles[i]["y"]} -- $rand -- ${particles[i]["delay"]}");
       if ((particles[i]["y"]) < (maxDistance * -1)) {
-        print("removing $i");
+        //print("removing $i");
         particles.removeAt(i);
       } else {
         tempArr.add(particles[i]);
       }
     }
 
-    //particles.clear();
+    particles.clear();
     particles = tempArr;
 
     for (var j = 0; j < particles.length; j++) {
       double rand = particles[j]["y"] - (maxDistance * particles[j]["delay"]).toDouble();
-      //print("$rand ${particles[j]["delay"]} ${(maxDistance * particles[j]["delay"])} ${particles.length} ${listenable.value}");
 
-      drawCircle(Offset(particles[j]["x"].toDouble(), rand), particles[j]["radius"], painter);
       particles[j]["x"] = particles[j]["x"];
       particles[j]["y"] = rand.abs() * -1;
+      drawCircle(Offset(particles[j]["x"].toDouble(), rand), particles[j]["radius"], painter);
     }
   }
 
@@ -180,9 +159,7 @@ class ParticleEmitter extends CustomPainter {
   }
 
   double randomDelay() {
-    double rand = doubleInRange(0.01, 0.05);
-    // print(">>>>> $rand");
-    return rand;
+    return doubleInRange(0.01, 0.05);
   }
 
   double doubleInRange(double start, double end) {
@@ -196,10 +173,8 @@ class ParticleEmitter extends CustomPainter {
   }
 
   double randomizeRadius() {
-    double rnd = _random.nextDouble();
-    if (rnd > 0.4) {
-      rnd = 0.3;
-    }
+    double rnd = doubleInRange(0.1, 0.25);
+
     return rnd * radius;
   }
 
@@ -207,9 +182,9 @@ class ParticleEmitter extends CustomPainter {
 
   void drawCircle(Offset? offset, double r, Paint paint) {
     Offset _offset = offset ?? Offset.zero;
-    rotate(() {
-      canvas!.drawCircle(_offset, r, paint);
-    });
+    //rotate(() {
+    canvas!.drawCircle(_offset, r, paint);
+    //});
   }
 
   void drawRect(Paint paint) {
@@ -279,7 +254,9 @@ class ParticleEmitter extends CustomPainter {
     canvas!.save();
     canvas!.translate(center.dx, center.dy);
 
-    canvas!.rotate(angle!);
+    if (angle! > 0) {
+      canvas!.rotate(angle!);
+    }
     callback();
     canvas!.restore();
   }
