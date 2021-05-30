@@ -33,13 +33,21 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     super.initState();
 
     MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    // Curves.easeOutBack // explode
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 5));
     //_controller.addListener(() {setState(() {});}); no need to setState
+    //_controller.drive(CurveTween(curve: Curves.bounceIn));
     _controller.repeat();
     //_controller.forward();
     mazeData = mzg.init();
 
     print(mazeData);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   List<Widget> getCircles() {
@@ -92,7 +100,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.grey.shade800,
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
@@ -229,14 +237,29 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     // ),
                   ])),
               Transform.translate(
-                  offset: Offset(100, 700),
+                  offset: Offset(200, 500),
                   child: RepaintBoundary(
                       child: CustomPaint(
                           key: UniqueKey(),
                           isComplex: true,
                           willChange: true,
                           child: Container(),
-                          painter: ParticleEmitter(listenable: _controller, size: Size(50, 50), center: Offset.zero, color: Colors.orange.shade800, radius: 50, type: ShapeType.Circle)))),
+                          painter: ParticleEmitter(
+                              listenable: _controller,
+                              controller: _controller,
+                              particleSize: Size(30, 30),
+                              minParticles: 100,
+                              center: Offset.zero,
+                              color: Colors.green,
+                              radius: 10,
+                              type: ShapeType.Circle,
+                              endAnimation: EndAnimation.INSTANT,
+                              particleType: ParticleType.EXPLODE,
+                              spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                              minimumSpeed: 0.45,
+                              maximumSpeed: 0.85,
+                              timeToLive: 1500,
+                              hasBase: true)))),
             ]),
           );
         }));

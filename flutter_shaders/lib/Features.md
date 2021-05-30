@@ -1,0 +1,9 @@
+- Particle size
+- Number of particles
+- Color
+- End animation (Instant, Fade out)
+- Particle types (Fire, Explode)
+- Spread behavior (One Time, Continuous)
+- Min/Max speed
+- Time to live (ms)
+- Has center base object
