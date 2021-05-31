@@ -28,6 +28,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
+  Offset particlePoint = Offset(0, 0);
   @override
   void initState() {
     super.initState();
@@ -37,7 +38,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 5));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
-    _controller.repeat();
+    //_controller.repeat();
     //_controller.forward();
     mazeData = mzg.init();
 
@@ -151,16 +152,19 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
           return GestureDetector(
             onTapDown: (details) {
               setState(() {
-                RenderBox? renderBox = context.findRenderObject() as RenderBox;
-                points.add(DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
-                    paint: Paint()
-                      ..strokeCap = strokeCap
-                      ..isAntiAlias = true
-                      ..color = selectedColor.withOpacity(opacity)
-                      ..strokeWidth = strokeWidth));
-                points.add(null);
+                // RenderBox? renderBox = context.findRenderObject() as RenderBox;
+                // points.add(DrawingPoints(
+                //     points: renderBox.globalToLocal(details.globalPosition),
+                //     paint: Paint()
+                //       ..strokeCap = strokeCap
+                //       ..isAntiAlias = true
+                //       ..color = selectedColor.withOpacity(opacity)
+                //       ..strokeWidth = strokeWidth));
+                // points.add(null);
+                particlePoint = details.globalPosition;
               });
+
+              _controller.repeat();
             },
             onTapCancel: () {
               setState(() {
@@ -237,7 +241,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     // ),
                   ])),
               Transform.translate(
-                  offset: Offset(200, 500),
+                  offset: particlePoint,
                   child: RepaintBoundary(
                       child: CustomPaint(
                           key: UniqueKey(),
@@ -258,8 +262,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                               spreadBehaviour: SpreadBehaviour.ONE_TIME,
                               minimumSpeed: 0.45,
                               maximumSpeed: 0.85,
-                              timeToLive: 1500,
-                              hasBase: true)))),
+                              timeToLive: 1200,
+                              hasBase: false)))),
             ]),
           );
         }));
