@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import 'ShapeMaster.dart';
 
-enum ParticleType { FIRE, EXPLODE, PATH, IMPLOSION }
+enum ParticleType { FIRE, EXPLODE, PATH, IMPLOSION, SNOW }
 enum EndAnimation { FADE_OUT, INSTANT }
 enum SpreadBehaviour { CONTINUOUS, ONE_TIME }
 enum BaseBehaviour { ALWAYS_ON, INITIALY_ON, ALWAYS_OFF, INITIALLY_OFF }
@@ -30,6 +30,7 @@ class ParticleEmitter extends CustomPainter {
   EndAnimation endAnimation = EndAnimation.INSTANT;
   double minimumSpeed = 0.01;
   double maximumSpeed = 0.05;
+  double gravity = 0.5;
   AnimationController controller;
 
   /// in seconds
@@ -54,6 +55,7 @@ class ParticleEmitter extends CustomPainter {
       this.minimumSpeed = 0.01,
       this.maximumSpeed = 0.05,
       this.timeToLive = 1000,
+      this.gravity = 1.5,
       this.hasBase = true})
       : super(repaint: listenable) {
     this.painter = Paint()
@@ -165,11 +167,11 @@ class ParticleEmitter extends CustomPainter {
       if (particles.length == 0) {
         for (var i = 0; i < minParticles; i++) {
           double delay = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? 0.1 : randomDelay();
-          double rand = 0;
+          double rand = this.radius;
           double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
           double _radius = randomizeRadius();
           Map<String, double> endPath = randomPointOnRadius();
-          drawCircle(Offset(randX, -rand), _radius.toDouble(), painter);
+          //drawCircle(Offset(randX, -rand), _radius.toDouble(), painter);
           particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch});
         }
         print(particles);
@@ -178,12 +180,13 @@ class ParticleEmitter extends CustomPainter {
       if (particles.length > 0 && particles.length < minParticles) {
         // add more
         for (var i = 0; i < (minParticles - particles.length); i++) {
-          double delay = randomDelay();
+          double delay = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? randomDelay(min: this.minimumSpeed, max: this.maximumSpeed) : randomDelay();
           double rand = 0;
           double randX = randomX();
           double _radius = randomizeRadius();
+          Map<String, double> endPath = randomPointOnRadius();
           drawCircle(Offset(0, -rand), _radius.toDouble(), painter);
-          particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay});
+          particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay, "timeAlive": DateTime.now().millisecondsSinceEpoch});
         }
       }
 
@@ -192,6 +195,20 @@ class ParticleEmitter extends CustomPainter {
         if ((particles[i]["y"]) < (maxDistance * -1)) {
           //print("removing $i");
           particles.removeAt(i);
+        } else if ((this.currentTime - particles[i]['timeAlive'].toInt()).abs() > this.timeToLive) {
+          //print("REMOVING $i");
+          if (this.endAnimation == EndAnimation.INSTANT) {
+            //print("instant remove of $i");
+            particles.removeAt(i);
+          } else if (this.endAnimation == EndAnimation.FADE_OUT) {
+            if (particles[i]["radius"] < 0.01) {
+              //print("PARTICLE RADIUS ${particles[i]["radius"]}");
+              particles.removeAt(i);
+            } else {
+              particles[i]["radius"] -= 0.25;
+              tempArr.add(particles[i]);
+            }
+          }
         } else {
           tempArr.add(particles[i]);
         }
@@ -207,7 +224,10 @@ class ParticleEmitter extends CustomPainter {
         particles[j]["y"] = rand.abs() * -1;
         drawCircle(Offset(particles[j]["x"].toDouble(), rand), particles[j]["radius"], painter);
       }
-    } else if (this.particleType == ParticleType.EXPLODE && this.spreadBehaviour == SpreadBehaviour.ONE_TIME) {
+    }
+
+    /// Explode particles
+    else if (this.particleType == ParticleType.EXPLODE && this.spreadBehaviour == SpreadBehaviour.ONE_TIME) {
       if (particles.length == 0) {
         stop();
       }
@@ -220,7 +240,18 @@ class ParticleEmitter extends CustomPainter {
           particles.removeAt(i);
         } else if ((this.currentTime - particles[i]['timeAlive'].toInt()).abs() > this.timeToLive) {
           //print("REMOVING $i");
-          particles.removeAt(i);
+          if (this.endAnimation == EndAnimation.INSTANT) {
+            print("instant remove of $i");
+            particles.removeAt(i);
+          } else if (this.endAnimation == EndAnimation.FADE_OUT) {
+            if (particles[i]["radius"] < 0.01) {
+              print("PARTICLE RADIUS ${particles[i]["radius"]}");
+              particles.removeAt(i);
+            } else {
+              particles[i]["radius"] -= 0.25;
+              tempArr.add(particles[i]);
+            }
+          }
         } else {
           tempArr.add(particles[i]);
         }
@@ -236,7 +267,7 @@ class ParticleEmitter extends CustomPainter {
         int signY = particles[j]["endPath"]["y"] < 0 ? -1 : 1;
         //print("$signX, $signY");
         particles[j]["x"] = randX * signX;
-        particles[j]["y"] = randY * signY;
+        particles[j]["y"] = (randY * signY);
         particles[j]["timeAlive"] = DateTime.now().millisecondsSinceEpoch;
         //drawCircle(Offset(particles[j]["x"].toDouble(), particles[j]["y"].toDouble()), particles[j]["radius"], painter);
         drawShape(this.type, particles[j]["radius"], Offset(particles[j]["x"].toDouble(), particles[j]["y"].toDouble()));
@@ -301,7 +332,7 @@ class ParticleEmitter extends CustomPainter {
     this.controller.stop(canceled: true);
   }
 
-  double randomDelay({double min = 0.01, double max = 0.05}) {
+  double randomDelay({double min = 0.005, double max = 0.05}) {
     return doubleInRange(min, max);
   }
 

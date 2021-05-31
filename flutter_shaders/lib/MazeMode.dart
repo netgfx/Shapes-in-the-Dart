@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -29,6 +30,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
   Offset particlePoint = Offset(0, 0);
+  Color _color = Colors.green;
+  final _random = new Random();
   @override
   void initState() {
     super.initState();
@@ -49,6 +52,15 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Color randomColor(double alpha) {
+    int r = (_random.nextDouble() * 255).floor();
+    int g = (_random.nextDouble() * 255).floor();
+    int b = (_random.nextDouble() * 255).floor();
+    int a = (alpha * 255).floor();
+
+    return Color.fromARGB(a, r, g, b);
   }
 
   List<Widget> getCircles() {
@@ -162,6 +174,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                 //       ..strokeWidth = strokeWidth));
                 // points.add(null);
                 particlePoint = details.globalPosition;
+                _color = randomColor(1.0);
               });
 
               _controller.repeat();
@@ -252,18 +265,35 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                               listenable: _controller,
                               controller: _controller,
                               particleSize: Size(30, 30),
-                              minParticles: 100,
+                              minParticles: 50,
                               center: Offset.zero,
-                              color: Colors.green,
+                              color: _color,
                               radius: 10,
                               type: ShapeType.Circle,
-                              endAnimation: EndAnimation.INSTANT,
-                              particleType: ParticleType.EXPLODE,
-                              spreadBehaviour: SpreadBehaviour.ONE_TIME,
-                              minimumSpeed: 0.45,
-                              maximumSpeed: 0.85,
-                              timeToLive: 1200,
-                              hasBase: false)))),
+                              endAnimation: EndAnimation.FADE_OUT,
+                              particleType: ParticleType.FIRE,
+                              spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                              minimumSpeed: 0.4,
+                              maximumSpeed: 0.8,
+                              timeToLive: 500,
+                              hasBase: true)
+                          // painter: ParticleEmitter(
+                          //     listenable: _controller,
+                          //     controller: _controller,
+                          //     particleSize: Size(30, 30),
+                          //     minParticles: 50,
+                          //     center: Offset.zero,
+                          //     color: _color,
+                          //     radius: 10,
+                          //     type: ShapeType.Circle,
+                          //     endAnimation: EndAnimation.FADE_OUT,
+                          //     particleType: ParticleType.EXPLODE,
+                          //     spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                          //     minimumSpeed: 0.4,
+                          //     maximumSpeed: 0.8,
+                          //     timeToLive: 400,
+                          //     hasBase: false)
+                          ))),
             ]),
           );
         }));
