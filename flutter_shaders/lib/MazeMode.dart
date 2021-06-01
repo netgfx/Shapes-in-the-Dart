@@ -276,7 +276,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                               minimumSpeed: 0.4,
                               maximumSpeed: 0.8,
                               timeToLive: 500,
-                              hasBase: true)
+                              hasBase: true,
+                              blendMode: BlendMode.softLight)
                           // painter: ParticleEmitter(
                           //     listenable: _controller,
                           //     controller: _controller,

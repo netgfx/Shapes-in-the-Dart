@@ -31,6 +31,7 @@ class ParticleEmitter extends CustomPainter {
   double minimumSpeed = 0.01;
   double maximumSpeed = 0.05;
   double gravity = 0.5;
+  BlendMode blendMode = BlendMode.src;
   AnimationController controller;
 
   /// in seconds
@@ -56,10 +57,13 @@ class ParticleEmitter extends CustomPainter {
       this.maximumSpeed = 0.05,
       this.timeToLive = 1000,
       this.gravity = 1.5,
-      this.hasBase = true})
+      this.hasBase = true,
+      this.blendMode = BlendMode.src})
       : super(repaint: listenable) {
+    /// initializer
     this.painter = Paint()
       ..color = this.color
+      ..blendMode = this.blendMode
       ..style = PaintingStyle.fill;
 
     // time
@@ -165,9 +169,9 @@ class ParticleEmitter extends CustomPainter {
     if (this.particleType == ParticleType.FIRE) {
       // initialize particles if needed
       if (particles.length == 0) {
-        for (var i = 0; i < minParticles; i++) {
-          double delay = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? 0.1 : randomDelay();
-          double rand = this.radius;
+        for (var i = 0; i < (minParticles / 2).floor(); i++) {
+          double delay = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? 0.1 : randomDelay(min: 0.01, max: 0.09);
+          double rand = this.radius * 0.1;
           double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
           double _radius = randomizeRadius();
           Map<String, double> endPath = randomPointOnRadius();
