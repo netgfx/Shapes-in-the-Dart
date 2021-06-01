@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -28,18 +29,38 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
+  Offset particlePoint = Offset(0, 0);
+  Color _color = Colors.green;
+  final _random = new Random();
   @override
   void initState() {
     super.initState();
 
     MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    // Curves.easeOutBack // explode
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 5));
     //_controller.addListener(() {setState(() {});}); no need to setState
-    _controller.repeat();
+    //_controller.drive(CurveTween(curve: Curves.bounceIn));
+    //_controller.repeat();
     //_controller.forward();
     mazeData = mzg.init();
 
     print(mazeData);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Color randomColor(double alpha) {
+    int r = (_random.nextDouble() * 255).floor();
+    int g = (_random.nextDouble() * 255).floor();
+    int b = (_random.nextDouble() * 255).floor();
+    int a = (alpha * 255).floor();
+
+    return Color.fromARGB(a, r, g, b);
   }
 
   List<Widget> getCircles() {
@@ -92,7 +113,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.grey.shade800,
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
@@ -143,16 +164,20 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
           return GestureDetector(
             onTapDown: (details) {
               setState(() {
-                RenderBox? renderBox = context.findRenderObject() as RenderBox;
-                points.add(DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
-                    paint: Paint()
-                      ..strokeCap = strokeCap
-                      ..isAntiAlias = true
-                      ..color = selectedColor.withOpacity(opacity)
-                      ..strokeWidth = strokeWidth));
-                points.add(null);
+                // RenderBox? renderBox = context.findRenderObject() as RenderBox;
+                // points.add(DrawingPoints(
+                //     points: renderBox.globalToLocal(details.globalPosition),
+                //     paint: Paint()
+                //       ..strokeCap = strokeCap
+                //       ..isAntiAlias = true
+                //       ..color = selectedColor.withOpacity(opacity)
+                //       ..strokeWidth = strokeWidth));
+                // points.add(null);
+                particlePoint = details.globalPosition;
+                _color = randomColor(1.0);
               });
+
+              _controller.repeat();
             },
             onTapCancel: () {
               setState(() {
@@ -229,14 +254,47 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     // ),
                   ])),
               Transform.translate(
-                  offset: Offset(100, 700),
+                  offset: particlePoint,
                   child: RepaintBoundary(
                       child: CustomPaint(
                           key: UniqueKey(),
                           isComplex: true,
                           willChange: true,
                           child: Container(),
-                          painter: ParticleEmitter(listenable: _controller, size: Size(50, 50), center: Offset.zero, color: Colors.orange.shade800, radius: 50, type: ShapeType.Circle)))),
+                          painter: ParticleEmitter(
+                              listenable: _controller,
+                              controller: _controller,
+                              particleSize: Size(30, 30),
+                              minParticles: 50,
+                              center: Offset.zero,
+                              color: _color,
+                              radius: 10,
+                              type: ShapeType.Circle,
+                              endAnimation: EndAnimation.FADE_OUT,
+                              particleType: ParticleType.FIRE,
+                              spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                              minimumSpeed: 0.4,
+                              maximumSpeed: 0.8,
+                              timeToLive: 500,
+                              hasBase: true,
+                              blendMode: BlendMode.softLight)
+                          // painter: ParticleEmitter(
+                          //     listenable: _controller,
+                          //     controller: _controller,
+                          //     particleSize: Size(30, 30),
+                          //     minParticles: 50,
+                          //     center: Offset.zero,
+                          //     color: _color,
+                          //     radius: 10,
+                          //     type: ShapeType.Circle,
+                          //     endAnimation: EndAnimation.FADE_OUT,
+                          //     particleType: ParticleType.EXPLODE,
+                          //     spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                          //     minimumSpeed: 0.4,
+                          //     maximumSpeed: 0.8,
+                          //     timeToLive: 400,
+                          //     hasBase: false)
+                          ))),
             ]),
           );
         }));
