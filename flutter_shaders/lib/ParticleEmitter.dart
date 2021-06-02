@@ -6,7 +6,7 @@ import 'package:vector_math/vector_math.dart' as vectorMath;
 import 'ShapeMaster.dart';
 
 enum ParticleType { FIRE, EXPLODE, PATH, IMPLOSION, SNOW }
-enum EndAnimation { FADE_OUT, INSTANT }
+enum EndAnimation { FADE_OUT, INSTANT, SCALE_DOWN }
 enum SpreadBehaviour { CONTINUOUS, ONE_TIME }
 enum BaseBehaviour { ALWAYS_ON, INITIALY_ON, ALWAYS_OFF, INITIALLY_OFF }
 
@@ -31,6 +31,7 @@ class ParticleEmitter extends CustomPainter {
   double minimumSpeed = 0.01;
   double maximumSpeed = 0.05;
   double gravity = 0.5;
+  double delay = 0.5;
   BlendMode blendMode = BlendMode.src;
   AnimationController controller;
 
@@ -59,7 +60,8 @@ class ParticleEmitter extends CustomPainter {
       this.timeToLive = initialTTL,
       this.gravity = 1.5,
       this.hasBase = true,
-      this.blendMode = BlendMode.src})
+      this.blendMode = BlendMode.src,
+      this.delay = 0.5})
       : super(repaint: listenable) {
     /// initializer
     this.painter = Paint()
@@ -70,17 +72,18 @@ class ParticleEmitter extends CustomPainter {
     // time
     this.currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    if (this.particleType == ParticleType.EXPLODE && (this.spreadBehaviour == SpreadBehaviour.ONE_TIME)) {
+    if (this.particleType == ParticleType.EXPLODE && (this.spreadBehaviour == SpreadBehaviour.ONE_TIME || this.spreadBehaviour == SpreadBehaviour.CONTINUOUS)) {
       // then create some particles
       if (particles.length == 0) {
         for (var i = 0; i < minParticles; i++) {
-          double delay = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
+          double speed = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
           double rand = 0;
           double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
           double _radius = randomizeRadius();
           Map<String, double> endPath = randomPointOnRadius();
           //drawCircle(Offset(randX, -rand), _radius.toDouble(), painter);
-          particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch, "current": this.currentTime});
+          particles.add(
+              {"x": randX, "y": -rand, "radius": _radius, "speed": speed, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch, "current": this.currentTime, "renderDelay": doubleInRange(0.01, this.delay), "opacity": 1.0});
         }
         //print(particles);
       }
@@ -171,13 +174,13 @@ class ParticleEmitter extends CustomPainter {
       // initialize particles if needed
       if (particles.length == 0) {
         for (var i = 0; i < (minParticles / 2).floor(); i++) {
-          double delay = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? 0.1 : randomDelay(min: 0.01, max: 0.09);
+          double speed = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? 0.1 : randomDelay(min: 0.01, max: 0.09);
           double rand = this.radius * 0.1;
           double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
           double _radius = randomizeRadius();
           Map<String, double> endPath = randomPointOnRadius();
           //drawCircle(Offset(randX, -rand), _radius.toDouble(), painter);
-          particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch});
+          particles.add({"x": randX, "y": -rand, "radius": _radius, "speed": speed, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch});
         }
         //print(particles);
       }
@@ -185,13 +188,13 @@ class ParticleEmitter extends CustomPainter {
       if (particles.length > 0 && particles.length < minParticles) {
         // add more
         for (var i = 0; i < (minParticles - particles.length); i++) {
-          double delay = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? randomDelay(min: this.minimumSpeed, max: this.maximumSpeed) : randomDelay();
+          double speed = this.spreadBehaviour == SpreadBehaviour.ONE_TIME ? randomDelay(min: this.minimumSpeed, max: this.maximumSpeed) : randomDelay();
           double rand = 0;
           double randX = randomX();
           double _radius = randomizeRadius();
           Map<String, double> endPath = randomPointOnRadius();
           //drawCircle(Offset(0, -rand), _radius.toDouble(), painter);
-          particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay, "timeAlive": DateTime.now().millisecondsSinceEpoch});
+          particles.add({"x": randX, "y": -rand, "radius": _radius, "speed": speed, "timeAlive": DateTime.now().millisecondsSinceEpoch});
         }
       }
 
@@ -205,7 +208,7 @@ class ParticleEmitter extends CustomPainter {
           if (this.endAnimation == EndAnimation.INSTANT) {
             //print("instant remove of $i");
             particles.removeAt(i);
-          } else if (this.endAnimation == EndAnimation.FADE_OUT) {
+          } else if (this.endAnimation == EndAnimation.SCALE_DOWN) {
             if (particles[i]["radius"] < 0.01) {
               //print("PARTICLE RADIUS ${particles[i]["radius"]}");
               particles.removeAt(i);
@@ -223,7 +226,7 @@ class ParticleEmitter extends CustomPainter {
       particles = tempArr;
 
       for (var j = 0; j < particles.length; j++) {
-        double rand = particles[j]["y"] - (maxDistance * particles[j]["delay"]).toDouble();
+        double rand = particles[j]["y"] - (maxDistance * particles[j]["speed"]).toDouble();
 
         particles[j]["x"] = particles[j]["x"];
         particles[j]["y"] = rand.abs() * -1;
@@ -248,7 +251,7 @@ class ParticleEmitter extends CustomPainter {
           if (this.endAnimation == EndAnimation.INSTANT) {
             print("instant remove of $i");
             particles.removeAt(i);
-          } else if (this.endAnimation == EndAnimation.FADE_OUT) {
+          } else if (this.endAnimation == EndAnimation.SCALE_DOWN) {
             if (particles[i]["radius"] < 0.01) {
               print("PARTICLE RADIUS ${particles[i]["radius"]}");
               particles.removeAt(i);
@@ -266,8 +269,8 @@ class ParticleEmitter extends CustomPainter {
       particles = tempArr;
 
       for (var j = 0; j < particles.length; j++) {
-        double randX = particles[j]["x"].abs() + (particles[j]["endPath"]["x"].abs() * particles[j]["delay"]).toDouble();
-        double randY = particles[j]["y"].abs() + (particles[j]["endPath"]["y"].abs() * particles[j]["delay"]).toDouble();
+        double randX = particles[j]["x"].abs() + (particles[j]["endPath"]["x"].abs() * particles[j]["speed"]).toDouble();
+        double randY = particles[j]["y"].abs() + (particles[j]["endPath"]["y"].abs() * particles[j]["speed"]).toDouble();
         int signX = particles[j]["endPath"]["x"] < 0 ? -1 : 1;
         int signY = particles[j]["endPath"]["y"] < 0 ? -1 : 1;
         //print("$signX, $signY");
@@ -284,18 +287,19 @@ class ParticleEmitter extends CustomPainter {
 
   /// Continuous explode
   void drawContinuousExplode() {
-    print("continuous explode ${particles.length} $minParticles");
+    //print("continuous explode ${particles.length} $minParticles");
 
     if (particles.length < minParticles) {
       // add more
       for (var i = 0; i < (minParticles - particles.length); i++) {
-        double delay = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
+        double speed = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
         double rand = 0;
         double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
         double _radius = randomizeRadius();
         Map<String, double> endPath = randomPointOnRadius();
         //drawCircle(Offset(randX, -rand), _radius.toDouble(), painter);
-        particles.add({"x": randX, "y": -rand, "radius": _radius, "delay": delay, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch, "current": DateTime.now().millisecondsSinceEpoch + 100 * i});
+        particles.add(
+            {"x": randX, "y": -rand, "radius": _radius, "speed": speed, "endPath": endPath, "timeAlive": DateTime.now().millisecondsSinceEpoch, "current": DateTime.now().millisecondsSinceEpoch + 100 * i, "renderDelay": 0, "opacity": 1.0});
       }
     }
 
@@ -307,12 +311,19 @@ class ParticleEmitter extends CustomPainter {
         if (this.endAnimation == EndAnimation.INSTANT) {
           print("remove $i ${particles.length}");
           particles.removeAt(i);
-        } else if (this.endAnimation == EndAnimation.FADE_OUT) {
+        } else if (this.endAnimation == EndAnimation.SCALE_DOWN) {
           if (particles[i]["radius"] < 0.01) {
             // print("PARTICLE RADIUS ${particles[i]["radius"]}");
             particles.removeAt(i);
           } else {
             particles[i]["radius"] -= 0.25;
+            tempArr.add(particles[i]);
+          }
+        } else if (this.endAnimation == EndAnimation.FADE_OUT) {
+          particles[i]["opacity"] -= 0.1;
+          if (particles[i]["opacity"] < 0) {
+            particles.removeAt(i);
+          } else {
             tempArr.add(particles[i]);
           }
         }
@@ -325,16 +336,28 @@ class ParticleEmitter extends CustomPainter {
     particles = tempArr;
 
     for (var j = 0; j < particles.length; j++) {
-      double randX = particles[j]["x"].abs() + (particles[j]["endPath"]["x"].abs() * particles[j]["delay"]).toDouble();
-      double randY = particles[j]["y"].abs() + (particles[j]["endPath"]["y"].abs() * particles[j]["delay"]).toDouble();
-      int signX = particles[j]["endPath"]["x"] < 0 ? -1 : 1;
-      int signY = particles[j]["endPath"]["y"] < 0 ? -1 : 1;
-      //print("$signX, $signY");
-      particles[j]["x"] = randX * signX;
-      particles[j]["y"] = (randY * signY);
-      particles[j]["timeAlive"] = DateTime.now().millisecondsSinceEpoch;
-      //drawCircle(Offset(particles[j]["x"].toDouble(), particles[j]["y"].toDouble()), particles[j]["radius"], painter);
-      drawShape(this.type, particles[j]["radius"], Offset(particles[j]["x"].toDouble(), particles[j]["y"].toDouble()));
+      //print(particles[j]["renderDelay"]);
+      if (particles[j]["renderDelay"] <= 0) {
+        double randX = particles[j]["x"].abs() + (particles[j]["endPath"]["x"].abs() * particles[j]["speed"]).toDouble();
+        double randY = particles[j]["y"].abs() + (particles[j]["endPath"]["y"].abs() * particles[j]["speed"]).toDouble();
+        int signX = particles[j]["endPath"]["x"] < 0 ? -1 : 1;
+        int signY = particles[j]["endPath"]["y"] < 0 ? -1 : 1;
+        //print("$signX, $signY");
+        particles[j]["x"] = randX * signX;
+        particles[j]["y"] = (randY * signY);
+        particles[j]["timeAlive"] = DateTime.now().millisecondsSinceEpoch;
+        if (this.endAnimation == EndAnimation.FADE_OUT) {
+          int opacity = (particles[j]["opacity"] * 255).floor();
+
+          this.painter = Paint()
+            ..color = this.color.withAlpha(opacity)
+            ..blendMode = this.blendMode
+            ..style = PaintingStyle.fill;
+        }
+        drawShape(this.type, particles[j]["radius"], Offset(particles[j]["x"].toDouble(), particles[j]["y"].toDouble()));
+      } else {
+        particles[j]["renderDelay"] -= doubleInRange(0.01, 0.1);
+      }
     }
   }
 
