@@ -31,3 +31,25 @@ painter: ParticleEmitter(
                               hasBase: false,
                               blendMode: BlendMode.lighten))))
 ```
+
+// fire
+```
+ painter: ParticleEmitter(
+                              listenable: _controller,
+                              controller: _controller,
+                              particleSize: Size(50, 50),
+                              minParticles: 30,
+                              center: Offset.zero,
+                              color: _color,
+                              radius: 10,
+                              type: ShapeType.Circle,
+                              endAnimation: EndAnimation.FADE_OUT,
+                              particleType: ParticleType.FIRE,
+                              spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                              minimumSpeed: 0.01,
+                              maximumSpeed: 0.1,
+                              timeToLive: {"min": 10, "max": 15},
+                              hasBase: true,
+                              blendMode: BlendMode.srcOver,
+                              delay: 5))))
+```
