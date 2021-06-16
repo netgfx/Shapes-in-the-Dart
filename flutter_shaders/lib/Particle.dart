@@ -8,11 +8,23 @@ class Particle {
   Map<String, double>? endPath;
   int timeAlive;
   int currentTime;
+  double timeToLive;
   double renderDelay = 0;
   double opacity = 1.0;
   Paint? painter;
 
-  Particle({required this.x, required this.y, required this.radius, required this.speed, this.endPath, required this.timeAlive, required this.currentTime, required this.renderDelay, required this.opacity, required this.painter}) {
+  Particle(
+      {required this.x,
+      required this.y,
+      required this.radius,
+      required this.speed,
+      this.endPath,
+      required this.timeAlive,
+      required this.currentTime,
+      required this.timeToLive,
+      required this.renderDelay,
+      required this.opacity,
+      required this.painter}) {
     //print("init particle");
   }
 
@@ -42,6 +54,10 @@ class Particle {
 
   int getTimeAlive() {
     return timeAlive;
+  }
+
+  double getTimeToLive() {
+    return timeToLive;
   }
 
   double getRenderDelay() {
