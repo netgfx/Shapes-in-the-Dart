@@ -38,7 +38,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
 
     MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
     // Curves.easeOutBack // explode
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 5));
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
     //_controller.repeat();
@@ -261,40 +261,47 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                           isComplex: true,
                           willChange: true,
                           child: Container(),
-                          painter: ParticleEmitter(
-                              listenable: _controller,
-                              controller: _controller,
-                              particleSize: Size(30, 30),
-                              minParticles: 50,
-                              center: Offset.zero,
-                              color: _color,
-                              radius: 10,
-                              type: ShapeType.Circle,
-                              endAnimation: EndAnimation.FADE_OUT,
-                              particleType: ParticleType.FIRE,
-                              spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-                              minimumSpeed: 0.4,
-                              maximumSpeed: 0.8,
-                              timeToLive: 500,
-                              hasBase: true,
-                              blendMode: BlendMode.softLight)
                           // painter: ParticleEmitter(
                           //     listenable: _controller,
                           //     controller: _controller,
-                          //     particleSize: Size(30, 30),
+                          //     particleSize: Size(50, 50),
                           //     minParticles: 50,
                           //     center: Offset.zero,
                           //     color: _color,
                           //     radius: 10,
                           //     type: ShapeType.Circle,
-                          //     endAnimation: EndAnimation.FADE_OUT,
-                          //     particleType: ParticleType.EXPLODE,
-                          //     spreadBehaviour: SpreadBehaviour.ONE_TIME,
-                          //     minimumSpeed: 0.4,
-                          //     maximumSpeed: 0.8,
-                          //     timeToLive: 400,
-                          //     hasBase: false)
-                          ))),
+                          //     endAnimation: EndAnimation.SCALE_DOWN,
+                          //     particleType: ParticleType.FIRE,
+                          //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                          //     minimumSpeed: 0.1,
+                          //     maximumSpeed: 0.2,
+                          //     timeToLive: {"min": 50, "max": 250},
+                          //     hasBase: true,
+                          //     blendMode: BlendMode.srcOver,
+                          //     delay: 2)
+                          //
+                          // FOUNTAIN
+                          //
+                          painter: ParticleEmitter(
+                              listenable: _controller,
+                              controller: _controller,
+                              particleSize: Size(50, 50),
+                              minParticles: 30,
+                              center: Offset.zero,
+                              color: _color,
+                              radius: 10,
+                              type: ShapeType.Circle,
+                              endAnimation: EndAnimation.SCALE_DOWN,
+                              particleType: ParticleType.FOUNTAIN,
+                              spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                              minimumSpeed: 0.01,
+                              maximumSpeed: 0.1,
+                              timeToLive: {"min": 800, "max": 1200},
+                              hasBase: false,
+                              blendMode: BlendMode.srcOver,
+                              hasWalls: true,
+                              wallsObj: {"bottom": (viewportConstraints.maxHeight - particlePoint.dy).toInt()},
+                              delay: 2)))),
             ]),
           );
         }));
