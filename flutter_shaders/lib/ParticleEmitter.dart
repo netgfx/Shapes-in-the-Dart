@@ -305,7 +305,6 @@ class ParticleEmitter extends CustomPainter {
       }
     }
 
-    print("REMAINING: ${particles.length}");
     //particles.clear();
     particles = tempArr;
 
@@ -324,7 +323,7 @@ class ParticleEmitter extends CustomPainter {
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }
-        drawCircle(Offset(particles[j].getX().toDouble(), rand), particles[j].getRadius(), painter);
+        drawShape(this.type, particles[j].getRadius(), Offset(particles[j].getX().toDouble(), particles[j].getY().toDouble()));
       } else {
         particles[j].renderDelay -= doubleInRange(0.01, 0.1);
       }
