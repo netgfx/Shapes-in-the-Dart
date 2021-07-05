@@ -25,7 +25,13 @@ dependencies:
   fast_poisson_disk_sampling: ^1.0.2
   rflutter_alert: ^2.0.2
   lottie: ^1.0.1
-  image: ^3.0.2
+  # image: ^3.0.2
+  path_provider: ^2.0.2
+  flutter_native_image: ^0.0.6+1
+  # flutter_native_image:
+  #   git:
+  #     url: https://github.com/netgfx/flutter_native_image.git
+  #     ref: master
   flutter:
     sdk: flutter
 

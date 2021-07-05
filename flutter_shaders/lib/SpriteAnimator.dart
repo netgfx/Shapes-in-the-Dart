@@ -52,7 +52,7 @@ class SpriteAnimator extends CustomPainter {
         }
       }
     } else {
-      print("no loop");
+      //print("no loop");
       canvas.drawImage(images[this.currentImageIndex], new Offset(0.0, 0.0), new Paint());
     }
   }

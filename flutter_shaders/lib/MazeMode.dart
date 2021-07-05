@@ -10,6 +10,8 @@ import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
+import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:path_provider/path_provider.dart';
 
 import 'MazeGeneratorV2.dart';
 import 'ShapeMaster.dart';
@@ -58,9 +60,45 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
         imagePaths.add("assets/monster/monster1_0" + i.toString() + ".png");
       }
     }
-    loadImages(imagePaths);
+
+    //loadImages(imagePaths);
+    loadSpriteImage();
 
     print(mazeData);
+  }
+
+  void loadSpriteImage() async {
+    final ByteData data = await rootBundle.load('assets/monster1.png');
+    print(" >>>> BYTE DATA: ${data.buffer.asUint8List()}");
+    Image memImg = Image.memory(data.buffer.asUint8List());
+
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    File path = await writeToFile(data, '$dir/monster1.png');
+    print("$path, ${path.path}");
+    File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, 0, 0, 192, 212);
+
+    //print("${croppedFile.readAsBytesSync()}");
+    Uint8List bytes = croppedFile.readAsBytesSync();
+    //Image imgData = Image.file(croppedFile);
+    ui.Image image = await loadImage(bytes);
+    spriteImages.add(image);
+    if (mounted) {
+      setState(() => {testImage = bytes});
+    }
+    //ui.decodeImageFromList(imgData, (result) {
+    //spriteImages.add(imgData);
+    //print(result);
+    //var testImg = (result).toByteData(format: ui.ImageByteFormat.png);
+    // testImg.then((value) => {
+    //       setState(() => {testImage = value!.buffer.asUint8List()})
+    //     });
+    // });
+  }
+
+//write to app path
+  Future<File> writeToFile(ByteData data, String path) {
+    final buffer = data.buffer;
+    return new File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
   @override
@@ -125,7 +163,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     return finalList;
   }
 
-  void loadImages(List<String> data) async {
+  Future<void> loadImages(List<String> data) async {
     var futures = <Future<ui.Image>>[];
     print(rootBundle.toString());
     for (var d in data) {
@@ -269,7 +307,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
               spriteImages.length > 0
                   ? CustomPaint(
                       size: Size.infinite,
-                      painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
+                      painter: SpriteAnimator(controller: _controller, loop: false, images: spriteImages, fps: 1, currentImageIndex: 0),
                     )
                   : Container(),
               ShaderMask(
