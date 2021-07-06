@@ -39,6 +39,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   Offset particlePoint = Offset(0, 0);
   Color _color = Colors.green;
   final _random = new Random();
+  int sliceWidth = 192;
+  int sliceHeight = 212;
   late Uint8List testImage;
   @override
   void initState() {
@@ -69,21 +71,31 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
 
   void loadSpriteImage() async {
     final ByteData data = await rootBundle.load('assets/monster1.png');
-    print(" >>>> BYTE DATA: ${data.buffer.asUint8List()}");
-    Image memImg = Image.memory(data.buffer.asUint8List());
 
     String dir = (await getApplicationDocumentsDirectory()).path;
     File path = await writeToFile(data, '$dir/monster1.png');
-    print("$path, ${path.path}");
-    File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, 0, 0, 192, 212);
 
-    //print("${croppedFile.readAsBytesSync()}");
-    Uint8List bytes = croppedFile.readAsBytesSync();
-    //Image imgData = Image.file(croppedFile);
-    ui.Image image = await loadImage(bytes);
-    spriteImages.add(image);
+    uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
+    print("${props.width} ${props.height}");
+    if (props.width != null) {
+      for (var i = 0; i < props.width! / sliceWidth; i++) {
+        File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
+
+        Uint8List bytes = croppedFile.readAsBytesSync();
+        ui.Image image = await loadImage(bytes);
+        spriteImages.add(image);
+      }
+    }
+
     if (mounted) {
-      setState(() => {testImage = bytes});
+      setState(() => {});
+    }
+
+    try {
+      await path.delete(recursive: false);
+      print("deleted file");
+    } catch (e) {
+      print("error");
     }
     //ui.decodeImageFromList(imgData, (result) {
     //spriteImages.add(imgData);
@@ -305,10 +317,13 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             child: Stack(children: [
               //Image.asset("assets/mage1.png"),
               spriteImages.length > 0
-                  ? CustomPaint(
-                      size: Size.infinite,
-                      painter: SpriteAnimator(controller: _controller, loop: false, images: spriteImages, fps: 1, currentImageIndex: 0),
-                    )
+                  ? Positioned(
+                      left: viewportConstraints.maxWidth * 0.5 - sliceWidth * 0.5,
+                      top: viewportConstraints.maxHeight * 0.5 - sliceHeight * 0.5,
+                      child: CustomPaint(
+                        size: Size.infinite,
+                        painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
+                      ))
                   : Container(),
               ShaderMask(
                   shaderCallback: (Rect bounds) {
