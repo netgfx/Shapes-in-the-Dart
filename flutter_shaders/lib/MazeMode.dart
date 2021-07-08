@@ -1,11 +1,18 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
+import 'package:flutter_shaders/SpriteAnimator.dart';
+import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:path_provider/path_provider.dart';
 
 import 'MazeGeneratorV2.dart';
 import 'ShapeMaster.dart';
@@ -24,6 +31,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   List<DrawingPoints?> points = [];
   bool showBottomList = false;
   double opacity = 1.0;
+  List<ui.Image> spriteImages = [];
   StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
   SelectedMode selectedMode = SelectedMode.StrokeWidth;
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
@@ -32,6 +40,9 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   Offset particlePoint = Offset(0, 0);
   Color _color = Colors.green;
   final _random = new Random();
+  int sliceWidth = 192;
+  int sliceHeight = 212;
+  late Uint8List testImage;
   @override
   void initState() {
     super.initState();
@@ -41,11 +52,88 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
-    //_controller.repeat();
+    _controller.repeat();
     //_controller.forward();
     mazeData = mzg.init();
+    List<String> imagePaths = [];
+    for (var i = 1; i < 19; i++) {
+      if (i >= 10) {
+        imagePaths.add("assets/monster/monster1_" + i.toString() + ".png");
+      } else {
+        imagePaths.add("assets/monster/monster1_0" + i.toString() + ".png");
+      }
+    }
+
+    //loadImages(imagePaths);
+    loadSpriteImage();
+    var data = loadJsonData();
+    data.then((value) => {parseJSON(value)});
 
     print(mazeData);
+  }
+
+  void loadSpriteImage() async {
+    final ByteData data = await rootBundle.load('assets/monster1.png');
+
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    File path = await writeToFile(data, '$dir/monster1.png');
+
+    uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
+    print("${props.width} ${props.height}");
+    if (props.width != null) {
+      for (var i = 0; i < props.width! / sliceWidth; i++) {
+        File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
+
+        Uint8List bytes = croppedFile.readAsBytesSync();
+        ui.Image image = await loadImage(bytes);
+        spriteImages.add(image);
+      }
+    }
+
+    if (mounted) {
+      setState(() => {});
+    }
+
+    try {
+      await path.delete(recursive: false);
+      print("deleted file");
+    } catch (e) {
+      print("error");
+    }
+    //ui.decodeImageFromList(imgData, (result) {
+    //spriteImages.add(imgData);
+    //print(result);
+    //var testImg = (result).toByteData(format: ui.ImageByteFormat.png);
+    // testImg.then((value) => {
+    //       setState(() => {testImage = value!.buffer.asUint8List()})
+    //     });
+    // });
+  }
+
+  Future<Map<String, dynamic>> loadJsonData() async {
+    var jsonText = await rootBundle.loadString('assets/flying_monster');
+    Map<String, dynamic> data = json.decode(jsonText);
+    return data;
+  }
+
+  List<Map<String, dynamic>> parseJSON(Map<String, dynamic> data) {
+    List<Map<String, dynamic>> sprites = [];
+    data["frames"].forEach((key, value) {
+      final frameData = value['frame'];
+      final int x = frameData['x'];
+      final int y = frameData['y'];
+      final int width = frameData['w'];
+      final int height = frameData['h'];
+      sprites.add({"x": x, "y": y, "width": width, "height": height});
+    });
+
+    return sprites;
+  }
+
+//write to app path
+  Future<File> writeToFile(ByteData data, String path) {
+    final buffer = data.buffer;
+    return new File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
   @override
@@ -108,6 +196,42 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     }
 
     return finalList;
+  }
+
+  Future<void> loadImages(List<String> data) async {
+    var futures = <Future<ui.Image>>[];
+    print(rootBundle.toString());
+    for (var d in data) {
+      final ByteData data = await rootBundle.load(d);
+      Future<ui.Image> image = loadImage(new Uint8List.view(data.buffer));
+      futures.add(image);
+    }
+    //Image memImg;
+    Future<ByteData?> bits;
+
+    var callback = Future.wait(futures);
+    callback.then((values) => {
+          bits = values[0].toByteData(format: ui.ImageByteFormat.png),
+          bits.then((value) => {
+                //memImg = Image.memory(value!.buffer.asUint8List()),
+
+                if (mounted)
+                  {
+                    spriteImages = values,
+                    print("setting image $value"),
+                    setState(() => {testImage = value!.buffer.asUint8List()})
+                  }
+              })
+        });
+  }
+
+  Future<ui.Image> loadImage(Uint8List img) async {
+    final Completer<ui.Image> completer = new Completer();
+
+    ui.decodeImageFromList(img, (ui.Image img) {
+      return completer.complete(img);
+    });
+    return completer.future;
   }
 
   @override
@@ -214,6 +338,16 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             //   });
             // },
             child: Stack(children: [
+              //Image.asset("assets/mage1.png"),
+              spriteImages.length > 0
+                  ? Positioned(
+                      left: viewportConstraints.maxWidth * 0.5 - sliceWidth * 0.5,
+                      top: viewportConstraints.maxHeight * 0.5 - sliceHeight * 0.5,
+                      child: CustomPaint(
+                        size: Size.infinite,
+                        painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
+                      ))
+                  : Container(),
               ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(
@@ -231,6 +365,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                       color: Colors.transparent,
                       clipBehavior: Clip.none,
                     ),
+
                     // mazeData != null
                     //     ? Padding(
                     //         padding: EdgeInsets.only(top: 50, left: 5),
@@ -253,55 +388,55 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     //   ),
                     // ),
                   ])),
-              Transform.translate(
-                  offset: particlePoint,
-                  child: RepaintBoundary(
-                      child: CustomPaint(
-                          key: UniqueKey(),
-                          isComplex: true,
-                          willChange: true,
-                          child: Container(),
-                          // painter: ParticleEmitter(
-                          //     listenable: _controller,
-                          //     controller: _controller,
-                          //     particleSize: Size(50, 50),
-                          //     minParticles: 50,
-                          //     center: Offset.zero,
-                          //     color: _color,
-                          //     radius: 10,
-                          //     type: ShapeType.Circle,
-                          //     endAnimation: EndAnimation.SCALE_DOWN,
-                          //     particleType: ParticleType.FIRE,
-                          //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-                          //     minimumSpeed: 0.1,
-                          //     maximumSpeed: 0.2,
-                          //     timeToLive: {"min": 50, "max": 250},
-                          //     hasBase: true,
-                          //     blendMode: BlendMode.srcOver,
-                          //     delay: 2)
-                          //
-                          // FOUNTAIN
-                          //
-                          painter: ParticleEmitter(
-                              listenable: _controller,
-                              controller: _controller,
-                              particleSize: Size(50, 50),
-                              minParticles: 30,
-                              center: Offset.zero,
-                              color: _color,
-                              radius: 10,
-                              type: ShapeType.Circle,
-                              endAnimation: EndAnimation.SCALE_DOWN,
-                              particleType: ParticleType.FOUNTAIN,
-                              spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-                              minimumSpeed: 0.01,
-                              maximumSpeed: 0.1,
-                              timeToLive: {"min": 800, "max": 1200},
-                              hasBase: false,
-                              blendMode: BlendMode.srcOver,
-                              hasWalls: true,
-                              wallsObj: {"bottom": (viewportConstraints.maxHeight - particlePoint.dy).toInt()},
-                              delay: 2)))),
+              // Transform.translate(
+              //     offset: particlePoint,
+              //     child: RepaintBoundary(
+              //         child: CustomPaint(
+              //             key: UniqueKey(),
+              //             isComplex: true,
+              //             willChange: true,
+              //             child: Container(),
+              //             // painter: ParticleEmitter(
+              //             //     listenable: _controller,
+              //             //     controller: _controller,
+              //             //     particleSize: Size(50, 50),
+              //             //     minParticles: 50,
+              //             //     center: Offset.zero,
+              //             //     color: _color,
+              //             //     radius: 10,
+              //             //     type: ShapeType.Circle,
+              //             //     endAnimation: EndAnimation.SCALE_DOWN,
+              //             //     particleType: ParticleType.FIRE,
+              //             //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+              //             //     minimumSpeed: 0.1,
+              //             //     maximumSpeed: 0.2,
+              //             //     timeToLive: {"min": 50, "max": 250},
+              //             //     hasBase: true,
+              //             //     blendMode: BlendMode.srcOver,
+              //             //     delay: 2)
+              //             //
+              //             // FOUNTAIN
+              //             //
+              //             painter: ParticleEmitter(
+              //                 listenable: _controller,
+              //                 controller: _controller,
+              //                 particleSize: Size(50, 50),
+              //                 minParticles: 30,
+              //                 center: Offset.zero,
+              //                 color: _color,
+              //                 radius: 10,
+              //                 type: ShapeType.Circle,
+              //                 endAnimation: EndAnimation.SCALE_DOWN,
+              //                 particleType: ParticleType.FOUNTAIN,
+              //                 spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+              //                 minimumSpeed: 0.01,
+              //                 maximumSpeed: 0.1,
+              //                 timeToLive: {"min": 800, "max": 1200},
+              //                 hasBase: false,
+              //                 blendMode: BlendMode.srcOver,
+              //                 hasWalls: true,
+              //                 wallsObj: {"bottom": (viewportConstraints.maxHeight - particlePoint.dy).toInt()},
+              //                 delay: 2)))),
             ]),
           );
         }));
