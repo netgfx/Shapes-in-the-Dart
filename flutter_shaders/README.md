@@ -1,6 +1,10 @@
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/organization/repository)
+
 # flutter_shaders
 
-A new Flutter project.
+Experiments with Shaders, Custom Draw, Canvas and Sprites
+
+
 
 ## Getting Started
 

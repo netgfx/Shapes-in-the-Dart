@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -65,6 +66,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
 
     //loadImages(imagePaths);
     loadSpriteImage();
+    var data = loadJsonData();
+    data.then((value) => {parseJSON(value)});
 
     print(mazeData);
   }
@@ -105,6 +108,26 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     //       setState(() => {testImage = value!.buffer.asUint8List()})
     //     });
     // });
+  }
+
+  Future<Map<String, dynamic>> loadJsonData() async {
+    var jsonText = await rootBundle.loadString('assets/flying_monster');
+    Map<String, dynamic> data = json.decode(jsonText);
+    return data;
+  }
+
+  List<Map<String, dynamic>> parseJSON(Map<String, dynamic> data) {
+    List<Map<String, dynamic>> sprites = [];
+    data["frames"].forEach((key, value) {
+      final frameData = value['frame'];
+      final int x = frameData['x'];
+      final int y = frameData['y'];
+      final int width = frameData['w'];
+      final int height = frameData['h'];
+      sprites.add({"x": x, "y": y, "width": width, "height": height});
+    });
+
+    return sprites;
   }
 
 //write to app path
