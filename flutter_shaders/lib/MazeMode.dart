@@ -65,18 +65,19 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     }
 
     //loadImages(imagePaths);
-    loadSpriteImage();
+    List<Map<String, dynamic>> spriteData;
     var data = loadJsonData();
-    data.then((value) => {parseJSON(value)});
+    data.then((value) => {spriteData = parseJSON(value)});
+    loadSpriteImage(null, 'assets/monster1.png');
 
     print(mazeData);
   }
 
-  void loadSpriteImage() async {
-    final ByteData data = await rootBundle.load('assets/monster1.png');
+  void loadSpriteImage(List<Map<String, dynamic>>? spriteData, String spriteTexture) async {
+    final ByteData data = await rootBundle.load(spriteTexture);
 
     String dir = (await getApplicationDocumentsDirectory()).path;
-    File path = await writeToFile(data, '$dir/monster1.png');
+    File path = await writeToFile(data, '$dir/tempfile1.png');
 
     uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
     print("${props.width} ${props.height}");
@@ -92,14 +93,17 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
 
     if (mounted) {
       setState(() => {});
+
+      try {
+        if (spriteImages.length > 0) {
+          await path.delete(recursive: false);
+        }
+        print("deleted file");
+      } catch (e) {
+        print("error");
+      }
     }
 
-    try {
-      await path.delete(recursive: false);
-      print("deleted file");
-    } catch (e) {
-      print("error");
-    }
     //ui.decodeImageFromList(imgData, (result) {
     //spriteImages.add(imgData);
     //print(result);
@@ -111,7 +115,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   }
 
   Future<Map<String, dynamic>> loadJsonData() async {
-    var jsonText = await rootBundle.loadString('assets/flying_monster');
+    var jsonText = await rootBundle.loadString('assets/flying_monster.json');
     Map<String, dynamic> data = json.decode(jsonText);
     return data;
   }
@@ -127,6 +131,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
       sprites.add({"x": x, "y": y, "width": width, "height": height});
     });
 
+    print(sprites);
     return sprites;
   }
 
@@ -344,7 +349,6 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                       left: viewportConstraints.maxWidth * 0.5 - sliceWidth * 0.5,
                       top: viewportConstraints.maxHeight * 0.5 - sliceHeight * 0.5,
                       child: CustomPaint(
-                        size: Size.infinite,
                         painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
                       ))
                   : Container(),
