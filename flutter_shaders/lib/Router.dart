@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_shaders/BlendModeView.dart';
 import 'package:flutter_shaders/MazeMode.dart';
 import 'Menu.dart';
 import 'main.dart';
@@ -10,6 +11,9 @@ Map<String, Widget Function(BuildContext)> routes = {
       ),
   // When navigating to the "/second" route, build the SecondScreen widget.
   'MazeMode': (context) => MazeMode(
+        key: UniqueKey(),
+      ),
+  'BlendMode': (context) => BlendModeView(
         key: UniqueKey(),
       ),
   'Menu': (context) => Menu(

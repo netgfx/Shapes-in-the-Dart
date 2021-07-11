@@ -4,7 +4,7 @@
 
 Experiments with Shaders, Custom Draw, Canvas and Sprites
 
-
+- To run the blend mode set `initialRoute: "BlendMode",` on `main.dart`
 
 ## Getting Started
 
