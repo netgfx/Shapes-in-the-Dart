@@ -10,6 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 import 'package:image/image.dart' as libImage;
 import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 class BlendModeView extends StatefulWidget {
   BlendModeView({Key? key}) : super(key: key);
@@ -23,6 +24,8 @@ class _BlendModeViewState extends State<BlendModeView> {
   String logoImage = "assets/logo.png";
   double _currentSliderValue = 100;
   late File tempPath;
+  late File _image;
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -70,7 +73,7 @@ class _BlendModeViewState extends State<BlendModeView> {
 
   void resizePatImage() async {
     //print("resize run $logoImage");
-    if (logoImage != null) {
+    if (patImage != null) {
       Uint8List bytes = await tempPath.readAsBytes();
 
       int w = (1024 * _currentSliderValue / 100).round();
@@ -94,57 +97,116 @@ class _BlendModeViewState extends State<BlendModeView> {
     return result;
   }
 
-  // Future<ui.Image?> getPatImage(ui.Image img) async {
-  //   var bytes = await img.toByteData();
+  void _showPicker(context) {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext bc) {
+          return SafeArea(
+            child: Container(
+              child: new Wrap(
+                children: <Widget>[
+                  new ListTile(
+                      leading: new Icon(Icons.photo_library),
+                      title: new Text('Photo Library'),
+                      onTap: () {
+                        _imgFromGallery();
+                        Navigator.of(context).pop();
+                      }),
+                  new ListTile(
+                    leading: new Icon(Icons.photo_camera),
+                    title: new Text('Camera'),
+                    onTap: () {
+                      _imgFromCamera();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
 
-  //   if (bytes != null) {
-  //     ImageProvider imgProv = MemoryImage(bytes!.buffer.asUint8List());
-  //     Image final = Image(image: ResizeImage(imgProv, width: (600 * _currentSliderValue / 100).round(), height: (800 * _currentSliderValue / 100).round()));
-  //     return final;
-  //   } else {
-  //     return null;
-  //   }
-  // }
+  _imgFromCamera() async {
+    final PickedFile? image = await _picker.getImage(source: ImageSource.camera, imageQuality: 50);
+    if (image == null) {
+      return;
+    }
+    tempPath = File(image.path);
+    Uint8List finalImage = await image.readAsBytes();
+    Uint8List list = await testComporessList(finalImage, 1024, 1024);
+    ui.decodeImageFromList(list, (result) {
+      setState(() {
+        patImage = result;
+      });
+    });
+  }
+
+  _imgFromGallery() async {
+    final PickedFile? image = await _picker.getImage(source: ImageSource.gallery, imageQuality: 50);
+    if (image == null) {
+      return;
+    }
+    tempPath = File(image.path);
+    Uint8List finalImage = await image.readAsBytes();
+    Uint8List list = await testComporessList(finalImage, 1024, 1024);
+    ui.decodeImageFromList(list, (result) {
+      setState(() {
+        patImage = result;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white10,
         body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
-          return GestureDetector(
-              onTapDown: (details) {},
-              child: Stack(fit: StackFit.expand, children: [
-                ShaderMask(
-                    shaderCallback: (Rect bounds) {
-                      print(">>>>>> $patImage");
-                      return patImage != null
-                          ? ImageShader(patImage!, TileMode.repeated, TileMode.repeated, Float64List.fromList(Matrix4.identity().storage))
-                          : RadialGradient(
-                              radius: 100,
-                              center: Alignment.topCenter,
-                              colors: <Color>[Colors.deepPurple, Colors.black87],
-                              tileMode: TileMode.clamp,
-                            ).createShader(bounds);
-                    },
-                    blendMode: BlendMode.srcATop,
-                    child: Stack(children: [
-                      //Image.asset("assets/pat/pat1.png"),
-                      // Container(
-                      //   width: viewportConstraints.maxWidth,
-                      //   height: viewportConstraints.maxHeight,
-                      //   color: Colors.red,
-                      //   clipBehavior: Clip.none,
-                      // ),
-                      Image(
-                        image: AssetImage(logoImage),
-                        fit: BoxFit.fill,
-                      ),
-                    ])),
-                Positioned(
-                    top: 600,
-                    left: 50,
+          return Stack(fit: StackFit.expand, children: [
+            ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  print(">>>>>> $patImage");
+                  return patImage != null
+                      ? ImageShader(patImage!, TileMode.repeated, TileMode.repeated, Float64List.fromList(Matrix4.identity().storage))
+                      : RadialGradient(
+                          radius: 100,
+                          center: Alignment.topCenter,
+                          colors: <Color>[Colors.deepPurple, Colors.black87],
+                          tileMode: TileMode.clamp,
+                        ).createShader(bounds);
+                },
+                blendMode: BlendMode.srcATop,
+                child: Stack(children: [
+                  Image(
+                    image: AssetImage(logoImage),
+                    fit: BoxFit.fill,
+                  ),
+                ])),
+            Positioned(
+                top: 600,
+                left: 20,
+                right: 20,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                      child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: viewportConstraints.maxWidth - 200, maxHeight: 50),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        GestureDetector(
+                            onTap: () {
+                              _showPicker(context);
+                            },
+                            child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: Image.asset("assets/upload.png"),
+                            )),
+                        SizedBox(
+                          width: 10,
+                        ),
                         GestureDetector(
                             onTap: () {
                               loadPatImage("assets/pat/pat1.png");
@@ -215,24 +277,26 @@ class _BlendModeViewState extends State<BlendModeView> {
                               child: Image.asset("assets/pat/pat6.jpg"),
                             ))
                       ],
-                    )),
-                Positioned(
-                    bottom: 50,
-                    child: SizedBox(
-                        width: viewportConstraints.maxWidth,
-                        child: Slider(
-                            value: _currentSliderValue,
-                            min: 10,
-                            max: 100,
-                            divisions: 5,
-                            label: _currentSliderValue.round().toString(),
-                            onChanged: (double value) {
-                              setState(() {
-                                _currentSliderValue = value;
-                              });
-                              resizePatImage();
-                            }))),
-              ]));
+                    ),
+                  )),
+                )),
+            Positioned(
+                bottom: 50,
+                child: SizedBox(
+                    width: viewportConstraints.maxWidth,
+                    child: Slider(
+                        value: _currentSliderValue,
+                        min: 10,
+                        max: 100,
+                        divisions: 5,
+                        label: _currentSliderValue.round().toString(),
+                        onChanged: (double value) {
+                          setState(() {
+                            _currentSliderValue = value;
+                          });
+                          resizePatImage();
+                        }))),
+          ]);
         }));
   }
 }

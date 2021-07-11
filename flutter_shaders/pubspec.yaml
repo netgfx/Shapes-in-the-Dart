@@ -29,6 +29,7 @@ dependencies:
   flutter_image_compress: ^1.0.0
   path_provider: ^2.0.2
   flutter_native_image: ^0.0.6+1
+  image_picker: ^0.8.1+3
   # flutter_native_image:
   #   git:
   #     url: https://github.com/netgfx/flutter_native_image.git
