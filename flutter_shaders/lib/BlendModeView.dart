@@ -69,7 +69,7 @@ class _BlendModeViewState extends State<BlendModeView> {
   }
 
   void resizePatImage() async {
-    print("resize run $logoImage");
+    //print("resize run $logoImage");
     if (logoImage != null) {
       Uint8List bytes = await tempPath.readAsBytes();
 
@@ -89,8 +89,8 @@ class _BlendModeViewState extends State<BlendModeView> {
 
   Future<Uint8List> testComporessList(Uint8List list, int width, int height) async {
     var result = await FlutterImageCompress.compressWithList(list, minHeight: width, minWidth: height, format: CompressFormat.png);
-    print(list.length);
-    print(result.length);
+    //print(list.length);
+    //print(result.length);
     return result;
   }
 
@@ -201,6 +201,18 @@ class _BlendModeViewState extends State<BlendModeView> {
                               width: 50,
                               height: 50,
                               child: Image.asset("assets/pat/pat5.png"),
+                            )),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        GestureDetector(
+                            onTap: () {
+                              loadPatImage("assets/pat/pat6.jpg");
+                            },
+                            child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: Image.asset("assets/pat/pat6.jpg"),
                             ))
                       ],
                     )),
