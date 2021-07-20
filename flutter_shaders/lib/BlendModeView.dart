@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
@@ -8,7 +9,6 @@ import 'package:flutter/widgets.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
-import 'package:image/image.dart' as libImage;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -24,16 +24,20 @@ class _BlendModeViewState extends State<BlendModeView> {
   String logoImage = "assets/logo.png";
   double _currentSliderValue = 100;
   late File tempPath;
-  late File _image;
   final _picker = ImagePicker();
+  Map<String, dynamic> cachedPatterns = {};
+  List<String> patterns = [];
 
   @override
   void initState() {
     super.initState();
 
+    /// let's preload our pattern images
+    preCacheImages();
     loadPatImage("assets/pat/pat1.png");
   }
 
+  /// initial load of image
   void loadPatImage(String path) async {
     ui.Image tempImg = await getImage(path);
 
@@ -45,6 +49,16 @@ class _BlendModeViewState extends State<BlendModeView> {
     }
   }
 
+  void preCacheImages() async {
+    final manifestJson = await DefaultAssetBundle.of(context).loadString('AssetManifest.json');
+    final images = json.decode(manifestJson).keys.where((String key) => key.startsWith('assets/pat'));
+
+    print(images);
+  }
+
+  /// load the image then write it on a `tempfile1.png` file
+  /// on application documents directory
+  /// we do this to be able to use the native_image package to manipulate the image data
   Future<ui.Image> getImage(String path) async {
     final ByteData data = await rootBundle.load(path);
     ui.Image image = await loadImage(new Uint8List.view(data.buffer));
@@ -62,25 +76,30 @@ class _BlendModeViewState extends State<BlendModeView> {
     return new File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
+  /// load an image from byte list
   Future<ui.Image> loadImage(Uint8List img) async {
     final Completer<ui.Image> completer = new Completer();
 
+    /// create a ui.Image object
     ui.decodeImageFromList(img, (ui.Image img) {
       return completer.complete(img);
     });
     return completer.future;
   }
 
+  /// Resize the patterns image
   void resizePatImage() async {
-    //print("resize run $logoImage");
+    /// go forward if patImage is not null
     if (patImage != null) {
       Uint8List bytes = await tempPath.readAsBytes();
 
       int w = (1024 * _currentSliderValue / 100).round();
       int h = (1024 * _currentSliderValue / 100).round();
 
-      Uint8List list = await testComporessList(bytes, w, h);
+      /// compress the byte list
+      Uint8List list = await compressByteList(bytes, w, h);
 
+      /// create a ui.Image object
       ui.decodeImageFromList(list, (result) {
         print(result);
         setState(() {
@@ -90,13 +109,13 @@ class _BlendModeViewState extends State<BlendModeView> {
     }
   }
 
-  Future<Uint8List> testComporessList(Uint8List list, int width, int height) async {
+  Future<Uint8List> compressByteList(Uint8List list, int width, int height) async {
     var result = await FlutterImageCompress.compressWithList(list, minHeight: width, minWidth: height, format: CompressFormat.png);
-    //print(list.length);
-    //print(result.length);
+
     return result;
   }
 
+  /// show bottom picker UI
   void _showPicker(context) {
     showModalBottomSheet(
         context: context,
@@ -127,6 +146,7 @@ class _BlendModeViewState extends State<BlendModeView> {
         });
   }
 
+  /// load image from camera
   _imgFromCamera() async {
     final PickedFile? image = await _picker.getImage(source: ImageSource.camera, imageQuality: 50);
     if (image == null) {
@@ -134,7 +154,9 @@ class _BlendModeViewState extends State<BlendModeView> {
     }
     tempPath = File(image.path);
     Uint8List finalImage = await image.readAsBytes();
-    Uint8List list = await testComporessList(finalImage, 1024, 1024);
+
+    /// compress the image in dimensions
+    Uint8List list = await compressByteList(finalImage, 1024, 1024);
     ui.decodeImageFromList(list, (result) {
       setState(() {
         patImage = result;
@@ -142,6 +164,7 @@ class _BlendModeViewState extends State<BlendModeView> {
     });
   }
 
+  /// load image from gallery
   _imgFromGallery() async {
     final PickedFile? image = await _picker.getImage(source: ImageSource.gallery, imageQuality: 50);
     if (image == null) {
@@ -149,7 +172,9 @@ class _BlendModeViewState extends State<BlendModeView> {
     }
     tempPath = File(image.path);
     Uint8List finalImage = await image.readAsBytes();
-    Uint8List list = await testComporessList(finalImage, 1024, 1024);
+
+    /// compress the image in dimensions
+    Uint8List list = await compressByteList(finalImage, 1024, 1024);
     ui.decodeImageFromList(list, (result) {
       setState(() {
         patImage = result;
