@@ -20,7 +20,7 @@ class ParticleEmitter extends CustomPainter {
   Offset center = Offset(0, 0);
   double? angle = 0;
   List<Particle> particles = [];
-  Color color = Colors.orange;
+  Color? color = Colors.orange;
   int minParticles = 2;
   final _random = new Random();
   bool running = true;
@@ -71,14 +71,14 @@ class ParticleEmitter extends CustomPainter {
       : super(repaint: listenable) {
     /// initializer
     this.painter = Paint()
-      ..color = this.color
+      ..color = getColor(this.color)
       ..blendMode = this.blendMode
       ..style = PaintingStyle.fill;
 
     // time
     this.currentTime = 0;
 
-    if (this.particleType == ParticleType.EXPLODE && (this.spreadBehaviour == SpreadBehaviour.ONE_TIME || this.spreadBehaviour == SpreadBehaviour.CONTINUOUS)) {
+    if ((this.particleType == ParticleType.EXPLODE) && (this.spreadBehaviour == SpreadBehaviour.ONE_TIME || this.spreadBehaviour == SpreadBehaviour.CONTINUOUS)) {
       // then create some particles
       if (particles.length == 0) {
         for (var i = 0; i < minParticles; i++) {
@@ -90,7 +90,7 @@ class ParticleEmitter extends CustomPainter {
           Paint _painter = this.painter;
           if (this.endAnimation == EndAnimation.FADE_OUT) {
             _painter = Paint()
-              ..color = this.color
+              ..color = getColor(this.color)
               ..blendMode = this.blendMode
               ..style = PaintingStyle.fill;
           }
@@ -99,6 +99,7 @@ class ParticleEmitter extends CustomPainter {
               y: -rand,
               radius: _radius,
               speed: speed,
+              color: getColor(this.color),
               endPath: endPath,
               timeAlive: DateTime.now().millisecondsSinceEpoch,
               currentTime: this.currentTime,
@@ -108,6 +109,35 @@ class ParticleEmitter extends CustomPainter {
               painter: _painter));
         }
         //print(particles);
+      }
+    } else if (this.particleType == ParticleType.FOUNTAIN && this.spreadBehaviour == SpreadBehaviour.ONE_TIME) {
+      for (var i = 0; i < minParticles; i++) {
+        double speed = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
+        double rand = 0;
+        double randX = randomX();
+        double _radius = randomizeRadius();
+        Map<String, double> endPath = {"x": _random.nextDouble() * 10 - 5, "y": _random.nextDouble() * 10 - 10};
+        Paint _painter = this.painter;
+        if (this.endAnimation == EndAnimation.FADE_OUT) {
+          _painter = Paint()
+            ..color = getColor(this.color)
+            ..blendMode = this.blendMode
+            ..style = PaintingStyle.fill;
+        }
+
+        particles.add(new Particle(
+            x: randX,
+            y: -rand,
+            radius: _radius,
+            speed: speed,
+            color: getColor(this.color),
+            endPath: endPath,
+            timeAlive: DateTime.now().millisecondsSinceEpoch,
+            currentTime: DateTime.now().millisecondsSinceEpoch + 50 * i,
+            timeToLive: doubleInRange(this.timeToLive["min"]!.toDouble(), this.timeToLive["max"]!.toDouble()),
+            renderDelay: 0,
+            opacity: 1.0,
+            painter: _painter));
       }
     }
   }
@@ -122,6 +152,14 @@ class ParticleEmitter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
+  }
+
+  Color getColor(Color? color) {
+    if (color == null) {
+      return randomColor(1.0);
+    } else {
+      return color;
+    }
   }
 
   // MARK: Drawing
@@ -208,7 +246,9 @@ class ParticleEmitter extends CustomPainter {
     } else if (this.particleType == ParticleType.EXPLODE && this.spreadBehaviour == SpreadBehaviour.CONTINUOUS) {
       drawContinuousExplode();
     } else if (this.particleType == ParticleType.FOUNTAIN && this.spreadBehaviour == SpreadBehaviour.CONTINUOUS) {
-      drawFountainMode();
+      drawFountainMode(false);
+    } else if (this.particleType == ParticleType.FOUNTAIN && this.spreadBehaviour == SpreadBehaviour.ONE_TIME) {
+      drawFountainMode(true);
     }
   }
 
@@ -226,7 +266,7 @@ class ParticleEmitter extends CustomPainter {
         Paint _painter = this.painter;
         if (this.endAnimation == EndAnimation.FADE_OUT) {
           _painter = Paint()
-            ..color = this.color
+            ..color = getColor(this.color)
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }
@@ -235,6 +275,7 @@ class ParticleEmitter extends CustomPainter {
             y: -rand,
             radius: _radius,
             speed: speed,
+            color: getColor(this.color),
             endPath: endPath,
             timeAlive: DateTime.now().millisecondsSinceEpoch,
             currentTime: this.currentTime,
@@ -258,7 +299,7 @@ class ParticleEmitter extends CustomPainter {
         Paint _painter = this.painter;
         if (this.endAnimation == EndAnimation.FADE_OUT) {
           _painter = Paint()
-            ..color = this.color
+            ..color = getColor(this.color)
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }
@@ -267,6 +308,7 @@ class ParticleEmitter extends CustomPainter {
             y: -rand,
             radius: _radius,
             speed: speed,
+            color: getColor(this.color),
             endPath: endPath,
             timeAlive: DateTime.now().millisecondsSinceEpoch,
             currentTime: DateTime.now().millisecondsSinceEpoch + 100 * i,
@@ -319,7 +361,7 @@ class ParticleEmitter extends CustomPainter {
           int opacity = (particles[j].getOpacity() * 255).floor();
 
           this.painter = Paint()
-            ..color = this.color.withAlpha(opacity)
+            ..color = particles[j].color.withAlpha(opacity)
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }
@@ -398,7 +440,7 @@ class ParticleEmitter extends CustomPainter {
         Paint _painter = this.painter;
         if (this.endAnimation == EndAnimation.FADE_OUT) {
           _painter = Paint()
-            ..color = this.color
+            ..color = getColor(this.color)
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }
@@ -408,9 +450,10 @@ class ParticleEmitter extends CustomPainter {
             y: -rand,
             radius: _radius,
             speed: speed,
+            color: getColor(this.color),
             endPath: endPath,
             timeAlive: DateTime.now().millisecondsSinceEpoch,
-            currentTime: DateTime.now().millisecondsSinceEpoch + 100 * i,
+            currentTime: DateTime.now().millisecondsSinceEpoch + randomDelay(min: 100.0, max: 500.0).toInt() * i,
             timeToLive: doubleInRange(this.timeToLive["min"]!.toDouble(), this.timeToLive["max"]!.toDouble()),
             renderDelay: 0,
             opacity: 1.0,
@@ -464,7 +507,7 @@ class ParticleEmitter extends CustomPainter {
           int opacity = (particles[j].getOpacity() * 255).floor();
 
           this.painter = Paint()
-            ..color = this.color.withAlpha(opacity)
+            ..color = particles[j].color.withAlpha(opacity)
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }
@@ -476,40 +519,44 @@ class ParticleEmitter extends CustomPainter {
   }
 
   /// fountain mode
-  void drawFountainMode() {
+  void drawFountainMode(bool oneTime) {
     // this.vx = Math.random() * 20 - 10;
     // this.vy = Math.random() * 20 - 20;
     // add more
-    for (var i = 0; i < (minParticles - particles.length); i++) {
-      double speed = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
-      double rand = 0;
-      double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
-      double _radius = randomizeRadius();
-      Map<String, double> endPath = {"x": _random.nextDouble() * 10 - 5, "y": _random.nextDouble() * 10 - 10};
-      Paint _painter = this.painter;
-      if (this.endAnimation == EndAnimation.FADE_OUT) {
-        _painter = Paint()
-          ..color = this.color
-          ..blendMode = this.blendMode
-          ..style = PaintingStyle.fill;
-      }
+    if (oneTime == false) {
+      for (var i = 0; i < (minParticles - particles.length); i++) {
+        double speed = randomDelay(min: this.minimumSpeed, max: this.maximumSpeed);
+        double rand = 0;
+        double randX = this.particleType == ParticleType.EXPLODE ? 0 : randomX();
+        double _radius = randomizeRadius();
+        Map<String, double> endPath = {"x": _random.nextDouble() * 10 - 5, "y": _random.nextDouble() * 10 - 10};
+        Paint _painter = this.painter;
+        if (this.endAnimation == EndAnimation.FADE_OUT) {
+          _painter = Paint()
+            ..color = getColor(this.color)
+            ..blendMode = this.blendMode
+            ..style = PaintingStyle.fill;
+        }
 
-      particles.add(new Particle(
-          x: randX,
-          y: -rand,
-          radius: _radius,
-          speed: speed,
-          endPath: endPath,
-          timeAlive: DateTime.now().millisecondsSinceEpoch,
-          currentTime: DateTime.now().millisecondsSinceEpoch + 100 * i,
-          timeToLive: doubleInRange(this.timeToLive["min"]!.toDouble(), this.timeToLive["max"]!.toDouble()),
-          renderDelay: 0,
-          opacity: 1.0,
-          painter: _painter));
+        particles.add(new Particle(
+            x: randX,
+            y: -rand,
+            radius: _radius,
+            speed: speed,
+            color: getColor(this.color),
+            endPath: endPath,
+            timeAlive: DateTime.now().millisecondsSinceEpoch,
+            currentTime: DateTime.now().millisecondsSinceEpoch + 50 * i,
+            timeToLive: doubleInRange(this.timeToLive["min"]!.toDouble(), this.timeToLive["max"]!.toDouble()),
+            renderDelay: 0,
+            opacity: 1.0,
+            painter: _painter));
+      }
     }
 
     List<Particle> tempArr = [];
     for (var i = 0; i < particles.length; i++) {
+      //print("${(particles[i].getCurrentTime() - particles[i].getTimeAlive().toInt()).abs()}, ${particles[i].getTimeToLive()}");
       if ((particles[i].getCurrentTime() - particles[i].getTimeAlive().toInt()).abs() > particles[i].getTimeToLive()) {
         //print("REMOVING $i");
         if (this.endAnimation == EndAnimation.INSTANT) {
@@ -554,7 +601,7 @@ class ParticleEmitter extends CustomPainter {
         /// bounce on ground
         //
         this.painter = Paint()
-          ..color = this.color.withAlpha(255)
+          ..color = particles[j].color.withAlpha(255)
           ..blendMode = this.blendMode
           ..style = PaintingStyle.fill;
 
@@ -577,7 +624,7 @@ class ParticleEmitter extends CustomPainter {
           int opacity = (particles[j].getOpacity() * 255).floor();
 
           this.painter = Paint()
-            ..color = this.color.withAlpha(opacity)
+            ..color = particles[j].color.withAlpha(opacity)
             ..blendMode = this.blendMode
             ..style = PaintingStyle.fill;
         }

@@ -5,6 +5,7 @@ class Particle {
   double y;
   double radius;
   double speed = 0.1;
+  Color color;
   Map<String, double>? endPath;
   int timeAlive;
   int currentTime;
@@ -19,6 +20,7 @@ class Particle {
       required this.radius,
       required this.speed,
       this.endPath,
+      required this.color,
       required this.timeAlive,
       required this.currentTime,
       required this.timeToLive,
@@ -42,6 +44,10 @@ class Particle {
 
   double getSpeed() {
     return speed;
+  }
+
+  Color getColor() {
+    return color;
   }
 
   Map<String, double>? getEndPath() {

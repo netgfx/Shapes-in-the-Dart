@@ -52,7 +52,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
-    _controller.repeat();
+    //_controller.repeat();
     //_controller.forward();
     mazeData = mzg.init();
     List<String> imagePaths = [];
@@ -343,15 +343,14 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             //   });
             // },
             child: Stack(children: [
-              //Image.asset("assets/mage1.png"),
-              spriteImages.length > 0
-                  ? Positioned(
-                      left: viewportConstraints.maxWidth * 0.5 - sliceWidth * 0.5,
-                      top: viewportConstraints.maxHeight * 0.5 - sliceHeight * 0.5,
-                      child: CustomPaint(
-                        painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
-                      ))
-                  : Container(),
+              // spriteImages.length > 0
+              //     ? Positioned(
+              //         left: viewportConstraints.maxWidth * 0.5 - sliceWidth * 0.5,
+              //         top: viewportConstraints.maxHeight * 0.5 - sliceHeight * 0.5,
+              //         child: CustomPaint(
+              //           painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
+              //         ))
+              //     : Container(),
               ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(
@@ -392,55 +391,58 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     //   ),
                     // ),
                   ])),
-              // Transform.translate(
-              //     offset: particlePoint,
-              //     child: RepaintBoundary(
-              //         child: CustomPaint(
-              //             key: UniqueKey(),
-              //             isComplex: true,
-              //             willChange: true,
-              //             child: Container(),
-              //             // painter: ParticleEmitter(
-              //             //     listenable: _controller,
-              //             //     controller: _controller,
-              //             //     particleSize: Size(50, 50),
-              //             //     minParticles: 50,
-              //             //     center: Offset.zero,
-              //             //     color: _color,
-              //             //     radius: 10,
-              //             //     type: ShapeType.Circle,
-              //             //     endAnimation: EndAnimation.SCALE_DOWN,
-              //             //     particleType: ParticleType.FIRE,
-              //             //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-              //             //     minimumSpeed: 0.1,
-              //             //     maximumSpeed: 0.2,
-              //             //     timeToLive: {"min": 50, "max": 250},
-              //             //     hasBase: true,
-              //             //     blendMode: BlendMode.srcOver,
-              //             //     delay: 2)
-              //             //
-              //             // FOUNTAIN
-              //             //
-              //             painter: ParticleEmitter(
-              //                 listenable: _controller,
-              //                 controller: _controller,
-              //                 particleSize: Size(50, 50),
-              //                 minParticles: 30,
-              //                 center: Offset.zero,
-              //                 color: _color,
-              //                 radius: 10,
-              //                 type: ShapeType.Circle,
-              //                 endAnimation: EndAnimation.SCALE_DOWN,
-              //                 particleType: ParticleType.FOUNTAIN,
-              //                 spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-              //                 minimumSpeed: 0.01,
-              //                 maximumSpeed: 0.1,
-              //                 timeToLive: {"min": 800, "max": 1200},
-              //                 hasBase: false,
-              //                 blendMode: BlendMode.srcOver,
-              //                 hasWalls: true,
-              //                 wallsObj: {"bottom": (viewportConstraints.maxHeight - particlePoint.dy).toInt()},
-              //                 delay: 2)))),
+              Transform.translate(
+                offset: particlePoint,
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    isComplex: true,
+                    willChange: true,
+                    child: Container(),
+                    // painter: ParticleEmitter(
+                    //     listenable: _controller,
+                    //     controller: _controller,
+                    //     particleSize: Size(50, 50),
+                    //     minParticles: 50,
+                    //     center: Offset.zero,
+                    //     color: _color,
+                    //     radius: 10,
+                    //     type: ShapeType.Circle,
+                    //     endAnimation: EndAnimation.SCALE_DOWN,
+                    //     particleType: ParticleType.FIRE,
+                    //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                    //     minimumSpeed: 0.1,
+                    //     maximumSpeed: 0.2,
+                    //     timeToLive: {"min": 50, "max": 250},
+                    //     hasBase: true,
+                    //     blendMode: BlendMode.srcOver,
+                    //     delay: 2)
+                    //             //
+                    //             // FOUNTAIN
+                    //             //
+                    painter: ParticleEmitter(
+                        listenable: _controller,
+                        controller: _controller,
+                        particleSize: Size(64, 64),
+                        minParticles: 40,
+                        center: Offset.zero,
+                        color: null,
+                        radius: 10,
+                        type: ShapeType.Star5,
+                        endAnimation: EndAnimation.FADE_OUT,
+                        particleType: ParticleType.FOUNTAIN,
+                        spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                        minimumSpeed: 0.1,
+                        maximumSpeed: 0.5,
+                        timeToLive: {"min": 500, "max": 2000},
+                        hasBase: false,
+                        blendMode: BlendMode.srcOver,
+                        hasWalls: false,
+                        wallsObj: {"bottom": (viewportConstraints.maxHeight - particlePoint.dy).toInt()},
+                        delay: 100),
+                  ),
+                ),
+              ),
             ]),
           );
         }));
