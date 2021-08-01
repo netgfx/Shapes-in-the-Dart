@@ -274,19 +274,21 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             // },
             child: Stack(children: [
               ValueListenableBuilder<int>(
-                  valueListenable: counter,
-                  builder: (BuildContext context, int value, Widget? child) {
-                    // This builder will only get called when the _counter
-                    // is updated.
-                    print(counter);
-                    return SpriteWidget(
-                      startingIndex: 0,
-                      desiredFPS: 24,
-                      loop: true,
-                      constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
-                      path: "assets/flying_monster.png",
-                    );
-                  }),
+                valueListenable: counter,
+                builder: (BuildContext context, int value, Widget? child) {
+                  // This builder will only get called when the _counter
+                  // is updated.
+                  print(counter);
+                  return child!;
+                },
+                child: SpriteWidget(
+                  startingIndex: 0,
+                  desiredFPS: 24,
+                  loop: true,
+                  constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
+                  path: "assets/flying_monster.png",
+                ),
+              ),
               ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(
@@ -358,7 +360,6 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     //             //
                     painter: ParticleEmitter(
                         listenable: _controller,
-                        controller: _controller,
                         particleSize: Size(64, 64),
                         minParticles: 40,
                         center: Offset.zero,

@@ -12,7 +12,7 @@ enum SpreadBehaviour { CONTINUOUS, ONE_TIME }
 enum BaseBehaviour { ALWAYS_ON, INITIALY_ON, ALWAYS_OFF, INITIALLY_OFF }
 
 class ParticleEmitter extends CustomPainter {
-  final Animation listenable;
+  AnimationController listenable;
   ShapeType type = ShapeType.Rect;
   Size particleSize = Size(20, 20);
   double radius = 0.0;
@@ -37,7 +37,6 @@ class ParticleEmitter extends CustomPainter {
   double delay = 0.5;
   int timeDecay = 10;
   BlendMode blendMode = BlendMode.src;
-  AnimationController controller;
 
   /// in seconds
   static const initialTTL = {"max": 1000, "min": 500};
@@ -55,7 +54,6 @@ class ParticleEmitter extends CustomPainter {
       required this.center,
       required this.color,
       required this.listenable,
-      required this.controller,
       required this.particleType,
       required this.endAnimation,
       required this.spreadBehaviour,
@@ -164,10 +162,10 @@ class ParticleEmitter extends CustomPainter {
 
   // MARK: Drawing
   void draw() {
-    if (this.controller.lastElapsedDuration != null) {
+    if (this.listenable.lastElapsedDuration != null) {
       //print("${this.controller.lastElapsedDuration!.inMilliseconds.toString()}");
-      if (this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
-        this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
+      if (this.listenable.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
+        this.currentTime = this.listenable.lastElapsedDuration!.inMilliseconds;
         drawType(type);
       } else {
         drawStaticFrame();
@@ -745,7 +743,7 @@ class ParticleEmitter extends CustomPainter {
   void stop() {
     //stopping particles
     this.running = false;
-    this.controller.stop(canceled: true);
+    this.listenable.stop(canceled: true);
   }
 
   double randomDelay({double min = 0.005, double max = 0.05}) {
