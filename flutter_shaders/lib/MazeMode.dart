@@ -12,11 +12,11 @@ import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
-import 'package:flutter_shaders/SpriteWidget.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'MazeGeneratorV2.dart';
 import 'ShapeMaster.dart';
+import 'SpriteWidget.dart';
 
 class MazeMode extends StatefulWidget {
   MazeMode({required Key key}) : super(key: key);
@@ -44,6 +44,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   final _random = new Random();
   int sliceWidth = 192;
   int sliceHeight = 212;
+  final ValueNotifier<int> counter = ValueNotifier<int>(0);
   late Uint8List testImage;
   @override
   void initState() {
@@ -52,10 +53,10 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
     // Curves.easeOutBack // explode
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
-    _spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    //_spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
-    _spriteController.repeat();
+    //_spriteController.repeat();
     //_controller.forward();
     //mazeData = mzg.init();
     List<String> imagePaths = [];
@@ -67,109 +68,12 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     //   }
     // }
 
-    loadSprite();
-
     //print(mazeData);
-  }
-
-  void loadSprite() async {
-    List<Map<String, dynamic>> spriteData;
-    File imageData = await loadImageTexture("assets/flying_monster.png");
-    var data = loadJsonData();
-    data.then((value) => {spriteData = parseJSON(value), loadSpriteImage(spriteData, imageData)});
-  }
-
-  Future<File> loadImageTexture(String spriteTexture) async {
-    final ByteData data = await rootBundle.load(spriteTexture);
-
-    String dir = (await getApplicationDocumentsDirectory()).path;
-    File path = await writeToFile(data, '$dir/tempfile1.png');
-
-    return path;
-  }
-
-  void loadSpriteImage(List<Map<String, dynamic>> spriteData, File path) async {
-    uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
-
-    print("${props.width} ${props.height} ${spriteData.length}");
-    if (props.width != null && spriteData.length == 0) {
-      for (var i = 0; i < props.width! / sliceWidth; i++) {
-        File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
-
-        Uint8List bytes = croppedFile.readAsBytesSync();
-        ui.Image image = await loadImage(bytes);
-        spriteImages.add(image);
-      }
-    } else {
-      spriteImages.clear();
-
-      /// do split based on json data x, y
-      for (var i = 0; i < spriteData.length; i++) {
-        print("${spriteData[i]["width"]}, ${spriteData[i]["height"]}");
-        File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, spriteData[i]['x'], spriteData[i]['y'], spriteData[i]["width"], spriteData[i]['height']);
-
-        Uint8List bytes = croppedFile.readAsBytesSync();
-        ui.Image image = await loadImage(bytes);
-        spriteImages.add(image);
-      }
-    }
-
-    if (mounted) {
-      setState(() => {});
-
-      try {
-        if (spriteImages.length > 0) {
-          // await path.delete(recursive: false);
-        }
-        print("deleted file");
-      } catch (e) {
-        print("error");
-      }
-    }
-
-    //ui.decodeImageFromList(imgData, (result) {
-    //spriteImages.add(imgData);
-    //print(result);
-    //var testImg = (result).toByteData(format: ui.ImageByteFormat.png);
-    // testImg.then((value) => {
-    //       setState(() => {testImage = value!.buffer.asUint8List()})
-    //     });
-    // });
-  }
-
-  Future<Map<String, dynamic>> loadJsonData() async {
-    var jsonText = await rootBundle.loadString('assets/flying_monster.json');
-    Map<String, dynamic> data = json.decode(jsonText);
-    return data;
-  }
-
-  List<Map<String, dynamic>> parseJSON(Map<String, dynamic> data) {
-    List<Map<String, dynamic>> sprites = [];
-    data["frames"].forEach((key, value) {
-      final frameData = value['frame'];
-      final int x = frameData['x'];
-      final int y = frameData['y'];
-      final int width = frameData['w'];
-      final int height = frameData['h'];
-      sprites.add({"x": x, "y": y, "width": width, "height": height});
-    });
-
-    print(sprites);
-    return sprites;
-  }
-
-//write to app path
-  Future<File> writeToFile(ByteData data, String path) {
-    final buffer = data.buffer;
-    return new File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _spriteContro
-     
-
 
     super.dispose();
   }
@@ -330,7 +234,6 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                 //       ..strokeWidth = strokeWidth));
                 // points.add(null);
                 particlePoint = details.globalPosition;
-                _color = randomColor(1.0);
               });
 
               _controller.repeat();
@@ -370,9 +273,20 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             //   });
             // },
             child: Stack(children: [
-              spriteImages.length > 0
-                  ? SpriteWidget(startingIndex: 0, desiredFPS: 24, loop: true, constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()}, spriteController: _spriteController)
-                  : Container(),
+              ValueListenableBuilder<int>(
+                  valueListenable: counter,
+                  builder: (BuildContext context, int value, Widget? child) {
+                    // This builder will only get called when the _counter
+                    // is updated.
+                    print(counter);
+                    return SpriteWidget(
+                      startingIndex: 0,
+                      desiredFPS: 24,
+                      loop: true,
+                      constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
+                      path: "assets/flying_monster.png",
+                    );
+                  }),
               ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(
