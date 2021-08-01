@@ -12,6 +12,7 @@ import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:flutter_shaders/SpriteWidget.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'MazeGeneratorV2.dart';
@@ -37,6 +38,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
+  late AnimationController _spriteController;
   Offset particlePoint = Offset(0, 0);
   Color _color = Colors.green;
   final _random = new Random();
@@ -50,40 +52,61 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
     // Curves.easeOutBack // explode
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
-    //_controller.repeat();
+    _spriteController.repeat();
     //_controller.forward();
-    mazeData = mzg.init();
+    //mazeData = mzg.init();
     List<String> imagePaths = [];
-    for (var i = 1; i < 19; i++) {
-      if (i >= 10) {
-        imagePaths.add("assets/monster/monster1_" + i.toString() + ".png");
-      } else {
-        imagePaths.add("assets/monster/monster1_0" + i.toString() + ".png");
-      }
-    }
+    // for (var i = 1; i < 19; i++) {
+    //   if (i >= 10) {
+    //     imagePaths.add("assets/monster/monster1_" + i.toString() + ".png");
+    //   } else {
+    //     imagePaths.add("assets/monster/monster1_0" + i.toString() + ".png");
+    //   }
+    // }
 
-    //loadImages(imagePaths);
-    List<Map<String, dynamic>> spriteData;
-    var data = loadJsonData();
-    data.then((value) => {spriteData = parseJSON(value)});
-    loadSpriteImage(null, 'assets/monster1.png');
+    loadSprite();
 
-    print(mazeData);
+    //print(mazeData);
   }
 
-  void loadSpriteImage(List<Map<String, dynamic>>? spriteData, String spriteTexture) async {
+  void loadSprite() async {
+    List<Map<String, dynamic>> spriteData;
+    File imageData = await loadImageTexture("assets/flying_monster.png");
+    var data = loadJsonData();
+    data.then((value) => {spriteData = parseJSON(value), loadSpriteImage(spriteData, imageData)});
+  }
+
+  Future<File> loadImageTexture(String spriteTexture) async {
     final ByteData data = await rootBundle.load(spriteTexture);
 
     String dir = (await getApplicationDocumentsDirectory()).path;
     File path = await writeToFile(data, '$dir/tempfile1.png');
 
+    return path;
+  }
+
+  void loadSpriteImage(List<Map<String, dynamic>> spriteData, File path) async {
     uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
-    print("${props.width} ${props.height}");
-    if (props.width != null) {
+
+    print("${props.width} ${props.height} ${spriteData.length}");
+    if (props.width != null && spriteData.length == 0) {
       for (var i = 0; i < props.width! / sliceWidth; i++) {
         File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
+
+        Uint8List bytes = croppedFile.readAsBytesSync();
+        ui.Image image = await loadImage(bytes);
+        spriteImages.add(image);
+      }
+    } else {
+      spriteImages.clear();
+
+      /// do split based on json data x, y
+      for (var i = 0; i < spriteData.length; i++) {
+        print("${spriteData[i]["width"]}, ${spriteData[i]["height"]}");
+        File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, spriteData[i]['x'], spriteData[i]['y'], spriteData[i]["width"], spriteData[i]['height']);
 
         Uint8List bytes = croppedFile.readAsBytesSync();
         ui.Image image = await loadImage(bytes);
@@ -96,7 +119,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
 
       try {
         if (spriteImages.length > 0) {
-          await path.delete(recursive: false);
+          // await path.delete(recursive: false);
         }
         print("deleted file");
       } catch (e) {
@@ -144,6 +167,10 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
+    _spriteContro
+     
+
+
     super.dispose();
   }
 
@@ -343,14 +370,9 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             //   });
             // },
             child: Stack(children: [
-              // spriteImages.length > 0
-              //     ? Positioned(
-              //         left: viewportConstraints.maxWidth * 0.5 - sliceWidth * 0.5,
-              //         top: viewportConstraints.maxHeight * 0.5 - sliceHeight * 0.5,
-              //         child: CustomPaint(
-              //           painter: SpriteAnimator(controller: _controller, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
-              //         ))
-              //     : Container(),
+              spriteImages.length > 0
+                  ? SpriteWidget(startingIndex: 0, desiredFPS: 24, loop: true, constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()}, spriteController: _spriteController)
+                  : Container(),
               ShaderMask(
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(

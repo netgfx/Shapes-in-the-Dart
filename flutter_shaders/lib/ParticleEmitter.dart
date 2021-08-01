@@ -181,11 +181,6 @@ class ParticleEmitter extends CustomPainter {
       return;
     }
 
-    // DEBUG ONLY
-    // this.painter = Paint()
-    //   ..color = randomColor(1)
-    //   ..style = PaintingStyle.fill;
-
     if (this.hasBase == true) {
       switch (type) {
         case ShapeType.Circle:
