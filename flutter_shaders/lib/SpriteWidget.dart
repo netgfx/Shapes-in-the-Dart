@@ -12,12 +12,12 @@ import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:path_provider/path_provider.dart';
 
 class SpriteWidget extends StatefulWidget {
-  final int startingIndex;
-  final int desiredFPS;
-  final bool loop;
+  int? startingIndex = 0;
+  int? desiredFPS = 24;
+  bool? loop = true;
   final Map<String, int> constraints;
   final String path;
-  SpriteWidget({Key? key, required this.path, required this.startingIndex, required this.desiredFPS, required this.loop, required this.constraints}) : super(key: key);
+  SpriteWidget({Key? key, required this.path, this.startingIndex, this.desiredFPS, this.loop, required this.constraints}) : super(key: key);
 
   @override
   _SpriteWidgetState createState() => _SpriteWidgetState();
@@ -50,6 +50,7 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
     List<Map<String, dynamic>> spriteData;
     File imageData = await loadImageTexture(widget.path);
     var data = loadJsonData();
+    uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(imageData.path);
     data.then((value) => {spriteData = parseJSON(value), loadSpriteImage(spriteData, imageData)});
   }
 
@@ -64,7 +65,6 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
 
   void loadSpriteImage(List<Map<String, dynamic>> spriteData, File path) async {
     uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
-
     print("${props.width} ${props.height} ${spriteData.length}");
     if (props.width != null && spriteData.length == 0) {
       for (var i = 0; i < props.width! / sliceWidth; i++) {

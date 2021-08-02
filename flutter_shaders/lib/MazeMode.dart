@@ -39,7 +39,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
   late AnimationController _spriteController;
-  Offset particlePoint = Offset(0, 0);
+  final ValueNotifier<Offset> particlePoint = ValueNotifier<Offset>(Offset(0, 0));
   Color _color = Colors.green;
   final _random = new Random();
   int sliceWidth = 192;
@@ -223,19 +223,10 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
         body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return GestureDetector(
             onTapDown: (details) {
-              setState(() {
-                // RenderBox? renderBox = context.findRenderObject() as RenderBox;
-                // points.add(DrawingPoints(
-                //     points: renderBox.globalToLocal(details.globalPosition),
-                //     paint: Paint()
-                //       ..strokeCap = strokeCap
-                //       ..isAntiAlias = true
-                //       ..color = selectedColor.withOpacity(opacity)
-                //       ..strokeWidth = strokeWidth));
-                // points.add(null);
-                particlePoint = details.globalPosition;
-              });
-
+              // setState(() {
+              //   particlePoint = details.globalPosition;
+              // });
+              particlePoint.value = details.globalPosition;
               _controller.repeat();
             },
             onTapCancel: () {
@@ -278,13 +269,10 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                 builder: (BuildContext context, int value, Widget? child) {
                   // This builder will only get called when the _counter
                   // is updated.
-                  print(counter);
+                  print("${viewportConstraints.maxWidth.toInt()} ${viewportConstraints.maxHeight.toInt()}");
                   return child!;
                 },
                 child: SpriteWidget(
-                  startingIndex: 0,
-                  desiredFPS: 24,
-                  loop: true,
                   constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
                   path: "assets/flying_monster.png",
                 ),
@@ -329,56 +317,65 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     //   ),
                     // ),
                   ])),
-              Transform.translate(
-                offset: particlePoint,
-                child: RepaintBoundary(
-                  child: CustomPaint(
-                    key: UniqueKey(),
-                    isComplex: true,
-                    willChange: true,
-                    child: Container(),
-                    // painter: ParticleEmitter(
-                    //     listenable: _controller,
-                    //     controller: _controller,
-                    //     particleSize: Size(50, 50),
-                    //     minParticles: 50,
-                    //     center: Offset.zero,
-                    //     color: _color,
-                    //     radius: 10,
-                    //     type: ShapeType.Circle,
-                    //     endAnimation: EndAnimation.SCALE_DOWN,
-                    //     particleType: ParticleType.FIRE,
-                    //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-                    //     minimumSpeed: 0.1,
-                    //     maximumSpeed: 0.2,
-                    //     timeToLive: {"min": 50, "max": 250},
-                    //     hasBase: true,
-                    //     blendMode: BlendMode.srcOver,
-                    //     delay: 2)
-                    //             //
-                    //             // FOUNTAIN
-                    //             //
-                    painter: ParticleEmitter(
-                        listenable: _controller,
-                        particleSize: Size(64, 64),
-                        minParticles: 40,
-                        center: Offset.zero,
-                        color: null,
-                        radius: 10,
-                        type: ShapeType.Star5,
-                        endAnimation: EndAnimation.FADE_OUT,
-                        particleType: ParticleType.FOUNTAIN,
-                        spreadBehaviour: SpreadBehaviour.ONE_TIME,
-                        minimumSpeed: 0.1,
-                        maximumSpeed: 0.5,
-                        timeToLive: {"min": 500, "max": 2000},
-                        hasBase: false,
-                        blendMode: BlendMode.srcOver,
-                        hasWalls: false,
-                        wallsObj: {"bottom": (viewportConstraints.maxHeight - particlePoint.dy).toInt()},
-                        delay: 100),
-                  ),
-                ),
+              ValueListenableBuilder<Offset>(
+                valueListenable: particlePoint,
+                builder: (BuildContext context, Offset value, Widget? child) {
+                  // This builder will only get called when the _counter
+                  // is updated.
+
+                  print("${value}");
+                  return Transform.translate(
+                    offset: value,
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        key: UniqueKey(),
+                        isComplex: true,
+                        willChange: true,
+                        child: Container(),
+                        // painter: ParticleEmitter(
+                        //     listenable: _controller,
+                        //     controller: _controller,
+                        //     particleSize: Size(50, 50),
+                        //     minParticles: 50,
+                        //     center: Offset.zero,
+                        //     color: _color,
+                        //     radius: 10,
+                        //     type: ShapeType.Circle,
+                        //     endAnimation: EndAnimation.SCALE_DOWN,
+                        //     particleType: ParticleType.FIRE,
+                        //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                        //     minimumSpeed: 0.1,
+                        //     maximumSpeed: 0.2,
+                        //     timeToLive: {"min": 50, "max": 250},
+                        //     hasBase: true,
+                        //     blendMode: BlendMode.srcOver,
+                        //     delay: 2)
+                        //             //
+                        //             // FOUNTAIN
+                        //             //
+                        painter: ParticleEmitter(
+                            listenable: _controller,
+                            particleSize: Size(64, 64),
+                            minParticles: 40,
+                            center: Offset.zero,
+                            color: null,
+                            radius: 10,
+                            type: ShapeType.Star5,
+                            endAnimation: EndAnimation.FADE_OUT,
+                            particleType: ParticleType.FOUNTAIN,
+                            spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                            minimumSpeed: 0.1,
+                            maximumSpeed: 0.5,
+                            timeToLive: {"min": 500, "max": 2000},
+                            hasBase: false,
+                            blendMode: BlendMode.srcOver,
+                            hasWalls: false,
+                            wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
+                            delay: 100),
+                      ),
+                    ),
+                  );
+                },
               ),
             ]),
           );
