@@ -37,7 +37,6 @@ class SpriteAnimator extends CustomPainter {
     if (loop == true) {
       // print("${this.controller}");
       if (this.controller.lastElapsedDuration != null) {
-        //print("${this.controller.lastElapsedDuration!.inMilliseconds.toString()} ${this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime}");
         if (this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
           this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
           canvas.drawImage(images[currentImageIndex], new Offset(0.0, 0.0), new Paint());

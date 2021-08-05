@@ -62,7 +62,7 @@ class ParticleEmitter extends CustomPainter {
       this.timeToLive = initialTTL,
       this.gravity = 0.5,
       this.hasBase = true,
-      this.blendMode = BlendMode.src,
+      this.blendMode = BlendMode.srcOver,
       this.delay = 0.5,
       this.hasWalls = false,
       this.wallsObj})

@@ -1,48 +1,104 @@
 {"frames": {
 
-"Fly2_Bats0061":
+"death/Death_animations0009":
 {
-	"frame": {"x":0,"y":0,"w":500,"h":459},
+	"frame": {"x":0,"y":0,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"death/Death_animations0010":
+{
+	"frame": {"x":417,"y":0,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"death/Death_animations0011":
+{
+	"frame": {"x":834,"y":0,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"death/Death_animations0012":
+{
+	"frame": {"x":1251,"y":0,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"death/Death_animations0013":
+{
+	"frame": {"x":0,"y":417,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"death/Death_animations0014":
+{
+	"frame": {"x":417,"y":417,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"death/Death_animations0015":
+{
+	"frame": {"x":834,"y":417,"w":417,"h":417},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":417,"h":417},
+	"sourceSize": {"w":417,"h":417}
+},
+"fly/Fly2_Bats0061":
+{
+	"frame": {"x":0,"y":834,"w":500,"h":459},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":459},
 	"sourceSize": {"w":500,"h":459}
 },
-"Fly2_Bats0062":
+"fly/Fly2_Bats0062":
 {
-	"frame": {"x":0,"y":459,"w":500,"h":459},
+	"frame": {"x":500,"y":834,"w":500,"h":459},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":459},
 	"sourceSize": {"w":500,"h":459}
 },
-"Fly2_Bats0063":
+"fly/Fly2_Bats0063":
 {
-	"frame": {"x":500,"y":0,"w":500,"h":459},
+	"frame": {"x":1000,"y":834,"w":500,"h":459},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":459},
 	"sourceSize": {"w":500,"h":459}
 },
-"Fly2_Bats0064":
+"fly/Fly2_Bats0064":
 {
-	"frame": {"x":500,"y":459,"w":500,"h":459},
+	"frame": {"x":0,"y":1293,"w":500,"h":459},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":459},
 	"sourceSize": {"w":500,"h":459}
 },
-"Fly2_Bats0065":
+"fly/Fly2_Bats0065":
 {
-	"frame": {"x":1000,"y":0,"w":500,"h":459},
+	"frame": {"x":500,"y":1293,"w":500,"h":459},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":459},
 	"sourceSize": {"w":500,"h":459}
 },
-"Fly2_Bats0066":
+"fly/Fly2_Bats0066":
 {
-	"frame": {"x":1000,"y":459,"w":500,"h":459},
+	"frame": {"x":1000,"y":1293,"w":500,"h":459},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":459},
@@ -53,8 +109,8 @@
 	"version": "1.0",
 	"image": "flying_monster.png",
 	"format": "RGBA8888",
-	"size": {"w":1500,"h":918},
+	"size": {"w":1668,"h":1752},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:29cd2cab75b3a3abd6581d7a7bea99fa:5f2b110ce2e9df8da900724c8686ac24:ae911851231b6ec572da547430908594$"
+	"smartupdate": "$TexturePacker:SmartUpdate:2664db5d79cd008fa8ae7d29508e97b6:77e89990974301c4f3edd4d1070be941:ae911851231b6ec572da547430908594$"
 }
 }

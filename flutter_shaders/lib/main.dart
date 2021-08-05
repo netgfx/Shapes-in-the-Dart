@@ -9,11 +9,11 @@ import "./Screen.dart";
 import 'package:fast_poisson_disk_sampling/fast_poisson_disk_sampling.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:lottie/lottie.dart';
-
+import 'package:statsfl/statsfl.dart';
 import 'Router.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(Padding(padding: EdgeInsets.only(top: 50), child: StatsFl(height: 60, align: Alignment.topCenter, maxFps: 90, child: MyApp())));
 }
 
 class MyApp extends StatelessWidget {
