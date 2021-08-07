@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
@@ -23,7 +24,25 @@ class SpriteWidget extends StatefulWidget {
   final List<String> delimiters;
   final String? startFrameName;
   bool? stopped = false;
-  SpriteWidget({Key? key, required this.texturePath, this.jsonPath, required this.delimiters, this.startFrameName, this.startingIndex, this.desiredFPS, this.loop, required this.constraints, this.stopped, this.scale}) : super(key: key);
+  Map<String, List<ui.Image>>? cache;
+  Function setCache;
+  String name;
+  SpriteWidget({
+    Key? key,
+    required this.texturePath,
+    this.jsonPath,
+    required this.delimiters,
+    this.startFrameName,
+    this.startingIndex,
+    this.desiredFPS,
+    this.loop,
+    required this.constraints,
+    this.stopped,
+    this.scale,
+    this.cache,
+    required this.name,
+    required this.setCache,
+  }) : super(key: key);
 
   @override
   _SpriteWidgetState createState() => _SpriteWidgetState();
@@ -39,10 +58,44 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
     // TODO: implement initState
     super.initState();
 
+    print("init sprite");
     _spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     _spriteController.repeat();
-    print("re-run");
-    loadSprite();
+
+    SchedulerBinding.instance!.addPostFrameCallback((_) {
+      if (widget.cache == null) {
+        print("re-run");
+        loadSprite();
+      } else {
+        if (widget.cache != null) {
+          if (widget.startFrameName != null) {
+            print("loading from cache");
+            setState(() {
+              spriteImages = widget.cache![widget.startFrameName]!;
+            });
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(SpriteWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.cache != null) {
+      if (widget.startFrameName != null) {
+        print("loading from cache ${widget.loop}");
+        if (widget.loop == false) {
+          _spriteController.forward(from: 0);
+        } else {
+          _spriteController.repeat();
+        }
+        setState(() {
+          spriteImages = widget.cache![widget.startFrameName]!;
+        });
+      }
+    }
   }
 
   @override
@@ -59,33 +112,54 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
       var data = loadJsonData(widget.jsonPath!);
 
       uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(imageData.path);
-      data.then((value) => {spriteData = parseJSON(value), loadSpriteImage(spriteData, imageData)});
+      data.then((value) => {spriteData = parseJSON(value), loadSpriteImage(spriteData, imageData, true)});
     }
   }
 
-  void loadSpriteImage(Map<String, List<Map<String, dynamic>>> spriteData, File path) async {
+  void loadSpriteImage(Map<String, List<Map<String, dynamic>>> spriteData, File path, bool all) async {
     uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
     print("${props.width} ${props.height} ${spriteData.length}");
 
-    List<Map<String, dynamic>>? spriteToRender = widget.startFrameName != null ? spriteData[widget.startFrameName] : spriteData[widget.delimiters[0]];
-    if (props.width != null && spriteData.length == 0) {
-      for (var i = 0; i < props.width! / sliceWidth; i++) {
-        File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
+    if (all == true) {
+      Map<String, List<ui.Image>> spriteTexturesByFrameName = {};
+      for (var item in widget.delimiters) {
+        if (spriteData[item] != null) {
+          spriteTexturesByFrameName[item] = [];
+          List<Map<String, dynamic>> frames = spriteData[item]!;
+          for (var i = 0; i < frames.length; i++) {
+            File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, frames[i]['x'], frames[i]['y'], frames[i]["width"], frames[i]['height']);
 
-        Uint8List bytes = croppedFile.readAsBytesSync();
-        ui.Image image = await loadImage(bytes);
-        spriteImages.add(image);
+            Uint8List bytes = croppedFile.readAsBytesSync();
+            ui.Image image = await loadImage(bytes);
+            spriteTexturesByFrameName[item]!.add(image);
+          }
+        }
       }
+
+      widget.setCache(widget.name, spriteTexturesByFrameName);
+
+      spriteImages = spriteTexturesByFrameName[widget.startFrameName]!;
     } else {
-      spriteImages.clear();
-      if (spriteToRender != null) {
-        /// do split based on json data x, y
-        for (var i = 0; i < spriteToRender.length; i++) {
-          File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, spriteToRender[i]['x'], spriteToRender[i]['y'], spriteToRender[i]["width"], spriteToRender[i]['height']);
+      List<Map<String, dynamic>>? spriteToRender = widget.startFrameName != null ? spriteData[widget.startFrameName] : spriteData[widget.delimiters[0]];
+      if (props.width != null && spriteData.length == 0) {
+        for (var i = 0; i < props.width! / sliceWidth; i++) {
+          File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
 
           Uint8List bytes = croppedFile.readAsBytesSync();
           ui.Image image = await loadImage(bytes);
           spriteImages.add(image);
+        }
+      } else {
+        spriteImages.clear();
+        if (spriteToRender != null) {
+          /// do split based on json data x, y
+          for (var i = 0; i < spriteToRender.length; i++) {
+            File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, spriteToRender[i]['x'], spriteToRender[i]['y'], spriteToRender[i]["width"], spriteToRender[i]['height']);
+
+            Uint8List bytes = croppedFile.readAsBytesSync();
+            ui.Image image = await loadImage(bytes);
+            spriteImages.add(image);
+          }
         }
       }
     }
@@ -174,7 +248,7 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
           scale: widget.scale ?? 1.0,
           child: RepaintBoundary(
             child: CustomPaint(
-              painter: SpriteAnimator(controller: _spriteController, loop: true, images: spriteImages, fps: 24, currentImageIndex: 0),
+              painter: SpriteAnimator(controller: _spriteController, static: false, images: spriteImages, fps: 24, currentImageIndex: 0, loop: widget.loop == true ? LoopMode.Repeat : LoopMode.Single),
             ),
           ),
         ),

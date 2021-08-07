@@ -2,6 +2,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
+enum LoopMode {
+  Single,
+  Repeat,
+}
+
 class SpriteAnimator extends CustomPainter {
   List<ui.Image> images = [];
   AnimationController controller;
@@ -11,8 +16,9 @@ class SpriteAnimator extends CustomPainter {
   late ui.Image currentImage;
   int currentImageIndex = 0;
   int fps = 250;
-  bool loop = true;
-  SpriteAnimator({required this.images, required this.loop, required this.currentImageIndex, required this.fps, required this.controller}) : super(repaint: controller) {
+  bool static = true;
+  LoopMode loop;
+  SpriteAnimator({required this.images, required this.static, required this.currentImageIndex, required this.fps, required this.controller, required this.loop}) : super(repaint: controller) {
     print("draw");
     this.fps = (1 / this.fps * 1000).round();
     this.timeDecay = this.fps;
@@ -34,7 +40,7 @@ class SpriteAnimator extends CustomPainter {
   }
 
   void draw(Canvas canvas, Size size) {
-    if (loop == true) {
+    if (static == false) {
       // print("${this.controller}");
       if (this.controller.lastElapsedDuration != null) {
         if (this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
@@ -43,6 +49,9 @@ class SpriteAnimator extends CustomPainter {
           currentImageIndex++;
           if (currentImageIndex >= images.length) {
             currentImageIndex = 0;
+            if (this.loop == LoopMode.Single) {
+              this.controller.stop();
+            }
           }
           this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
         } else {
