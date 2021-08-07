@@ -8,11 +8,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_shaders/AnimatedBackground.dart';
+import 'package:flutter_shaders/BGAnimator.dart';
 import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+
 import 'package:path_provider/path_provider.dart';
 
 import 'MazeGeneratorV2.dart';
@@ -39,7 +42,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
-  late AnimationController _spriteController;
+  late AnimationController _bgController;
   final ValueNotifier<Offset> particlePoint = ValueNotifier<Offset>(Offset(0, 0));
   final ValueNotifier<Offset> particlePoint2 = ValueNotifier<Offset>(Offset(0, 0));
   Color _color = Colors.green;
@@ -47,7 +50,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   int _counter = 0;
   BoxConstraints? viewportConstraints;
   final ValueNotifier<int> counter = ValueNotifier<int>(0);
-  late Uint8List testImage;
+  Uint8List? testImage;
+  ui.Image? bgImage;
   bool isStopped = false; //global
   String batFirstFrame = "fly/Fly2_Bats";
   bool batLoop = true;
@@ -60,6 +64,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     MazeGeneratorV2 mzg = MazeGeneratorV2(4, 6, 57392);
     // Curves.easeOutBack // explode
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _bgController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
@@ -75,14 +80,14 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     //   }
     // }
     SchedulerBinding.instance!.addPostFrameCallback((_) {
-      //ssec5Timer();
+      initScrollBG();
     });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-
+    _bgController.dispose();
     super.dispose();
   }
 
@@ -93,6 +98,11 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     int a = (alpha * 255).floor();
 
     return Color.fromARGB(a, r, g, b);
+  }
+
+  void initScrollBG() async {
+    await loadImages(["assets/forest.png"]);
+    _bgController.repeat();
   }
 
   List<Widget> getCircles() {
@@ -154,7 +164,9 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     Future<ByteData?> bits;
 
     var callback = Future.wait(futures);
+    ui.Image img;
     callback.then((values) => {
+          setState(() => {bgImage = values[0]}),
           bits = values[0].toByteData(format: ui.ImageByteFormat.png),
           bits.then((value) => {
                 //memImg = Image.memory(value!.buffer.asUint8List()),
@@ -163,7 +175,6 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   {
                     spriteImages = values,
                     print("setting image $value"),
-                    setState(() => {testImage = value!.buffer.asUint8List()})
                   }
               })
         });
@@ -331,6 +342,18 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
           //   });
           // },
           return Stack(children: [
+            bgImage != null
+                ? Padding(
+                    padding: EdgeInsets.only(top: 0, left: 0),
+                    child: CustomPaint(
+                      key: UniqueKey(),
+                      painter: BGAnimator(image: bgImage!, constraints: viewportConstraints, static: false, fps: 2000, controller: _bgController),
+                      isComplex: true,
+                      willChange: false,
+                      child: Container(),
+                    ),
+                  )
+                : Container(),
             SpriteWidget(
                 constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
                 texturePath: "assets/flying_monster.png",
