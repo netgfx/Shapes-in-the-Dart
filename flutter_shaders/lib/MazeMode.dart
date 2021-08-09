@@ -347,7 +347,16 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     padding: EdgeInsets.only(top: 0, left: 0),
                     child: CustomPaint(
                       key: UniqueKey(),
-                      painter: BGAnimator(image: bgImage!, constraints: viewportConstraints, static: false, fps: 2000, controller: _bgController),
+                      painter: BGAnimator(
+                        image: bgImage!,
+                        constraints: viewportConstraints,
+                        static: false,
+                        fps: 2000,
+                        controller: _bgController,
+                        offset: Offset(0, -50),
+                        imageSize: Size(655, 3072),
+                        scrollDirection: Direction.Vertical,
+                      ),
                       isComplex: true,
                       willChange: false,
                       child: Container(),

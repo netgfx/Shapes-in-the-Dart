@@ -7,6 +7,11 @@ enum LoopMode {
   Repeat,
 }
 
+enum Direction {
+  Horizontal,
+  Vertical,
+}
+
 class BGAnimator extends CustomPainter {
   ui.Image image;
   AnimationController controller;
@@ -16,13 +21,24 @@ class BGAnimator extends CustomPainter {
   int fps;
   bool static = true;
   BoxConstraints constraints;
-  double offsetY = -50;
-  double initialOffsetY = 50;
-  double initialHeight = 3072.0;
-  BGAnimator({required this.image, required this.constraints, required this.static, required this.fps, required this.controller}) : super(repaint: controller) {
+  double innitialOffset = -50;
+  Size imageSize;
+  Offset offset;
+  Direction scrollDirection;
+  BGAnimator({
+    required this.image,
+    required this.constraints,
+    required this.static,
+    required this.fps,
+    required this.controller,
+    required this.imageSize,
+    required this.offset,
+    required this.scrollDirection,
+  }) : super(repaint: controller) {
     print("draw");
     this.fps = (1 / this.fps * 1000).round();
-    this.timeDecay = 50; //this.fps;
+    this.timeDecay = this.fps;
+    innitialOffset = this.offset.dy.toDouble();
   }
 
   @override
@@ -35,10 +51,16 @@ class BGAnimator extends CustomPainter {
     draw(canvas, size);
   }
 
-  int calculateMaxOffset(double maxHeight) {
-    double ratio = (maxHeight / (initialHeight / 2));
-    int finalCalc = (ratio * maxHeight + maxHeight).round();
-    print("$ratio, $finalCalc $maxHeight $initialHeight");
+  int calculateMaxOffset() {
+    int finalCalc = 0;
+    if (this.scrollDirection == Direction.Vertical) {
+      double ratio = (imageSize.height / 3);
+      finalCalc = ((imageSize.height - ratio) + this.offset.dy.abs()).round();
+      print("$ratio, $finalCalc ${imageSize.height - ratio} ${this.offset.dy}");
+    } else {
+      double ratio = (imageSize.width / 3);
+      finalCalc = ((imageSize.width - ratio) + this.offset.dx.abs()).round();
+    }
     return finalCalc;
   }
 
@@ -53,20 +75,20 @@ class BGAnimator extends CustomPainter {
       if (this.controller.lastElapsedDuration != null) {
         if (this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
           this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
-          canvas.drawImage(image, new Offset(0.0, offsetY), new Paint());
-          offsetY -= 5;
-          int maxHeight = calculateMaxOffset(size.height);
-          if (offsetY <= -2098) {
-            offsetY = -50;
+          canvas.drawImage(image, new Offset(0.0, innitialOffset), new Paint());
+          innitialOffset -= 5;
+          int maxHeight = calculateMaxOffset();
+          if (innitialOffset <= (maxHeight * -1)) {
+            innitialOffset = this.offset.dy.abs() * -1;
             //this.controller.stop();
           }
 
-          print("${constraints.maxHeight}, $offsetY, $timeDecay, $size");
+          print("${constraints.maxHeight}, $maxHeight, $innitialOffset, $timeDecay, $size");
 
           this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
         } else {
           // do nothing?
-          canvas.drawImage(image, new Offset(0.0, offsetY), new Paint());
+          canvas.drawImage(image, new Offset(0.0, innitialOffset), new Paint());
         }
       }
     } else {
