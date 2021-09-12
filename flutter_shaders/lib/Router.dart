@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_shaders/BlendModeView.dart';
 import 'package:flutter_shaders/MazeMode.dart';
+import 'package:flutter_shaders/Triangulator.dart';
 import 'Menu.dart';
 import 'main.dart';
 
@@ -17,6 +18,9 @@ Map<String, Widget Function(BuildContext)> routes = {
         key: UniqueKey(),
       ),
   'Menu': (context) => Menu(
+        key: UniqueKey(),
+      ),
+  'Triangulator': (context) => Triangulator(
         key: UniqueKey(),
       ),
   //'MessageReply': (context) => MessageReply(key: UniqueKey()),
