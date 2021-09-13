@@ -12,7 +12,11 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:args/args.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:simple_animations/simple_animations.dart';
 import 'package:spring/spring.dart';
+import 'package:supercharged/supercharged.dart';
+
+enum AniProps { rotateX, rotateY, opacity, scale }
 
 class Triangulator extends StatefulWidget {
   Triangulator({Key? key}) : super(key: key);
@@ -21,10 +25,12 @@ class Triangulator extends StatefulWidget {
   _TriangulatorState createState() => _TriangulatorState();
 }
 
-class _TriangulatorState extends State<Triangulator> {
+class _TriangulatorState extends State<Triangulator> with AnimationMixin {
   String? finalImage = null;
   BoxConstraints? viewportConstraints;
   Delaunay? triangles;
+  late AnimationController _controller;
+  List<AnimationController> controllers = [];
   ui.Image? sourceImage;
   final SpringController springController = SpringController(
     initialAnim: Motion.pause,
@@ -35,7 +41,21 @@ class _TriangulatorState extends State<Triangulator> {
 
     SchedulerBinding.instance!.addPostFrameCallback((_) {
       init();
+
+      _controller = AnimationController(vsync: this);
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    for (var item in controllers) {
+      item.dispose();
+    }
+
+    controllers.clear();
+    _controller.dispose();
   }
 
   // const String description =
@@ -219,7 +239,8 @@ class _TriangulatorState extends State<Triangulator> {
     List<Widget> list = [];
 
     if (triangles != null) {
-      //(triangles!.triangles.length);
+      var counter = 0;
+
       for (int i = 0; i < triangles!.triangles.length; i += 3) {
         final Point<double> a = triangles!.getPoint(
           triangles!.triangles[i],
@@ -231,61 +252,119 @@ class _TriangulatorState extends State<Triangulator> {
           triangles!.triangles[i + 2],
         );
 
+        var delay = ((200 * counter) - (40 * counter)).round();
+
+        var rotateXTween = (0).tweenTo(30);
+        var rotateYTween = (0.0).tweenTo(-90);
+        var scaleTween = (1.0).tweenTo(0.0);
+        var opacityTween = (1.0).tweenTo(0.0);
+        var _tween = TimelineTween<AniProps>()
+          ..addScene(
+            begin: 0.seconds,
+            duration: 1.seconds,
+          )
+              .animate(AniProps.rotateX,
+                  curve: Curves.easeOutCubic,
+                  shiftBegin: delay.milliseconds,
+                  shiftEnd: (delay + 1000).milliseconds,
+                  tween: rotateXTween)
+              .animate(AniProps.rotateY,
+                  curve: Curves.easeOutCubic,
+                  shiftBegin: delay.milliseconds,
+                  shiftEnd: (delay + 1000).milliseconds,
+                  tween: rotateYTween)
+              .animate(AniProps.scale,
+                  curve: Curves.easeOutCubic,
+                  shiftBegin: delay.milliseconds,
+                  shiftEnd: (delay + 1000).milliseconds,
+                  tween: scaleTween)
+              .animate(AniProps.opacity,
+                  curve: Curves.easeOutSine,
+                  shiftBegin: delay.milliseconds,
+                  shiftEnd: (delay + 400).milliseconds,
+                  tween: opacityTween);
+
+        AnimationController aController = AnimationController(
+            duration: const Duration(milliseconds: 1000), vsync: this);
+        controllers.add(aController);
+        var _rotateXTween = Tween<double>(begin: 0.0, end: 30).animate(
+          CurvedAnimation(
+            parent: aController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+        var _rotateYTween = Tween<double>(begin: 0.0, end: -90).animate(
+          CurvedAnimation(
+            parent: aController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+        var _opacityTween = Tween<double>(begin: 1.0, end: 0.0).animate(
+          CurvedAnimation(
+            parent: aController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+        var _sizeTween = Tween<double>(begin: 1.0, end: 0.0).animate(
+          CurvedAnimation(
+            parent: aController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
+        _tween.animatedBy(_controller);
         if (sourceImage != null) {
-          var delay = (50 * i).round();
-          list.add(
-            Spring.scale(
-              //animation lik e zoomOut
-              start: 1.0,
-              end: 0.0,
-              springController: springController,
-              delay: Duration(milliseconds: delay),
-              animDuration: Duration(milliseconds: 1000), //def=1s
-              animStatus: (AnimStatus status) {
-                print(status);
-              },
-              curve: Curves.easeOutCubic,
-              child: Spring.rotate(
-                springController: springController,
-                alignment: Alignment.center, //def=center
-                startAngle: 0, //def=0
-                endAngle: 30, //def=360
-                delay: Duration(milliseconds: delay),
-                animDuration: Duration(milliseconds: 1000), //def=1s
-                animStatus: (AnimStatus status) {
-                  print(status);
-                },
-                curve: Curves.easeOutCubic, //def=Curves.easInOut
-                child: Spring.opacity(
-                  startOpacity: 1.0,
-                  endOpacity: 0.0,
-                  springController: springController,
-                  animDuration: Duration(milliseconds: 600), //def=1s
-                  animStatus: (AnimStatus status) {
-                    print(status);
-                  },
-                  curve: Curves.easeOutSine, //def=Curves.easInOut
-                  delay: Duration(milliseconds: delay), //def=0
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 0, left: 0),
-                    child: CustomPaint(
-                      key: UniqueKey(),
-                      painter: Fragment(
-                          p0: a,
-                          p1: b,
-                          p2: c,
-                          controller: null,
-                          image: sourceImage!),
-                      isComplex: true,
-                      willChange: false,
-                      child: Container(),
+          print("DELAY: $delay");
+          list.add(AnimatedBuilder(
+              animation: aController,
+              builder: (BuildContext context, Widget? child) {
+                return Transform(
+                  transform: Matrix4(
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                  )
+                    //..rotateX(_rotateXTween.value)
+                    //..rotateY(0)
+                    ..scale(_sizeTween.value),
+                  alignment: FractionalOffset.center,
+                  child: Opacity(
+                    opacity: _opacityTween
+                        .value, //value.get(AniProps.opacity).toDouble(),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 0, left: 0),
+                      child: CustomPaint(
+                        key: UniqueKey(),
+                        painter: Fragment(
+                            p0: a,
+                            p1: b,
+                            p2: c,
+                            controller: null,
+                            image: sourceImage!),
+                        isComplex: true,
+                        willChange: false,
+                        child: Container(),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ),
-          );
+                );
+              }));
         }
+
+        counter++;
       }
 
       list.add(Spring.opacity(
@@ -428,6 +507,15 @@ class _TriangulatorState extends State<Triangulator> {
           return GestureDetector(
               onTapDown: (details) {
                 springController.play();
+                print(controllers.length);
+                var counter = 0;
+                for (var item in controllers) {
+                  var delay = ((200 * counter) - (40 * counter)).round();
+                  Future.delayed(Duration(milliseconds: delay), () {
+                    item.forward().orCancel;
+                  });
+                  counter += 1;
+                }
               },
               child: Stack(
                   fit: StackFit.passthrough,
@@ -468,7 +556,7 @@ class Options {
 
     return Options(
       "$dir/delaunay.png",
-      doubleInRange(40, 60).round(),
+      doubleInRange(20, 40).round(),
       doubleInRange(1, 1000).round(),
       true,
       true,
