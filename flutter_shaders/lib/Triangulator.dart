@@ -42,7 +42,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
     SchedulerBinding.instance!.addPostFrameCallback((_) {
       init();
 
-      _controller = AnimationController(vsync: this);
+      _controller = AnimationController(duration: 1.seconds, vsync: this);
     });
   }
 
@@ -138,8 +138,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
     triangulator.initialize();
 
     if (options.verbose) {
-      print(
-          'Triangulator initialized in ${sw.elapsedMilliseconds}ms for ${options.points} points');
+      print('Triangulator initialized in ${sw.elapsedMilliseconds}ms for ${options.points} points');
     }
 
     sw.reset();
@@ -190,8 +189,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
     sw.start();
     final List<int> imageData = image.encodePng(img, level: 2);
 
-    File(options.output)
-        .writeAsBytesSync(imageData, mode: FileMode.write, flush: true);
+    File(options.output).writeAsBytesSync(imageData, mode: FileMode.write, flush: true);
     sw.stop();
     if (options.verbose) {
       print('PNG document written in ${sw.elapsedMilliseconds}ms.');
@@ -258,34 +256,8 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
         var rotateYTween = (0.0).tweenTo(-90);
         var scaleTween = (1.0).tweenTo(0.0);
         var opacityTween = (1.0).tweenTo(0.0);
-        var _tween = TimelineTween<AniProps>()
-          ..addScene(
-            begin: 0.seconds,
-            duration: 1.seconds,
-          )
-              .animate(AniProps.rotateX,
-                  curve: Curves.easeOutCubic,
-                  shiftBegin: delay.milliseconds,
-                  shiftEnd: (delay + 1000).milliseconds,
-                  tween: rotateXTween)
-              .animate(AniProps.rotateY,
-                  curve: Curves.easeOutCubic,
-                  shiftBegin: delay.milliseconds,
-                  shiftEnd: (delay + 1000).milliseconds,
-                  tween: rotateYTween)
-              .animate(AniProps.scale,
-                  curve: Curves.easeOutCubic,
-                  shiftBegin: delay.milliseconds,
-                  shiftEnd: (delay + 1000).milliseconds,
-                  tween: scaleTween)
-              .animate(AniProps.opacity,
-                  curve: Curves.easeOutSine,
-                  shiftBegin: delay.milliseconds,
-                  shiftEnd: (delay + 400).milliseconds,
-                  tween: opacityTween);
 
-        AnimationController aController = AnimationController(
-            duration: const Duration(milliseconds: 1000), vsync: this);
+        AnimationController aController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
         controllers.add(aController);
         var _rotateXTween = Tween<double>(begin: 0.0, end: 30).animate(
           CurvedAnimation(
@@ -312,7 +284,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
           ),
         );
 
-        _tween.animatedBy(_controller);
+        ///_tween.animatedBy(_controller);
         if (sourceImage != null) {
           print("DELAY: $delay");
           list.add(AnimatedBuilder(
@@ -342,20 +314,14 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
                     ..scale(_sizeTween.value),
                   alignment: FractionalOffset.center,
                   child: Opacity(
-                    opacity: _opacityTween
-                        .value, //value.get(AniProps.opacity).toDouble(),
+                    opacity: _opacityTween.value, //value.get(AniProps.opacity).toDouble(),
                     child: Padding(
                       padding: EdgeInsets.only(top: 0, left: 0),
                       child: CustomPaint(
                         key: UniqueKey(),
-                        painter: Fragment(
-                            p0: a,
-                            p1: b,
-                            p2: c,
-                            controller: null,
-                            image: sourceImage!),
+                        painter: Fragment(p0: a, p1: b, p2: c, fps: 24, controller: _controller, image: sourceImage!),
                         isComplex: true,
-                        willChange: false,
+                        willChange: true,
                         child: Container(),
                       ),
                     ),
@@ -466,9 +432,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
       fillTopFlat(ax, ay, bx, by, cx, cy);
     } else {
       final int dy = by;
-      final int dx = ax +
-          (((by - ay).toDouble() / (cy - ay).toDouble()) * (cx - ax).toDouble())
-              .toInt();
+      final int dx = ax + (((by - ay).toDouble() / (cy - ay).toDouble()) * (cx - ax).toDouble()).toInt();
 
       fillBottomFlat(ax, ay, bx, by, dx, dy);
       fillTopFlat(bx, by, dx, dy, cx, cy);
@@ -484,9 +448,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
           padding: const EdgeInsets.all(8.0),
           child: Container(
               padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50.0),
-                  color: Colors.black),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: Colors.black),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -500,22 +462,24 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
                 ),
               )),
         ),
-        body: LayoutBuilder(builder:
-            (BuildContext context, BoxConstraints viewportConstraints) {
+        body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
           this.viewportConstraints = viewportConstraints;
 
           return GestureDetector(
               onTapDown: (details) {
+                _controller.repeat();
                 springController.play();
-                print(controllers.length);
                 var counter = 0;
-                for (var item in controllers) {
-                  var delay = ((200 * counter) - (40 * counter)).round();
-                  Future.delayed(Duration(milliseconds: delay), () {
-                    item.forward().orCancel;
-                  });
-                  counter += 1;
-                }
+                Future.delayed(Duration(milliseconds: 2000), () {
+                  _controller.reset();
+                });
+                // for (var item in controllers) {
+                //   var delay = ((200 * counter) - (40 * counter)).round();
+                //   Future.delayed(Duration(milliseconds: delay), () {
+                //     item.forward().orCancel;
+                //   });
+                //   counter += 1;
+                // }
               },
               child: Stack(
                   fit: StackFit.passthrough,
@@ -531,8 +495,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
 }
 
 class Options {
-  Options(this.output, this.points, this.seed, this.verbose, this.help,
-      this.images);
+  Options(this.output, this.points, this.seed, this.verbose, this.help, this.images);
 
   Future<Options?> fromArgResults(ArgResults? results) async {
     // final bool verbose = results['verbose']!;
@@ -585,9 +548,7 @@ class Options {
   //write to app path
   Future<File> writeToFile(ByteData data, String path) {
     final buffer = data.buffer;
-    return new File(path).writeAsBytes(
-        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        flush: true);
+    return new File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes), flush: true);
   }
 
   Future<ui.Image> loadImage(Uint8List img) async {
@@ -599,8 +560,7 @@ class Options {
     return completer.future;
   }
 
-  Future<Map<String, dynamic>?> _imageFromArgResults(
-      ArgResults? results, bool verbose) async {
+  Future<Map<String, dynamic>?> _imageFromArgResults(ArgResults? results, bool verbose) async {
     //final String inputImagePath =
     image.Image inputImage;
     final File inputFile = await loadImageTexture();

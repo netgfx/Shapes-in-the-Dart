@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_shaders/Shard.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
@@ -13,7 +14,12 @@ class Fragment extends CustomPainter {
   Canvas? canvas;
   double angle = 0;
   int delay = 0;
+  int currentTime = 0;
   ui.Image image;
+  int fps = 24;
+  int timeDecay = 250;
+  double rate = 0.042;
+  late Shard shard;
   Map<String, dynamic> box = {};
   Point<double> centroid = Point(0.0, 0.0);
 
@@ -23,8 +29,24 @@ class Fragment extends CustomPainter {
     required this.p2,
     required this.controller,
     required this.image,
+    required this.fps,
   }) : super(repaint: controller) {
     print("draw");
+
+    this.timeDecay = (1 / this.fps * 1000).round();
+
+    /// make the shard
+    this.shard = Shard(
+        a: this.p0,
+        b: this.p1,
+        c: this.p2,
+        speed: this.fps.toDouble(),
+        color: Colors.orange,
+        painter: new Paint()..color = Color.fromRGBO(0, 0, 0, 1),
+        renderDelay: 0,
+        opacity: 255,
+        timeAlive: 0,
+        timeToLive: 24);
   }
 
   @override
@@ -46,10 +68,23 @@ class Fragment extends CustomPainter {
   }
 
   void draw(Canvas canvas, Size size) {
-    drawPolygon(Paint());
-    //..color = Colors.orange
-    //..blendMode = BlendMode.src);
-    //..style = PaintingStyle.fill);
+    if (shard.timeAlive > shard.timeToLive) {
+      return;
+    }
+
+    if (this.controller!.lastElapsedDuration != null) {
+      shard.timeAlive += 1;
+      this.rate += 0.1;
+      if (this.rate > 1.0) {
+        this.rate = 1.0;
+      }
+      print("ROUND: ${shard.timeAlive}");
+      // check if it has ended running
+
+      drawPolygon(shard, false);
+    } else {
+      drawPolygon(shard, true);
+    }
   }
 
   void computeBoundingBox() {
@@ -59,6 +94,7 @@ class Fragment extends CustomPainter {
         yMax = [this.p0.y, this.p1.y, this.p2.y].reduce(max);
 
     this.box = {"x": xMin, "y": yMin, "w": xMax - xMin, "h": yMax - yMin};
+    print(this.box);
   }
 
   void computeCentroid() {
@@ -68,8 +104,26 @@ class Fragment extends CustomPainter {
     this.centroid = Point(x, y);
   }
 
-  void drawPolygon(Paint paint, {double initialAngle = 0}) {
-    rotate(() {
+  void drawPolygon(Shard shard, bool static) {
+    double _scale = shard.getScale();
+    double _rotationX = shard.getRotationX();
+    double _rotationY = shard.getRotationY();
+    int _opacity = shard.getOpacity();
+
+    if (static != true) {
+      _scale = 1.0 - this.rate;
+      _opacity = (255 - (255 * this.rate)).round();
+      _rotationX = (30 * this.fps).toDouble();
+      _rotationY = (30 * this.fps).toDouble();
+
+      shard.opacity = _opacity;
+      shard.rotateX = _rotationX;
+      shard.rotateY = _rotationY;
+      shard.scale = _scale;
+    }
+
+    print("OPACITY: ${shard.getOpacity()} ${255 * this.controller!.value}");
+    rotate(_scale, 0, 0, () {
       final Path path = Path();
       for (int i = 0; i < 3; i++) {
         //final double radian = vectorMath.radians(initialAngle + 360 / 3 * i.toDouble());
@@ -94,22 +148,50 @@ class Fragment extends CustomPainter {
         }
       }
       path.close();
-      canvas!.drawPath(path, paint);
+      canvas!.drawPath(path, shard.getPainter());
       canvas!.clipPath(path);
-      canvas!.drawImage(image, new Offset(0.0, 0.0), new Paint());
+      canvas!.drawImage(image, new Offset(0.0, 0.0), Paint()..color = shard.getColor().withAlpha(_opacity));
     });
   }
 
-  void rotate(VoidCallback callback) {
-    double _x = this.box["x"] * -1;
-    double _y = this.box["y"] * -1;
+  void rotate(double scale, double angleX, double angleY, VoidCallback callback) {
+    double _x = this.box["w"] / 2;
+    double _y = this.box["h"] / 2;
     canvas!.save();
-    //canvas!.translate(_x, _y);
 
-    if (this.angle > 0) {
-      canvas!.rotate(this.angle);
+    if (angleX != 0 || angleY != 0) {
+      // canvas!.rotate(angle);
+      var matrix = Matrix4(
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+      )
+        ..rotateX(angleX)
+        ..rotateY(angleY);
+      canvas!.transform(matrix.storage);
     }
+
+    if (scale != 1.0) {
+      //canvas!.translate(this.p0.x + _x, this.p0.y + _y);
+      canvas!.scale(scale);
+    }
+
+    canvas!.translate(0, 0);
     callback();
+
     canvas!.restore();
   }
 }
