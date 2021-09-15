@@ -48,14 +48,14 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
 
   @override
   void dispose() {
-    super.dispose();
-
     for (var item in controllers) {
       item.dispose();
     }
 
     controllers.clear();
     _controller.dispose();
+
+    super.dispose();
   }
 
   // const String description =
@@ -250,7 +250,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
           triangles!.triangles[i + 2],
         );
 
-        var delay = ((200 * counter) - (40 * counter)).round();
+        var delay = ((100 * counter) - (40 * counter)).round();
 
         var rotateXTween = (0).tweenTo(30);
         var rotateYTween = (0.0).tweenTo(-90);
@@ -319,7 +319,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
                       padding: EdgeInsets.only(top: 0, left: 0),
                       child: CustomPaint(
                         key: UniqueKey(),
-                        painter: Fragment(p0: a, p1: b, p2: c, fps: 24, controller: _controller, image: sourceImage!),
+                        painter: Fragment(p0: a, p1: b, p2: c, fps: 24, controller: _controller, image: sourceImage!, delay: delay),
                         isComplex: true,
                         willChange: true,
                         child: Container(),
@@ -470,7 +470,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
                 _controller.repeat();
                 springController.play();
                 var counter = 0;
-                Future.delayed(Duration(milliseconds: 2000), () {
+                Future.delayed(Duration(milliseconds: 12000), () {
                   _controller.reset();
                 });
                 // for (var item in controllers) {

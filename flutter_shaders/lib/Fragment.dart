@@ -30,6 +30,7 @@ class Fragment extends CustomPainter {
     required this.controller,
     required this.image,
     required this.fps,
+    required this.delay,
   }) : super(repaint: controller) {
     print("draw");
 
@@ -73,15 +74,32 @@ class Fragment extends CustomPainter {
     }
 
     if (this.controller!.lastElapsedDuration != null) {
-      shard.timeAlive += 1;
-      this.rate += 0.1;
-      if (this.rate > 1.0) {
-        this.rate = 1.0;
-      }
-      print("ROUND: ${shard.timeAlive}");
-      // check if it has ended running
+      //print("${this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime},$delay");
+      if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= delay && shard.timeAlive == 0) {
+        this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
+        shard.timeAlive += 1;
+        this.rate += 0.05;
+        if (this.rate > 1.0) {
+          this.rate = 1.0;
+        }
+        //print("ROUND: ${shard.timeAlive}");
+        // check if it has ended running
 
-      drawPolygon(shard, false);
+        drawPolygon(shard, false);
+      } else if (shard.timeAlive > 0) {
+        this.currentTime = DateTime.now().millisecondsSinceEpoch;
+        shard.timeAlive += 1;
+        this.rate += 0.05;
+        if (this.rate > 1.0) {
+          this.rate = 1.0;
+        }
+        //print("ROUND: ${shard.timeAlive}");
+        // check if it has ended running
+
+        drawPolygon(shard, false);
+      } else {
+        drawPolygon(shard, true);
+      }
     } else {
       drawPolygon(shard, true);
     }
@@ -94,7 +112,7 @@ class Fragment extends CustomPainter {
         yMax = [this.p0.y, this.p1.y, this.p2.y].reduce(max);
 
     this.box = {"x": xMin, "y": yMin, "w": xMax - xMin, "h": yMax - yMin};
-    print(this.box);
+    //print(this.box);
   }
 
   void computeCentroid() {
@@ -113,8 +131,8 @@ class Fragment extends CustomPainter {
     if (static != true) {
       _scale = 1.0 - this.rate;
       _opacity = (255 - (255 * this.rate)).round();
-      _rotationX = (30 * this.fps).toDouble();
-      _rotationY = (30 * this.fps).toDouble();
+      _rotationX = (30 * this.rate).toDouble();
+      _rotationY = (-30 * this.rate).toDouble();
 
       shard.opacity = _opacity;
       shard.rotateX = _rotationX;
@@ -122,7 +140,7 @@ class Fragment extends CustomPainter {
       shard.scale = _scale;
     }
 
-    print("OPACITY: ${shard.getOpacity()} ${255 * this.controller!.value}");
+    //print("OPACITY: ${shard.getOpacity()} ${255 * this.controller!.value}");
     rotate(_scale, 0, 0, () {
       final Path path = Path();
       for (int i = 0; i < 3; i++) {
@@ -181,17 +199,37 @@ class Fragment extends CustomPainter {
       )
         ..rotateX(angleX)
         ..rotateY(angleY);
-      canvas!.transform(matrix.storage);
+      //canvas!.transform(matrix.storage);
+      canvas!.rotate(angleX);
     }
 
     if (scale != 1.0) {
       //canvas!.translate(this.p0.x + _x, this.p0.y + _y);
-      canvas!.scale(scale);
+      var matrix = Matrix4(
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+      )..scale(scale);
+      //..translate(this.p0.x - _x, this.p0.y - _y);
+      canvas!.transform(matrix.storage);
+      //canvas!.scale(scale);
     }
 
-    canvas!.translate(0, 0);
+    //canvas!.translate(0, 0);
     callback();
-
     canvas!.restore();
   }
 }
