@@ -20,6 +20,7 @@ class Fragment extends CustomPainter {
   int timeDecay = 250;
   double rate = 0.042;
   late Shard shard;
+
   Map<String, dynamic> box = {};
   Point<double> centroid = Point(0.0, 0.0);
 
@@ -179,24 +180,7 @@ class Fragment extends CustomPainter {
 
     if (angleX != 0 || angleY != 0) {
       // canvas!.rotate(angle);
-      var matrix = Matrix4(
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-      )
+      var matrix = Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
         ..rotateX(angleX)
         ..rotateY(angleY);
       //canvas!.transform(matrix.storage);
@@ -205,24 +189,7 @@ class Fragment extends CustomPainter {
 
     if (scale != 1.0) {
       //canvas!.translate(this.p0.x + _x, this.p0.y + _y);
-      var matrix = Matrix4(
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-      )..scale(scale);
+      var matrix = Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)..scale(scale);
       //..translate(this.p0.x - _x, this.p0.y - _y);
       canvas!.transform(matrix.storage);
       //canvas!.scale(scale);

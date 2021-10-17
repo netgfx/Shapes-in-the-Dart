@@ -13,10 +13,7 @@ import 'package:statsfl/statsfl.dart';
 import 'Router.dart';
 
 void main() {
-  runApp(Padding(
-      padding: EdgeInsets.only(top: 50),
-      child: StatsFl(
-          height: 60, align: Alignment.topCenter, maxFps: 90, child: MyApp())));
+  runApp(Padding(padding: EdgeInsets.only(top: 50), child: StatsFl(height: 60, align: Alignment.topCenter, maxFps: 90, child: MyApp())));
 }
 
 class MyApp extends StatelessWidget {
@@ -28,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      initialRoute: "Triangulator",
+      initialRoute: "MazeMode",
       routes: routes,
       home: MyHomePage(
         title: 'Shapes in the Dart',
@@ -67,15 +64,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ShapeType.RoundedRect,
       ShapeType.Triangle,
     ],
-    "level2": [
-      ShapeType.Circle,
-      ShapeType.Rect,
-      ShapeType.RoundedRect,
-      ShapeType.Triangle,
-      ShapeType.Heart,
-      ShapeType.Star5,
-      ShapeType.Hexagon
-    ]
+    "level2": [ShapeType.Circle, ShapeType.Rect, ShapeType.RoundedRect, ShapeType.Triangle, ShapeType.Heart, ShapeType.Star5, ShapeType.Hexagon]
   };
 
   @override
@@ -84,16 +73,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     SchedulerBinding.instance!.addPostFrameCallback((_) {
       var p = FastPoissonDiskSampling(
-          shape: Size(
-              (MediaQuery.of(context).size.width - 50).ceil().toDouble(),
-              (MediaQuery.of(context).size.height - 210).ceil().toDouble()),
+          shape: Size((MediaQuery.of(context).size.width - 50).ceil().toDouble(), (MediaQuery.of(context).size.height - 210).ceil().toDouble()),
           radius: 190,
           maxTries: 50,
           minDistance: 0,
           rng: null);
 
-      print(
-          "Size is: ${(MediaQuery.of(context).size.width - 25).ceil().toDouble()} ${(MediaQuery.of(context).size.height - 25).ceil().toDouble()}");
+      print("Size is: ${(MediaQuery.of(context).size.width - 25).ceil().toDouble()} ${(MediaQuery.of(context).size.height - 25).ceil().toDouble()}");
       setState(() {
         points = p.fill();
       });
@@ -113,10 +99,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   /// animate the timer value
   void animateValue() {
-    AnimationController controller = AnimationController(
-        duration: const Duration(milliseconds: 15000), vsync: this);
-    Animation<double> progress =
-        Tween<double>(begin: 1, end: 0).animate(controller);
+    AnimationController controller = AnimationController(duration: const Duration(milliseconds: 15000), vsync: this);
+    Animation<double> progress = Tween<double>(begin: 1, end: 0).animate(controller);
     progress.addListener(() {
       setState(() {
         timerValue = progress.value;
@@ -196,8 +180,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     print(details.globalPosition.dy);
   }
 
-  void _onPanUpdate(
-      BuildContext context, DragUpdateDetails details, Offset offset) {
+  void _onPanUpdate(BuildContext context, DragUpdateDetails details, Offset offset) {
     //checkCollision();
     setState(() {
       position = details.localPosition;
@@ -265,8 +248,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       final overlap = rectOverlap(rect1, rect2);
 
       if (overlap == true) {
-        print(
-            '\nContainers collide: $position1, $size1, $position2, $size2, $collide $overlap <<<<<<<<\n');
+        print('\nContainers collide: $position1, $size1, $position2, $size2, $collide $overlap <<<<<<<<\n');
       } else {
         //print('\nContainers collide: $position1, $position2\n');
       }
@@ -277,15 +259,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   bool rectOverlap(Rect A, Rect B) {
-    bool xOverlap = valueInRange(A.center.dx.toInt(), B.center.dx.toInt(),
-            B.center.dx.toInt() + (B.width * 0.5).toInt()) ||
-        valueInRange(B.center.dx.toInt(), A.center.dx.toInt(),
-            A.center.dx.toInt() + (A.width * 0.5).toInt());
+    bool xOverlap = valueInRange(A.center.dx.toInt(), B.center.dx.toInt(), B.center.dx.toInt() + (B.width * 0.5).toInt()) ||
+        valueInRange(B.center.dx.toInt(), A.center.dx.toInt(), A.center.dx.toInt() + (A.width * 0.5).toInt());
 
-    bool yOverlap = valueInRange(A.center.dy.toInt(), B.center.dy.toInt(),
-            B.center.dy.toInt() + (B.height * 0.5).toInt()) ||
-        valueInRange(B.center.dy.toInt(), A.center.dy.toInt(),
-            A.center.dy.toInt() + (A.height * 0.5).toInt());
+    bool yOverlap = valueInRange(A.center.dy.toInt(), B.center.dy.toInt(), B.center.dy.toInt() + (B.height * 0.5).toInt()) ||
+        valueInRange(B.center.dy.toInt(), A.center.dy.toInt(), A.center.dy.toInt() + (A.height * 0.5).toInt());
 
     return xOverlap && yOverlap;
   }
@@ -312,8 +290,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 radius: 40.0,
                 center: Offset(0, 0),
                 angle: null,
-                color:
-                    currentNodes[value["key"].toString()]!["color"] as Color),
+                color: currentNodes[value["key"].toString()]!["color"] as Color),
             child: Container(),
           ));
 
@@ -335,13 +312,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       finalList.add(
         CustomPaint(
           key: UniqueKey(),
-          painter: ShapeMaster(
-              type: shape,
-              size: Size(50, 50),
-              radius: 25.0,
-              center: Offset(0, 0),
-              angle: null,
-              color: currentLevelQueue[i].getColor()),
+          painter: ShapeMaster(type: shape, size: Size(50, 50), radius: 25.0, center: Offset(0, 0), angle: null, color: currentLevelQueue[i].getColor()),
           isComplex: true,
           willChange: false,
           child: Container(),
@@ -412,8 +383,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   int getFirstNotFoundShape() {
-    return currentLevelQueue
-        .indexWhere((element) => element.getFound() == false);
+    return currentLevelQueue.indexWhere((element) => element.getFound() == false);
   }
 
   @override
@@ -428,106 +398,85 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           textAlign: TextAlign.center,
         ),
       ),
-      body: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints viewportConstraints) {
+      body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
         return GestureDetector(
             onPanStart: (details) => _onPanStart(context, details),
             onPanUpdate: (details) => _onPanUpdate(context, details, position),
             onPanEnd: (details) => _onPanEnd(context, details),
             onPanCancel: () => _onPanCancel(context),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                      height: viewportConstraints.maxHeight - 80,
-                      child: Stack(children: [
-                        points.length > 0
-                            ? RepaintBoundary(
-                                child: Stack(
-                                    children: getShapes(viewportConstraints)))
-                            : SizedBox(),
-                        ShaderMask(
-                            shaderCallback: (Rect bounds) {
-                              return RadialGradient(
-                                radius: 50,
-                                center: Alignment.topCenter,
-                                colors: <Color>[Colors.black, Colors.black54],
-                                tileMode: TileMode.clamp,
-                              ).createShader(bounds);
-                            },
-                            blendMode: BlendMode.srcOut,
-                            child: Stack(children: [
-                              Container(
-                                width: viewportConstraints.maxWidth,
-                                height: viewportConstraints.maxHeight,
-                                color: Colors.transparent,
-                                clipBehavior: Clip.none,
-                              ),
-                              Transform.translate(
-                                  offset: Offset(
-                                      position.dx - 100, position.dy - 100),
-                                  child: Container(
-                                    key: containerKey1,
-                                    width: 100,
-                                    height: 100,
-                                    constraints: BoxConstraints(
-                                        maxWidth: 100, maxHeight: 100),
+            child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Container(
+                  height: viewportConstraints.maxHeight - 80,
+                  child: Stack(children: [
+                    points.length > 0 ? RepaintBoundary(child: Stack(children: getShapes(viewportConstraints))) : SizedBox(),
+                    ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return RadialGradient(
+                            radius: 50,
+                            center: Alignment.topCenter,
+                            colors: <Color>[Colors.black, Colors.black54],
+                            tileMode: TileMode.clamp,
+                          ).createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcOut,
+                        child: Stack(children: [
+                          Container(
+                            width: viewportConstraints.maxWidth,
+                            height: viewportConstraints.maxHeight,
+                            color: Colors.transparent,
+                            clipBehavior: Clip.none,
+                          ),
+                          Transform.translate(
+                              offset: Offset(position.dx - 100, position.dy - 100),
+                              child: Container(
+                                key: containerKey1,
+                                width: 100,
+                                height: 100,
+                                constraints: BoxConstraints(maxWidth: 100, maxHeight: 100),
+                                decoration: BoxDecoration(
+                                    color: Colors.black, // Color does not matter but should not be transparent
+                                    borderRadius: BorderRadius.circular(50),
+                                    boxShadow: [
+                                      BoxShadow(blurRadius: 8, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 2),
+                                      BoxShadow(blurRadius: 8, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 2)
+                                    ]),
+                                child: Container(
+                                    width: 50,
+                                    height: 50,
                                     decoration: BoxDecoration(
-                                        color: Colors
-                                            .black, // Color does not matter but should not be transparent
-                                        borderRadius: BorderRadius.circular(50),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 0),
-                                              color: Colors.black,
-                                              spreadRadius: 2),
-                                          BoxShadow(
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 0),
-                                              color: Colors.black,
-                                              spreadRadius: 2)
-                                        ]),
-                                    child: Container(
-                                        width: 50,
-                                        height: 50,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          gradient: RadialGradient(
-                                            colors: [
-                                              Colors.black.withOpacity(0.0),
-                                              Colors.black.withOpacity(0.4),
-                                            ],
-                                            center:
-                                                AlignmentDirectional(0.0, 0.0),
-                                            focal:
-                                                AlignmentDirectional(0.0, 0.0),
-                                            radius: 0.6,
-                                            focalRadius: 0.001,
-                                            stops: [0.75, 1.0],
-                                          ),
-                                        )),
-                                  )),
-                            ])),
-                      ])),
-                  LinearProgressIndicator(
-                    value: timerValue,
-                    backgroundColor: Colors.purple,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
-                    minHeight: 5.0,
-                  ),
-                  SizedBox(
-                    child: Padding(
-                        padding: EdgeInsets.only(top: 40),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: getQuestShapes(),
-                        )),
-                    height: 70,
-                  )
-                ]));
+                                      shape: BoxShape.circle,
+                                      gradient: RadialGradient(
+                                        colors: [
+                                          Colors.black.withOpacity(0.0),
+                                          Colors.black.withOpacity(0.4),
+                                        ],
+                                        center: AlignmentDirectional(0.0, 0.0),
+                                        focal: AlignmentDirectional(0.0, 0.0),
+                                        radius: 0.6,
+                                        focalRadius: 0.001,
+                                        stops: [0.75, 1.0],
+                                      ),
+                                    )),
+                              )),
+                        ])),
+                  ])),
+              LinearProgressIndicator(
+                value: timerValue,
+                backgroundColor: Colors.purple,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
+                minHeight: 5.0,
+              ),
+              SizedBox(
+                child: Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: getQuestShapes(),
+                    )),
+                height: 70,
+              )
+            ]));
       }),
       // floatingActionButton: FloatingActionButton(
       //   onPressed: _incrementCounter,

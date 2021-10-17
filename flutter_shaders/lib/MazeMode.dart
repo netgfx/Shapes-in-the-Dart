@@ -10,6 +10,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shaders/AnimatedBackground.dart';
 import 'package:flutter_shaders/BGAnimator.dart';
+import 'package:flutter_shaders/LetterParticles.dart';
 import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
@@ -36,23 +37,15 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   bool showBottomList = false;
   double opacity = 1.0;
   List<ui.Image> spriteImages = [];
-  StrokeCap strokeCap =
-      (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
+  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
   SelectedMode selectedMode = SelectedMode.StrokeWidth;
-  List<Color> colors = [
-    Colors.red,
-    Colors.green,
-    Colors.blue,
-    Colors.amber,
-    Colors.black
-  ];
+  List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
+  late AnimationController _letterController;
   late AnimationController _bgController;
-  final ValueNotifier<Offset> particlePoint =
-      ValueNotifier<Offset>(Offset(0, 0));
-  final ValueNotifier<Offset> particlePoint2 =
-      ValueNotifier<Offset>(Offset(0, 0));
+  final ValueNotifier<Offset> particlePoint = ValueNotifier<Offset>(Offset(0, 0));
+  final ValueNotifier<Offset> particlePoint2 = ValueNotifier<Offset>(Offset(0, 0));
   Color _color = Colors.green;
   final _random = new Random();
   int _counter = 0;
@@ -70,15 +63,14 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     super.initState();
 
     // Curves.easeOutBack // explode
-    _controller =
-        AnimationController(vsync: this, duration: Duration(seconds: 1));
-    _bgController =
-        AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _letterController = AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _bgController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
     //_spriteController.repeat();
-    //_controller.forward();
+
     //mazeData = mzg.init();
     List<String> imagePaths = [];
     // for (var i = 1; i < 19; i++) {
@@ -89,7 +81,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     //   }
     // }
     SchedulerBinding.instance!.addPostFrameCallback((_) {
-      initScrollBG();
+      //initScrollBG();
+      _letterController.forward();
     });
   }
 
@@ -97,6 +90,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   void dispose() {
     _controller.dispose();
     _bgController.dispose();
+    _letterController.dispose();
     super.dispose();
   }
 
@@ -123,8 +117,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
       }
       finalList.add(
         Transform.translate(
-            offset:
-                Offset(points[i]!.points.dx - 20, points[i]!.points.dy - 20),
+            offset: Offset(points[i]!.points.dx - 20, points[i]!.points.dy - 20),
             child: PhysicalModel(
                 color: Colors.yellow,
                 shape: BoxShape.circle,
@@ -135,22 +128,11 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   width: 40,
                   height: 40,
                   constraints: BoxConstraints(maxWidth: 100, maxHeight: 100),
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors
-                          .black, // Color does not matter but should not be transparent
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black, // Color does not matter but should not be transparent
                       //borderRadius: BorderRadius.circular(20),
                       boxShadow: [
-                        BoxShadow(
-                            blurRadius: 4,
-                            offset: const Offset(0, 0),
-                            color: Colors.black,
-                            spreadRadius: 2),
-                        BoxShadow(
-                            blurRadius: 2,
-                            offset: const Offset(0, 0),
-                            color: Colors.black,
-                            spreadRadius: 8)
+                        BoxShadow(blurRadius: 4, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 2),
+                        BoxShadow(blurRadius: 2, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 8)
                       ]),
                   child: Container(
                       width: 20,
@@ -279,9 +261,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(8.0),
           child: Container(
               padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50.0),
-                  color: Colors.black),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: Colors.black),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -295,8 +275,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                             icon: Icon(Icons.album),
                             onPressed: () {
                               setState(() {
-                                if (selectedMode == SelectedMode.StrokeWidth)
-                                  showBottomList = !showBottomList;
+                                if (selectedMode == SelectedMode.StrokeWidth) showBottomList = !showBottomList;
                                 selectedMode = SelectedMode.StrokeWidth;
                               });
                             }),
@@ -305,8 +284,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                             icon: Icon(Icons.opacity),
                             onPressed: () {
                               setState(() {
-                                if (selectedMode == SelectedMode.Opacity)
-                                  showBottomList = !showBottomList;
+                                if (selectedMode == SelectedMode.Opacity) showBottomList = !showBottomList;
                                 selectedMode = SelectedMode.Opacity;
                               });
                             }),
@@ -325,8 +303,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                 ),
               )),
         ),
-        body: LayoutBuilder(builder:
-            (BuildContext context, BoxConstraints viewportConstraints) {
+        body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
           this.viewportConstraints = viewportConstraints;
           // return GestureDetector(
           //   onTapDown: (details) {
@@ -371,41 +348,116 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
           //   });
           // },
           return Stack(children: [
-            bgImage != null
-                ? Padding(
-                    padding: EdgeInsets.only(top: 0, left: 0),
-                    child: CustomPaint(
-                      key: UniqueKey(),
-                      painter: BGAnimator(
-                        image: bgImage!,
-                        constraints: viewportConstraints,
-                        static: false,
-                        fps: 2000,
-                        controller: _bgController,
-                        offset: Offset(0, -50),
-                        imageSize: Size(655, 3072),
-                        scrollDirection: Direction.Vertical,
-                      ),
-                      isComplex: true,
-                      willChange: false,
-                      child: Container(),
+            // bgImage != null
+            //     ? Padding(
+            //         padding: EdgeInsets.only(top: 0, left: 0),
+            //         child: CustomPaint(
+            //           key: UniqueKey(),
+            //           painter: BGAnimator(
+            //             image: bgImage!,
+            //             constraints: viewportConstraints,
+            //             static: false,
+            //             fps: 2000,
+            //             controller: _bgController,
+            //             offset: Offset(0, -50),
+            //             imageSize: Size(655, 3072),
+            //             scrollDirection: Direction.Vertical,
+            //           ),
+            //           isComplex: true,
+            //           willChange: false,
+            //           child: Container(),
+            //         ),
+            //       )
+            //     : Container(),
+            Positioned(
+              top: 200,
+              left: 90,
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                      letter: "M",
+                      radius: 3,
+                      fps: 2000,
+                      color: randomColor(1),
+                      type: ShapeType.Circle,
+                      controller: _letterController,
+                      effect: "spread",
                     ),
-                  )
-                : Container(),
-            SpriteWidget(
-                constraints: {
-                  "width": viewportConstraints.maxWidth.toInt(),
-                  "height": viewportConstraints.maxHeight.toInt()
-                },
-                texturePath: "assets/flying_monster.png",
-                jsonPath: "assets/flying_monster.json",
-                delimiters: ["death/Death_animations", "fly/Fly2_Bats"],
-                startFrameName: batFirstFrame,
-                loop: batLoop,
-                scale: 0.5,
-                setCache: cacheSpriteImages,
-                cache: spriteCache["bat"],
-                name: "bat"),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 80, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                      letter: "I",
+                      radius: 3,
+                      fps: 2000,
+                      color: randomColor(1),
+                      type: ShapeType.Circle,
+                      controller: _letterController,
+                      effect: "spread",
+                    ),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 40, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                      letter: "K",
+                      radius: 3,
+                      fps: 2000,
+                      color: randomColor(1),
+                      type: ShapeType.Circle,
+                      controller: _letterController,
+                      effect: "spread",
+                    ),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 60, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                      letter: "E",
+                      radius: 3,
+                      fps: 2000,
+                      color: randomColor(1),
+                      type: ShapeType.Circle,
+                      controller: _letterController,
+                      effect: "spread",
+                    ),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 50, height: 0),
+                  ),
+                )
+              ]),
+            ),
+            // SpriteWidget(
+            //     constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
+            //     texturePath: "assets/flying_monster.png",
+            //     jsonPath: "assets/flying_monster.json",
+            //     delimiters: ["death/Death_animations", "fly/Fly2_Bats"],
+            //     startFrameName: batFirstFrame,
+            //     loop: batLoop,
+            //     scale: 0.5,
+            //     setCache: cacheSpriteImages,
+            //     cache: spriteCache["bat"],
+            //     name: "bat"),
             ShaderMask(
                 shaderCallback: (Rect bounds) {
                   return RadialGradient(
@@ -449,7 +501,6 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             ValueListenableBuilder<Offset>(
               valueListenable: particlePoint,
               builder: (BuildContext context, Offset value, Widget? child) {
-                print(">>>> ${value}");
                 if (isStopped == true) {
                   return Container();
                 } else {
@@ -499,11 +550,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                             hasBase: false,
                             blendMode: BlendMode.srcOver,
                             hasWalls: false,
-                            wallsObj: {
-                              "bottom":
-                                  (viewportConstraints.maxHeight - value.dy)
-                                      .toInt()
-                            },
+                            wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
                             delay: 0),
                       ),
                     ),
@@ -543,11 +590,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                             hasBase: false,
                             blendMode: BlendMode.srcOver,
                             hasWalls: false,
-                            wallsObj: {
-                              "bottom":
-                                  (viewportConstraints.maxHeight - value.dy)
-                                      .toInt()
-                            },
+                            wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
                             delay: 0),
                       ),
                     ),
@@ -555,22 +598,21 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                 }
               },
             ),
-            Positioned(
-              bottom: 100,
-              width: viewportConstraints.maxWidth,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(onPressed: playFly, child: Text("Fly")),
-                  SizedBox(
-                    width: 50,
-                  ),
-                  ElevatedButton(
-                      onPressed: playExplode, child: Text("Explode")),
-                ],
-              ),
-            ),
+            // Positioned(
+            //   bottom: 100,
+            //   width: viewportConstraints.maxWidth,
+            //   child: Row(
+            //     crossAxisAlignment: CrossAxisAlignment.center,
+            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //     children: [
+            //       ElevatedButton(onPressed: playFly, child: Text("Fly")),
+            //       SizedBox(
+            //         width: 50,
+            //       ),
+            //       ElevatedButton(onPressed: playExplode, child: Text("Explode")),
+            //     ],
+            //   ),
+            // ),
           ]);
           //);
         }));
@@ -586,15 +628,9 @@ class DrawingPainter extends CustomPainter {
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
         var path = Path();
-        path.addOval(
-            Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
+        path.addOval(Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
         //canvas.drawLine(pointsList[i]!.points, pointsList[i + 1]!.points, pointsList[i]!.paint);
-        canvas.drawShadow(
-            path.shift(Offset(
-                pointsList[i]!.points.dx - 5, pointsList[i]!.points.dy - 5)),
-            Colors.black54,
-            5.0,
-            true);
+        canvas.drawShadow(path.shift(Offset(pointsList[i]!.points.dx - 5, pointsList[i]!.points.dy - 5)), Colors.black54, 5.0, true);
         canvas.drawPath(path, pointsList[i]!.paint);
       } else if (pointsList[i] != null && pointsList[i + 1] == null) {
         offsetPoints.clear();
@@ -602,8 +638,7 @@ class DrawingPainter extends CustomPainter {
         // offsetPoints.add(Offset(pointsList[i]!.points.dx + 0.1, pointsList[i]!.points.dy + 0.1));
         // canvas.drawPoints(PointMode.points, offsetPoints, pointsList[i]!.paint);
         var path = Path();
-        path.addOval(
-            Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
+        path.addOval(Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
         canvas.drawShadow(path, Colors.black87, 5.0, true);
         canvas.drawPath(path, pointsList[i]!.paint);
       }
