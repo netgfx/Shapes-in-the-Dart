@@ -20,36 +20,37 @@ class LetterParticles extends CustomPainter {
   AnimationController? controller;
   Canvas? canvas;
   double angle = 0;
-  double delay = 500;
+  int delay = 500;
   int currentTime = 0;
   int fps = 24;
   ShapeType type = ShapeType.Circle;
-  int timeDecay = 250;
-  double rate = 0.042;
+  int timeDecay = 0;
+  double? rate = 0.009;
+  double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;
   int timeToLive = 24;
-  bool jitter = false;
   CharacterParticleEffect effect = CharacterParticleEffect.NONE;
-  Map<String, dynamic> box = {};
-  Point<double> centroid = Point(0.0, 0.0);
+  bool? stagger = false;
   List<LetterParticle> particles = [];
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
-  LetterParticles(
-      {required this.character,
-      required this.controller,
-      required this.fps,
-      required this.color,
-      required this.radius,
-      required this.type,
-      required this.effect,
-      required this.delay,
-      this.blendMode,
-      this.animate})
-      : super(repaint: controller) {
-    print("draw");
 
+  /// Constructor
+  LetterParticles({
+    required this.character,
+    required this.controller,
+    required this.fps,
+    required this.color,
+    required this.radius,
+    required this.type,
+    required this.effect,
+    required this.delay,
+    this.stagger,
+    this.rate,
+    this.blendMode,
+    this.animate,
+  }) : super(repaint: controller) {
     /// safeguard
     this.character = this.character.toUpperCase();
     this.timeDecay = (1 / this.fps * 1000).round();
@@ -63,7 +64,7 @@ class LetterParticles extends CustomPainter {
     } else {
       points = numberPaths[this.character];
     }
-    print("CHARACTER: $character POINTS: ${points?.length}");
+
     double maxX = 0;
     double minX = 10000;
     double maxY = 0;
@@ -110,25 +111,26 @@ class LetterParticles extends CustomPainter {
           ..style = PaintingStyle.fill;
       }
 
-      if (character == "I") {
-        print("$finalX, $finalY - ${points[i]} ${points[i + 1]} $offsetY, $i");
-      }
-
       particles.add(
         LetterParticle(
             color: this.color,
             x: randX,
             y: randY,
-            renderDelay: 0,
+            renderDelay: randomDelay(min: 500 + 50 * i.toDouble(), max: 1000 + 50 * i.toDouble()),
             opacity: 1.0,
             radius: this.radius,
             timeToLive: this.timeToLive.toDouble(),
-            speed: this.rate,
+            progress: 0.0,
             painter: fill,
             timeAlive: 0,
             currentTime: 0,
             endPath: Point(finalX, finalY)),
       );
+    }
+
+    /// fire the animate after a delay
+    if (this.delay > 0 && this.animate != null) {
+      Future.delayed(Duration(milliseconds: this.delay), () => {this.animate!()});
     }
   }
 
@@ -154,13 +156,28 @@ class LetterParticles extends CustomPainter {
 
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
-        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= delay && this.timeAlive == 0) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
           //this.timeAlive += 1;
-          this.rate += 0.05;
-          if (this.rate > 1.0) {
-            this.rate = 1.0;
+
+          /// only for stagger
+          if (this.stagger == true) {
+            for (var i = 0; i < particles.length; i++) {
+              if (particles[i].renderDelay > 0) {
+                if (this.controller!.lastElapsedDuration!.inMilliseconds > particles[i].renderDelay) {
+                  particles[i].progress += this.rate ?? 0.009;
+                  if (particles[i].progress >= 1.0) {
+                    particles[i].progress = 1.0;
+                  }
+                }
+              }
+            }
           }
+          endT += this.rate ?? 0.009;
+          if (endT >= 1.0) {
+            endT = 1.0;
+          }
+          //print("$endT, ${this.controller!.value}");
 
           // check if it has ended running
 
@@ -170,10 +187,6 @@ class LetterParticles extends CustomPainter {
         } else if (this.timeAlive > 0) {
           this.currentTime = DateTime.now().millisecondsSinceEpoch;
           //this.timeAlive += 1;
-          this.rate += 0.05;
-          if (this.rate > 1.0) {
-            this.rate = 1.0;
-          }
 
           // check if it has ended running
           //print("making a $type timeAlive > 0");
@@ -207,12 +220,21 @@ class LetterParticles extends CustomPainter {
         } else if (this.effect == CharacterParticleEffect.JITTER) {
           double randX = doubleInRange(finalX - 1.5, finalX + 1.5);
           double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
-          print(this.controller!.value);
+
           finalX = doubleInRange(randX, finalX);
           finalY = doubleInRange(randY, finalY);
         } else if (this.effect == CharacterParticleEffect.SPREAD) {
-          finalX = ui.lerpDouble(points[i].getX(), finalX, this.controller!.value)!;
-          finalY = ui.lerpDouble(points[i].getY(), finalY, this.controller!.value)!;
+          if (this.stagger == true) {
+            /// stagger
+            /// lerp: a + (b - a) * t
+            //finalX = points[i].getX() + (finalX - points[i].getX()) * points[i].speed;
+            //finalY = points[i].getY() + (finalX - points[i].getY()) * points[i].speed;
+            finalX = ui.lerpDouble(points[i].getX(), finalX, points[i].progress)!;
+            finalY = ui.lerpDouble(points[i].getY(), finalY, points[i].progress)!;
+          } else {
+            finalX = ui.lerpDouble(points[i].getX(), finalX, this.controller!.value)!;
+            finalY = ui.lerpDouble(points[i].getY(), finalY, this.controller!.value)!;
+          }
         } else if (this.effect == CharacterParticleEffect.FADEIN) {
           int newAlpha = ui.lerpDouble(0, 255, this.controller!.value)!.round();
           points[i].painter = Paint()
@@ -354,6 +376,14 @@ class LetterParticles extends CustomPainter {
       return start;
     } else {
       return _random.nextDouble() * (end - start) + start;
+    }
+  }
+
+  double randomDelay({double min = 0.005, double max = 0.05}) {
+    if (min == max) {
+      return min;
+    } else {
+      return doubleInRange(min, max);
     }
   }
 

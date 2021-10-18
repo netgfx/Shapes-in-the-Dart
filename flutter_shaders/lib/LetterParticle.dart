@@ -5,7 +5,7 @@ class LetterParticle {
   double x;
   double y;
   double radius;
-  double speed = 0.1;
+  double progress = 0.0;
   Color color;
   Point endPath;
   int timeAlive;
@@ -19,7 +19,7 @@ class LetterParticle {
       {required this.x,
       required this.y,
       required this.radius,
-      required this.speed,
+      required this.progress,
       required this.endPath,
       required this.color,
       required this.timeAlive,
@@ -43,8 +43,8 @@ class LetterParticle {
     return radius;
   }
 
-  double getSpeed() {
-    return speed;
+  double getProgress() {
+    return progress;
   }
 
   Color getColor() {

@@ -59,7 +59,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   Map<String, dynamic> spriteCache = {};
 
   ///
-  CharacterParticleEffect lettersEffect = CharacterParticleEffect.NONE;
+  CharacterParticleEffect lettersEffect = CharacterParticleEffect.SPREAD;
   @override
   void initState() {
     super.initState();
@@ -84,7 +84,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
     // }
     SchedulerBinding.instance!.addPostFrameCallback((_) {
       //initScrollBG();
-      _letterController.forward();
+      _letterController.repeat();
     });
   }
 
@@ -388,6 +388,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                         controller: _letterController,
                         effect: lettersEffect,
                         delay: 0,
+                        stagger: true,
                         animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
@@ -407,6 +408,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                         controller: _letterController,
                         effect: lettersEffect,
                         delay: 0,
+                        stagger: true,
                         animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
@@ -426,6 +428,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                         controller: _letterController,
                         effect: lettersEffect,
                         delay: 0,
+                        stagger: true,
                         animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
@@ -445,6 +448,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                         controller: _letterController,
                         effect: lettersEffect,
                         delay: 0,
+                        stagger: true,
                         animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
