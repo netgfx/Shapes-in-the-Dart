@@ -58,6 +58,8 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
   bool batLoop = true;
   Map<String, dynamic> spriteCache = {};
 
+  ///
+  CharacterParticleEffect lettersEffect = CharacterParticleEffect.NONE;
   @override
   void initState() {
     super.initState();
@@ -378,14 +380,15 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   child: CustomPaint(
                     key: UniqueKey(),
                     painter: LetterParticles(
-                      letter: "M",
-                      radius: 3,
-                      fps: 2000,
-                      color: randomColor(1),
-                      type: ShapeType.Circle,
-                      controller: _letterController,
-                      effect: "spread",
-                    ),
+                        character: "M",
+                        radius: 3,
+                        fps: 2000,
+                        color: randomColor(1),
+                        type: ShapeType.Circle,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
                     child: Container(width: 80, height: 0),
@@ -396,17 +399,18 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   child: CustomPaint(
                     key: UniqueKey(),
                     painter: LetterParticles(
-                      letter: "I",
-                      radius: 3,
-                      fps: 2000,
-                      color: randomColor(1),
-                      type: ShapeType.Circle,
-                      controller: _letterController,
-                      effect: "spread",
-                    ),
+                        character: "I",
+                        radius: 3,
+                        fps: 2000,
+                        color: randomColor(1),
+                        type: ShapeType.Circle,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
-                    child: Container(width: 40, height: 0),
+                    child: Container(width: 45, height: 0),
                   ),
                 ),
                 Padding(
@@ -414,14 +418,15 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   child: CustomPaint(
                     key: UniqueKey(),
                     painter: LetterParticles(
-                      letter: "K",
-                      radius: 3,
-                      fps: 2000,
-                      color: randomColor(1),
-                      type: ShapeType.Circle,
-                      controller: _letterController,
-                      effect: "spread",
-                    ),
+                        character: "K",
+                        radius: 3,
+                        fps: 2000,
+                        color: randomColor(1),
+                        type: ShapeType.Circle,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
                     child: Container(width: 60, height: 0),
@@ -432,14 +437,15 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   child: CustomPaint(
                     key: UniqueKey(),
                     painter: LetterParticles(
-                      letter: "E",
-                      radius: 3,
-                      fps: 2000,
-                      color: randomColor(1),
-                      type: ShapeType.Circle,
-                      controller: _letterController,
-                      effect: "spread",
-                    ),
+                        character: "E",
+                        radius: 3,
+                        fps: 2000,
+                        color: randomColor(1),
+                        type: ShapeType.Circle,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
                     child: Container(width: 50, height: 0),

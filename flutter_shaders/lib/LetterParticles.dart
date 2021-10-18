@@ -7,11 +7,14 @@ import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'dart:ui' as ui;
 import 'alphabet_paths.dart';
+import 'number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
+
+enum CharacterParticleEffect { NONE, JITTER, SPREAD, FADEIN, FADEOUT, EXPLODE, MATRIX, TREX }
 
 class LetterParticles extends CustomPainter {
   List<Point<double>> points = [];
-  String letter;
+  String character;
   Color color = Colors.black;
   double radius = 20.0;
   AnimationController? controller;
@@ -27,27 +30,40 @@ class LetterParticles extends CustomPainter {
   int timeAlive = 0;
   int timeToLive = 24;
   bool jitter = false;
-  String effect = "none";
+  CharacterParticleEffect effect = CharacterParticleEffect.NONE;
   Map<String, dynamic> box = {};
   Point<double> centroid = Point(0.0, 0.0);
   List<LetterParticle> particles = [];
-
-  LetterParticles({
-    required this.letter,
-    required this.controller,
-    required this.fps,
-    required this.color,
-    required this.radius,
-    required this.type,
-    required this.effect,
-  }) : super(repaint: controller) {
+  ui.BlendMode? blendMode = ui.BlendMode.src;
+  Function? animate;
+  LetterParticles(
+      {required this.character,
+      required this.controller,
+      required this.fps,
+      required this.color,
+      required this.radius,
+      required this.type,
+      required this.effect,
+      required this.delay,
+      this.blendMode,
+      this.animate})
+      : super(repaint: controller) {
     print("draw");
 
+    /// safeguard
+    this.character = this.character.toUpperCase();
     this.timeDecay = (1 / this.fps * 1000).round();
-    final Paint fill = Paint()
+    Paint fill = Paint()
       ..color = this.color
       ..style = PaintingStyle.fill;
-    List<double>? points = alphabetPaths[this.letter];
+    List<double>? points = [];
+
+    if (int.tryParse(this.character) == null) {
+      points = alphabetPaths[this.character];
+    } else {
+      points = numberPaths[this.character];
+    }
+    print("CHARACTER: $character POINTS: ${points?.length}");
     double maxX = 0;
     double minX = 10000;
     double maxY = 0;
@@ -67,17 +83,35 @@ class LetterParticles extends CustomPainter {
       if (points[i + 1] > maxY) {
         maxY = points[i + 1];
       }
+    }
 
+    /// calculate the offset position and assign to `ParticleLetter`
+    for (var i = 0; i < points.length; i += 2) {
       double offsetX = minX - 4;
       double offsetY = minY - 3;
 
       double finalX = points[i] - offsetX;
       double finalY = points[i + 1] - offsetY;
+      if (finalX < 0) {
+        finalX = 0;
+      }
+      if (finalY < 0) {
+        finalY = 0;
+      }
       double randX = 0;
       double randY = 0;
-      if (this.effect == "spread") {
+      if (this.effect == CharacterParticleEffect.SPREAD) {
         randX = doubleInRange(-200, 200);
         randY = doubleInRange(-200, 200);
+      } else if (this.effect == CharacterParticleEffect.FADEIN) {
+        fill = Paint()
+          ..color = this.color.withAlpha(0)
+          //..blendMode = this.blendMode ?? ui.BlendMode.src
+          ..style = PaintingStyle.fill;
+      }
+
+      if (character == "I") {
+        print("$finalX, $finalY - ${points[i]} ${points[i + 1]} $offsetY, $i");
       }
 
       particles.add(
@@ -142,7 +176,7 @@ class LetterParticles extends CustomPainter {
           }
 
           // check if it has ended running
-          print("making a $type timeAlive > 0");
+          //print("making a $type timeAlive > 0");
           renderLetter(particles);
         } else {
           renderLetter(particles);
@@ -164,12 +198,27 @@ class LetterParticles extends CustomPainter {
       for (var i = 0; i < points.length; i++) {
         double finalX = points[i].getEndPath().x.toDouble();
         double finalY = points[i].getEndPath().y.toDouble();
-        if (this.effect == "jitter") {
-          finalX = finalX + doubleInRange(finalX - 5.0, finalX);
-          finalY = finalY + doubleInRange(finalY - 1.5 * getSign(), finalY + 1.5 * getSign());
-        } else if (this.effect == "spread") {
+        if (this.effect == CharacterParticleEffect.TREX) {
+          double randX = doubleInRange(finalX - 1.5, finalX + 1.5);
+          double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
+          finalX = ui.lerpDouble(randX, finalX, this.controller!.value)!;
+          finalY = ui.lerpDouble(randY, finalY, this.controller!.value)!;
+          //finalY + doubleInRange(finalY - 0.2 * getSign(), finalY + 0.2 * getSign());
+        } else if (this.effect == CharacterParticleEffect.JITTER) {
+          double randX = doubleInRange(finalX - 1.5, finalX + 1.5);
+          double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
+          print(this.controller!.value);
+          finalX = doubleInRange(randX, finalX);
+          finalY = doubleInRange(randY, finalY);
+        } else if (this.effect == CharacterParticleEffect.SPREAD) {
           finalX = ui.lerpDouble(points[i].getX(), finalX, this.controller!.value)!;
           finalY = ui.lerpDouble(points[i].getY(), finalY, this.controller!.value)!;
+        } else if (this.effect == CharacterParticleEffect.FADEIN) {
+          int newAlpha = ui.lerpDouble(0, 255, this.controller!.value)!.round();
+          points[i].painter = Paint()
+            ..color = this.color.withAlpha(newAlpha)
+            //..blendMode = this.blendMode ?? ui.BlendMode.src
+            ..style = PaintingStyle.fill;
         }
 
         drawType(finalX, finalY, this.type, points[i].painter!);
