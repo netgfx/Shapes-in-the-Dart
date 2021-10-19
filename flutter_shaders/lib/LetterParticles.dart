@@ -233,6 +233,7 @@ class LetterParticles extends CustomPainter {
     }
   }
 
+  /// Render the letter particles
   void renderLetter(List<LetterParticle>? points) {
     if (points != null) {
       ///
@@ -254,8 +255,54 @@ class LetterParticles extends CustomPainter {
           finalY = doubleInRange(randY, finalY);
         } else if (this.effect == CharacterParticleEffect.SPREAD) {
           if (this.stagger == true) {
-            /// stagger
-            double easeResult = easeInOutBack(particles[i].progress);
+            /// linear
+            double easeResult = particles[i].progress;
+
+            /// easings
+            switch (this.ease) {
+              case Easing.EASE_OUT_SINE:
+                {
+                  easeResult = easeOutSine(particles[i].progress);
+                }
+                break;
+
+              case Easing.EASE_OUT_QUART:
+                {
+                  easeResult = easeOutQuart(particles[i].progress);
+                }
+                break;
+              case Easing.EASE_OUT_QUAD:
+                {
+                  easeResult = easeOutQuad(particles[i].progress);
+                }
+                break;
+              case Easing.EASE_OUT_CUBIC:
+                {
+                  easeResult = easeOutCubic(particles[i].progress);
+                }
+                break;
+              case Easing.EASE_OUT_CIRC:
+                {
+                  easeResult = easeOutCirc(particles[i].progress);
+                }
+                break;
+              case Easing.EASE_OUT_BACK:
+                {
+                  easeResult = easeOutBack(particles[i].progress);
+                }
+                break;
+              case Easing.EASE_IN_OUT_BACK:
+                {
+                  easeResult = easeInOutBack(particles[i].progress);
+                }
+                break;
+              default:
+                {
+                  easeResult = particles[i].progress;
+                }
+                break;
+            }
+
             finalX = ui.lerpDouble(points[i].getX(), finalX, easeResult)!;
             finalY = ui.lerpDouble(points[i].getY(), finalY, easeResult)!;
           } else {
