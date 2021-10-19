@@ -10,7 +10,26 @@ import 'alphabet_paths.dart';
 import 'number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
-enum CharacterParticleEffect { NONE, JITTER, SPREAD, FADEIN, FADEOUT, EXPLODE, MATRIX, TREX }
+enum CharacterParticleEffect {
+  NONE,
+  JITTER,
+  SPREAD,
+  FADEIN,
+  FADEOUT,
+  EXPLODE,
+  MATRIX,
+  TREX,
+}
+enum Easing {
+  LINEAR,
+  EASE_OUT_BACK,
+  EASE_OUT_SINE,
+  EASE_OUT_CIRC,
+  EASE_OUT_QUART,
+  EASE_OUT_QUAD,
+  EASE_OUT_CUBIC,
+  EASE_IN_OUT_BACK,
+}
 
 class LetterParticles extends CustomPainter {
   List<Point<double>> points = [];
@@ -23,9 +42,10 @@ class LetterParticles extends CustomPainter {
   int delay = 500;
   int currentTime = 0;
   int fps = 24;
+  int printTime = DateTime.now().millisecondsSinceEpoch;
   ShapeType type = ShapeType.Circle;
   int timeDecay = 0;
-  double? rate = 0.009;
+  double? rate = 10;
   double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;
@@ -35,6 +55,7 @@ class LetterParticles extends CustomPainter {
   List<LetterParticle> particles = [];
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
+  Easing ease = Easing.LINEAR;
 
   /// Constructor
   LetterParticles({
@@ -46,6 +67,7 @@ class LetterParticles extends CustomPainter {
     required this.type,
     required this.effect,
     required this.delay,
+    required this.ease,
     this.stagger,
     this.rate,
     this.blendMode,
@@ -165,7 +187,10 @@ class LetterParticles extends CustomPainter {
             for (var i = 0; i < particles.length; i++) {
               if (particles[i].renderDelay > 0) {
                 if (this.controller!.lastElapsedDuration!.inMilliseconds > particles[i].renderDelay) {
-                  particles[i].progress += this.rate ?? 0.009;
+                  particles[i].progress += this.rate ?? 10 / 1000;
+
+                  delayedPrint(particles[i].progress.toString());
+
                   if (particles[i].progress >= 1.0) {
                     particles[i].progress = 1.0;
                   }
@@ -173,6 +198,10 @@ class LetterParticles extends CustomPainter {
               }
             }
           }
+
+          //print(easeInQuad(particles[0].progress));
+
+          /// manual ticker
           endT += this.rate ?? 0.009;
           if (endT >= 1.0) {
             endT = 1.0;
@@ -226,11 +255,9 @@ class LetterParticles extends CustomPainter {
         } else if (this.effect == CharacterParticleEffect.SPREAD) {
           if (this.stagger == true) {
             /// stagger
-            /// lerp: a + (b - a) * t
-            //finalX = points[i].getX() + (finalX - points[i].getX()) * points[i].speed;
-            //finalY = points[i].getY() + (finalX - points[i].getY()) * points[i].speed;
-            finalX = ui.lerpDouble(points[i].getX(), finalX, points[i].progress)!;
-            finalY = ui.lerpDouble(points[i].getY(), finalY, points[i].progress)!;
+            double easeResult = easeInOutBack(particles[i].progress);
+            finalX = ui.lerpDouble(points[i].getX(), finalX, easeResult)!;
+            finalY = ui.lerpDouble(points[i].getY(), finalY, easeResult)!;
           } else {
             finalX = ui.lerpDouble(points[i].getX(), finalX, this.controller!.value)!;
             finalY = ui.lerpDouble(points[i].getY(), finalY, this.controller!.value)!;
@@ -384,6 +411,51 @@ class LetterParticles extends CustomPainter {
       return min;
     } else {
       return doubleInRange(min, max);
+    }
+  }
+
+  double easeOutBack(double x) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+
+    return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
+  }
+
+  double easeOutCirc(double x) {
+    return sqrt(1 - pow(x - 1, 2));
+  }
+
+  double easeOutQuart(double x) {
+    return 1 - pow(1 - x, 4).toDouble();
+  }
+
+  double easeOutQuad(double x) {
+    return 1 - (1 - x) * (1 - x);
+  }
+
+  double easeOutCubic(double x) {
+    return 1 - pow(1 - x, 3).toDouble();
+  }
+
+  double easeOutSine(double x) {
+    return sin((x * pi) / 2);
+  }
+
+  double easeOutQuint(double x) {
+    return 1 - pow(1 - x, 5).toDouble();
+  }
+
+  double easeInOutBack(double x) {
+    const c1 = 1.70158;
+    const c2 = c1 * 1.525;
+
+    return x < 0.5 ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+  }
+
+  void delayedPrint(String str) {
+    if (DateTime.now().millisecondsSinceEpoch - this.printTime > 100) {
+      this.printTime = DateTime.now().millisecondsSinceEpoch;
+      print(str);
     }
   }
 
