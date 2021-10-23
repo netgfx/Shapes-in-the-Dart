@@ -15,9 +15,6 @@ enum CharacterParticleEffect {
   JITTER,
   SPREAD,
   FADEIN,
-  FADEOUT,
-  EXPLODE,
-  MATRIX,
   TREX,
 }
 enum Easing {
@@ -172,24 +169,21 @@ class LetterParticles extends CustomPainter {
   }
 
   void draw(Canvas canvas, Size size) {
-    if (this.timeAlive > this.timeToLive) {
-      return;
-    }
-
+    /// check if the controller is running
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
+        /// in order to run in our required frames per second
         if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
+          /// reset the time
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
-          //this.timeAlive += 1;
 
-          /// only for stagger
+          /// only for stagger, we add a manual delay
           if (this.stagger == true) {
             for (var i = 0; i < particles.length; i++) {
               if (particles[i].renderDelay > 0) {
                 if (this.controller!.lastElapsedDuration!.inMilliseconds > particles[i].renderDelay) {
+                  /// particle individual time progress (0 - 1)
                   particles[i].progress += this.rate ?? 10 / 1000;
-
-                  delayedPrint(particles[i].progress.toString());
 
                   if (particles[i].progress >= 1.0) {
                     particles[i].progress = 1.0;
@@ -199,32 +193,22 @@ class LetterParticles extends CustomPainter {
             }
           }
 
-          //print(easeInQuad(particles[0].progress));
-
           /// manual ticker
           endT += this.rate ?? 0.009;
           if (endT >= 1.0) {
             endT = 1.0;
           }
-          //print("$endT, ${this.controller!.value}");
-
-          // check if it has ended running
-
-          print("making a $type");
 
           renderLetter(particles);
         } else if (this.timeAlive > 0) {
           this.currentTime = DateTime.now().millisecondsSinceEpoch;
-          //this.timeAlive += 1;
 
-          // check if it has ended running
-          //print("making a $type timeAlive > 0");
           renderLetter(particles);
         } else {
           renderLetter(particles);
         }
       } else {
-        print("re-rendering points");
+        print("re-rendering points with no changes");
         renderLetter(particles);
       }
     } else {
@@ -246,7 +230,6 @@ class LetterParticles extends CustomPainter {
           double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
           finalX = ui.lerpDouble(randX, finalX, this.controller!.value)!;
           finalY = ui.lerpDouble(randY, finalY, this.controller!.value)!;
-          //finalY + doubleInRange(finalY - 0.2 * getSign(), finalY + 0.2 * getSign());
         } else if (this.effect == CharacterParticleEffect.JITTER) {
           double randX = doubleInRange(finalX - 1.5, finalX + 1.5);
           double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
@@ -255,54 +238,7 @@ class LetterParticles extends CustomPainter {
           finalY = doubleInRange(randY, finalY);
         } else if (this.effect == CharacterParticleEffect.SPREAD) {
           if (this.stagger == true) {
-            /// linear
-            double easeResult = particles[i].progress;
-
-            /// easings
-            switch (this.ease) {
-              case Easing.EASE_OUT_SINE:
-                {
-                  easeResult = easeOutSine(particles[i].progress);
-                }
-                break;
-
-              case Easing.EASE_OUT_QUART:
-                {
-                  easeResult = easeOutQuart(particles[i].progress);
-                }
-                break;
-              case Easing.EASE_OUT_QUAD:
-                {
-                  easeResult = easeOutQuad(particles[i].progress);
-                }
-                break;
-              case Easing.EASE_OUT_CUBIC:
-                {
-                  easeResult = easeOutCubic(particles[i].progress);
-                }
-                break;
-              case Easing.EASE_OUT_CIRC:
-                {
-                  easeResult = easeOutCirc(particles[i].progress);
-                }
-                break;
-              case Easing.EASE_OUT_BACK:
-                {
-                  easeResult = easeOutBack(particles[i].progress);
-                }
-                break;
-              case Easing.EASE_IN_OUT_BACK:
-                {
-                  easeResult = easeInOutBack(particles[i].progress);
-                }
-                break;
-              default:
-                {
-                  easeResult = particles[i].progress;
-                }
-                break;
-            }
-
+            double easeResult = getStagger(particles[i].progress);
             finalX = ui.lerpDouble(points[i].getX(), finalX, easeResult)!;
             finalY = ui.lerpDouble(points[i].getY(), finalY, easeResult)!;
           } else {
@@ -310,7 +246,13 @@ class LetterParticles extends CustomPainter {
             finalY = ui.lerpDouble(points[i].getY(), finalY, this.controller!.value)!;
           }
         } else if (this.effect == CharacterParticleEffect.FADEIN) {
-          int newAlpha = ui.lerpDouble(0, 255, this.controller!.value)!.round();
+          int newAlpha = 255;
+          if (this.stagger == true) {
+            double easeResult = getStagger(particles[i].progress);
+            newAlpha = ui.lerpDouble(0, 255, easeResult)!.round();
+          } else {
+            newAlpha = ui.lerpDouble(0, 255, this.controller!.value)!.round();
+          }
           points[i].painter = Paint()
             ..color = this.color.withAlpha(newAlpha)
             //..blendMode = this.blendMode ?? ui.BlendMode.src
@@ -322,80 +264,133 @@ class LetterParticles extends CustomPainter {
     }
   }
 
+  double getStagger(double progress) {
+    /// linear
+    double easeResult = progress;
+
+    /// easings
+    switch (this.ease) {
+      case Easing.EASE_OUT_SINE:
+        {
+          easeResult = easeOutSine(progress);
+        }
+        break;
+
+      case Easing.EASE_OUT_QUART:
+        {
+          easeResult = easeOutQuart(progress);
+        }
+        break;
+      case Easing.EASE_OUT_QUAD:
+        {
+          easeResult = easeOutQuad(progress);
+        }
+        break;
+      case Easing.EASE_OUT_CUBIC:
+        {
+          easeResult = easeOutCubic(progress);
+        }
+        break;
+      case Easing.EASE_OUT_CIRC:
+        {
+          easeResult = easeOutCirc(progress);
+        }
+        break;
+      case Easing.EASE_OUT_BACK:
+        {
+          easeResult = easeOutBack(progress);
+        }
+        break;
+      case Easing.EASE_IN_OUT_BACK:
+        {
+          easeResult = easeInOutBack(progress);
+        }
+        break;
+      default:
+        {
+          easeResult = progress;
+        }
+        break;
+    }
+
+    return easeResult;
+  }
+
   int getSign() {
     return _random.nextBool() == false ? 1 : -1;
   }
 
+  /// Draw the particle shape
   void drawType(double x, double y, ShapeType type, Paint painter) {
     switch (type) {
       case ShapeType.Circle:
         drawCircle(x, y, painter);
         break;
       case ShapeType.Rect:
-        drawRect(painter);
+        drawRect(x, y, painter);
         break;
       case ShapeType.RoundedRect:
-        drawRRect(painter);
+        drawRRect(x, y, painter);
         break;
       case ShapeType.Triangle:
-        drawPolygon(3, painter, initialAngle: 30);
+        drawPolygon(x, y, 3, painter, initialAngle: 30);
         break;
       case ShapeType.Diamond:
-        drawPolygon(4, painter, initialAngle: 0);
+        drawPolygon(x, y, 4, painter, initialAngle: 0);
         break;
       case ShapeType.Pentagon:
-        drawPolygon(5, painter, initialAngle: -18);
+        drawPolygon(x, y, 5, painter, initialAngle: -18);
         break;
       case ShapeType.Hexagon:
-        drawPolygon(6, painter, initialAngle: 0);
+        drawPolygon(x, y, 6, painter, initialAngle: 0);
         break;
       case ShapeType.Octagon:
-        drawPolygon(8, painter, initialAngle: 0);
+        drawPolygon(x, y, 8, painter, initialAngle: 0);
         break;
       case ShapeType.Decagon:
-        drawPolygon(10, painter, initialAngle: 0);
+        drawPolygon(x, y, 10, painter, initialAngle: 0);
         break;
       case ShapeType.Dodecagon:
-        drawPolygon(12, painter, initialAngle: 0);
+        drawPolygon(x, y, 12, painter, initialAngle: 0);
         break;
       case ShapeType.Heart:
-        drawHeart(painter);
+        drawHeart(x, y, painter);
         break;
       case ShapeType.Star5:
-        drawStar(10, painter, initialAngle: 15);
+        drawStar(x, y, 10, painter, initialAngle: 15);
         break;
       case ShapeType.Star6:
-        drawStar(12, painter, initialAngle: 0);
+        drawStar(x, y, 12, painter, initialAngle: 0);
         break;
       case ShapeType.Star7:
-        drawStar(14, painter, initialAngle: 0);
+        drawStar(x, y, 14, painter, initialAngle: 0);
         break;
       case ShapeType.Star8:
-        drawStar(16, painter, initialAngle: 0);
+        drawStar(x, y, 16, painter, initialAngle: 0);
         break;
     }
   }
 
   void drawCircle(double x, double y, Paint paint) {
-    rotate(() {
+    rotate(0, 0, () {
       canvas!.drawCircle(Offset(x, y), this.radius, paint);
     });
   }
 
-  void drawRect(Paint paint) {
-    rotate(() {
+  void drawRect(double x, double y, Paint paint) {
+    rotate(x, y, () {
       canvas!.drawRect(rect(), paint);
     });
   }
 
-  void drawRRect(Paint paint, {double? cornerRadius}) {
-    rotate(() {
+  void drawRRect(double x, double y, Paint paint, {double? cornerRadius}) {
+    rotate(x, y, () {
       canvas!.drawRRect(RRect.fromRectAndRadius(rect(), Radius.circular(cornerRadius ?? radius * 0.2)), paint);
     });
   }
 
-  void drawPolygon(int num, Paint paint, {double initialAngle = 0}) {
-    rotate(() {
+  void drawPolygon(double x, double y, int num, Paint paint, {double initialAngle = 0}) {
+    rotate(x, y, () {
       final Path path = Path();
       for (int i = 0; i < num; i++) {
         final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
@@ -412,8 +407,8 @@ class LetterParticles extends CustomPainter {
     });
   }
 
-  void drawHeart(Paint paint) {
-    rotate(() {
+  void drawHeart(double x, double y, Paint paint) {
+    rotate(x, y, () {
       final Path path = Path();
 
       path.moveTo(0, radius);
@@ -425,8 +420,8 @@ class LetterParticles extends CustomPainter {
     });
   }
 
-  void drawStar(int num, Paint paint, {double initialAngle = 0}) {
-    rotate(() {
+  void drawStar(double x, double y, int num, Paint paint, {double initialAngle = 0}) {
+    rotate(x, y, () {
       final Path path = Path();
       for (int i = 0; i < num; i++) {
         final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
@@ -506,9 +501,12 @@ class LetterParticles extends CustomPainter {
     }
   }
 
-  void rotate(VoidCallback callback) {
+  void rotate(double? x, double? y, VoidCallback callback) {
+    double _x = x ?? 0;
+    double _y = y ?? 0;
     var scale = 1.0;
     canvas!.save();
+    canvas!.translate(_x, _y);
 
     if (scale != 1.0) {
       //canvas!.translate(this.p0.x + _x, this.p0.y + _y);
