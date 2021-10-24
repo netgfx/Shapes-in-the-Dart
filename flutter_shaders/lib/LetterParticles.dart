@@ -56,26 +56,57 @@ class LetterParticles extends CustomPainter {
 
   /// Constructor
   LetterParticles({
+    /// <-- The type character to display
     required this.character,
+
+    /// <-- The animation controller
     required this.controller,
+
+    /// <-- Desired FPS
     required this.fps,
+
+    /// <-- Color of the particles
     required this.color,
+
+    /// <-- Radius of the particles (if circle)
     required this.radius,
+
+    /// <-- Type of particle shape (circle, rectangle, etc...)
     required this.type,
+
+    /// <-- The desired animation
     required this.effect,
+
+    /// <-- The delay until the animation starts
     required this.delay,
+
+    /// <-- The animation easing function
     required this.ease,
+
+    /// <-- If the animation contains stagger
     this.stagger,
+
+    /// <-- The rate at which the ticker runs
     this.rate,
+
+    /// <-- The particles blend mode (default: BlendMode.src)
     this.blendMode,
+
+    /// <-- Custom callback to call after Delay has passed
     this.animate,
   }) : super(repaint: controller) {
-    /// safeguard
+    /// safeguard as we only support capital letters for now
     this.character = this.character.toUpperCase();
+
+    /// the delay in ms based on desired fps
     this.timeDecay = (1 / this.fps * 1000).round();
+
+    /// default painter
     Paint fill = Paint()
       ..color = this.color
       ..style = PaintingStyle.fill;
+
+    /// a temp list of points
     List<double>? points = [];
 
     if (int.tryParse(this.character) == null) {
@@ -84,24 +115,21 @@ class LetterParticles extends CustomPainter {
       points = numberPaths[this.character];
     }
 
+    /// here we need to calculate the diff of each letter based on its position
+    /// versus the initial position
     double maxX = 0;
     double minX = 10000;
     double maxY = 0;
     double minY = 10000;
     for (var i = 0; i < points!.length; i += 2) {
-      /// find the max and min
+      /// find the min
 
       if (points[i] < minX) {
         minX = points[i];
       }
-      if (points[i] > maxX) {
-        maxX = points[i];
-      }
+
       if (points[i + 1] < minY) {
         minY = points[i + 1];
-      }
-      if (points[i + 1] > maxY) {
-        maxY = points[i + 1];
       }
     }
 
