@@ -13,7 +13,7 @@ import 'package:statsfl/statsfl.dart';
 import 'Router.dart';
 
 void main() {
-  runApp(Padding(padding: EdgeInsets.only(top: 50), child: StatsFl(height: 60, align: Alignment.topCenter, maxFps: 90, child: MyApp())));
+  runApp(Padding(padding: EdgeInsets.only(top: 50), child: StatsFl(height: 60, align: Alignment.topCenter, maxFps: 60, child: MyApp())));
 }
 
 class MyApp extends StatelessWidget {

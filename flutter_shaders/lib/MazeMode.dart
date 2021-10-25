@@ -272,33 +272,33 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        IconButton(
-                            color: Colors.white,
-                            icon: Icon(Icons.album),
-                            onPressed: () {
-                              setState(() {
-                                if (selectedMode == SelectedMode.StrokeWidth) showBottomList = !showBottomList;
-                                selectedMode = SelectedMode.StrokeWidth;
-                              });
-                            }),
-                        IconButton(
-                            color: Colors.white,
-                            icon: Icon(Icons.opacity),
-                            onPressed: () {
-                              setState(() {
-                                if (selectedMode == SelectedMode.Opacity) showBottomList = !showBottomList;
-                                selectedMode = SelectedMode.Opacity;
-                              });
-                            }),
-                        IconButton(
-                            color: Colors.white,
-                            icon: Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                showBottomList = false;
-                                points.clear();
-                              });
-                            }),
+                        // IconButton(
+                        //     color: Colors.white,
+                        //     icon: Icon(Icons.album),
+                        //     onPressed: () {
+                        //       setState(() {
+                        //         if (selectedMode == SelectedMode.StrokeWidth) showBottomList = !showBottomList;
+                        //         selectedMode = SelectedMode.StrokeWidth;
+                        //       });
+                        //     }),
+                        // IconButton(
+                        //     color: Colors.white,
+                        //     icon: Icon(Icons.opacity),
+                        //     onPressed: () {
+                        //       setState(() {
+                        //         if (selectedMode == SelectedMode.Opacity) showBottomList = !showBottomList;
+                        //         selectedMode = SelectedMode.Opacity;
+                        //       });
+                        //     }),
+                        // IconButton(
+                        //     color: Colors.white,
+                        //     icon: Icon(Icons.clear),
+                        //     onPressed: () {
+                        //       setState(() {
+                        //         showBottomList = false;
+                        //         points.clear();
+                        //       });
+                        //     }),
                       ],
                     ),
                   ],
@@ -373,92 +373,155 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             //     : Container(),
             Positioned(
               top: 200,
-              left: 90,
+              left: 0,
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Padding(
                   padding: EdgeInsets.only(top: 0, left: 0),
                   child: CustomPaint(
                     key: UniqueKey(),
                     painter: LetterParticles(
-                        character: "A",
+                        character: "W",
                         radius: 3,
-                        fps: 240,
+                        fps: 60,
                         color: randomColor(1),
                         type: ShapeType.Circle,
                         controller: _letterController,
                         effect: lettersEffect,
                         delay: 0,
-                        stagger: false,
-                        ease: Easing.LINEAR,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_BACK,
                         animate: () => {print("animate was called...")}),
                     isComplex: true,
                     willChange: false,
                     child: Container(width: 80, height: 0),
                   ),
                 ),
-                // Padding(
-                //   padding: EdgeInsets.only(top: 0, left: 0),
-                //   child: CustomPaint(
-                //     key: UniqueKey(),
-                //     painter: LetterParticles(
-                //         character: "I",
-                //         radius: 3,
-                //         fps: 60,
-                //         color: randomColor(1),
-                //         type: ShapeType.Diamond,
-                //         controller: _letterController,
-                //         effect: lettersEffect,
-                //         delay: 0,
-                //         stagger: true,
-                //         ease: Easing.EASE_OUT_SINE,
-                //         animate: () => {print("animate was called...")}),
-                //     isComplex: true,
-                //     willChange: false,
-                //     child: Container(width: 45, height: 0),
-                //   ),
-                // ),
-                // Padding(
-                //   padding: EdgeInsets.only(top: 0, left: 0),
-                //   child: CustomPaint(
-                //     key: UniqueKey(),
-                //     painter: LetterParticles(
-                //         character: "K",
-                //         radius: 4,
-                //         fps: 60,
-                //         color: randomColor(1),
-                //         type: ShapeType.Diamond,
-                //         controller: _letterController,
-                //         effect: lettersEffect,
-                //         delay: 0,
-                //         stagger: true,
-                //         ease: Easing.EASE_OUT_SINE,
-                //         animate: () => {print("animate was called...")}),
-                //     isComplex: true,
-                //     willChange: false,
-                //     child: Container(width: 60, height: 0),
-                //   ),
-                // ),
-                // Padding(
-                //   padding: EdgeInsets.only(top: 0, left: 0),
-                //   child: CustomPaint(
-                //     key: UniqueKey(),
-                //     painter: LetterParticles(
-                //         character: "E",
-                //         radius: 3,
-                //         fps: 60,
-                //         color: randomColor(1),
-                //         type: ShapeType.Diamond,
-                //         controller: _letterController,
-                //         effect: lettersEffect,
-                //         delay: 0,
-                //         stagger: true,
-                //         ease: Easing.EASE_OUT_SINE,
-                //         animate: () => {print("animate was called...")}),
-                //     isComplex: true,
-                //     willChange: false,
-                //     child: Container(width: 50, height: 0),
-                //   ),
-                // )
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                        character: "E",
+                        radius: 3,
+                        fps: 60,
+                        color: randomColor(1),
+                        type: ShapeType.Diamond,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_SINE,
+                        animate: () => {print("animate was called...")}),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 45, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                        character: "L",
+                        radius: 4,
+                        fps: 60,
+                        color: randomColor(1),
+                        type: ShapeType.Diamond,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_CIRC,
+                        animate: () => {print("animate was called...")}),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 50, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                        character: "C",
+                        radius: 3,
+                        fps: 60,
+                        color: randomColor(1),
+                        type: ShapeType.Diamond,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_SINE,
+                        animate: () => {print("animate was called...")}),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 45, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                        character: "O",
+                        radius: 3,
+                        fps: 60,
+                        color: randomColor(1),
+                        type: ShapeType.Heart,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_SINE,
+                        animate: () => {print("animate was called...")}),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 45, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                        character: "M",
+                        radius: 3,
+                        fps: 60,
+                        color: randomColor(1),
+                        type: ShapeType.Diamond,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_QUART,
+                        animate: () => {print("animate was called...")}),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 80, height: 0),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 0, left: 0),
+                  child: CustomPaint(
+                    key: UniqueKey(),
+                    painter: LetterParticles(
+                        character: "E",
+                        radius: 3,
+                        fps: 60,
+                        color: randomColor(1),
+                        type: ShapeType.Star5,
+                        controller: _letterController,
+                        effect: lettersEffect,
+                        delay: 0,
+                        stagger: true,
+                        ease: Easing.EASE_OUT_SINE,
+                        animate: () => {print("animate was called...")}),
+                    isComplex: true,
+                    willChange: false,
+                    child: Container(width: 50, height: 0),
+                  ),
+                )
               ]),
             ),
             // SpriteWidget(

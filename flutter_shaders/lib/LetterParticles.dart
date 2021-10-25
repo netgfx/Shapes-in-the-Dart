@@ -230,7 +230,6 @@ class LetterParticles extends CustomPainter {
           renderLetter(particles);
         } else if (this.timeAlive > 0) {
           this.currentTime = DateTime.now().millisecondsSinceEpoch;
-
           renderLetter(particles);
         } else {
           renderLetter(particles);
@@ -266,7 +265,7 @@ class LetterParticles extends CustomPainter {
           finalY = doubleInRange(randY, finalY);
         } else if (this.effect == CharacterParticleEffect.SPREAD) {
           if (this.stagger == true) {
-            double easeResult = getStagger(particles[i].progress);
+            double easeResult = getStagger(points[i].progress);
             finalX = ui.lerpDouble(points[i].getX(), finalX, easeResult)!;
             finalY = ui.lerpDouble(points[i].getY(), finalY, easeResult)!;
           } else {
@@ -276,7 +275,7 @@ class LetterParticles extends CustomPainter {
         } else if (this.effect == CharacterParticleEffect.FADEIN) {
           int newAlpha = 255;
           if (this.stagger == true) {
-            double easeResult = getStagger(particles[i].progress);
+            double easeResult = getStagger(points[i].progress);
             newAlpha = ui.lerpDouble(0, 255, easeResult)!.round();
           } else {
             newAlpha = ui.lerpDouble(0, 255, this.controller!.value)!.round();
