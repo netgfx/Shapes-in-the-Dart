@@ -68,6 +68,7 @@ class ParticleEmitter extends CustomPainter {
       this.wallsObj})
       : super(repaint: listenable) {
     /// initializer
+    print("particles...");
     this.painter = Paint()
       ..color = getColor(this.color)
       ..blendMode = this.blendMode
@@ -76,7 +77,8 @@ class ParticleEmitter extends CustomPainter {
     // time
     this.currentTime = 0;
 
-    if ((this.particleType == ParticleType.EXPLODE) && (this.spreadBehaviour == SpreadBehaviour.ONE_TIME || this.spreadBehaviour == SpreadBehaviour.CONTINUOUS)) {
+    if ((this.particleType == ParticleType.EXPLODE) &&
+        (this.spreadBehaviour == SpreadBehaviour.ONE_TIME || this.spreadBehaviour == SpreadBehaviour.CONTINUOUS)) {
       // then create some particles
       if (particles.length == 0) {
         for (var i = 0; i < minParticles; i++) {

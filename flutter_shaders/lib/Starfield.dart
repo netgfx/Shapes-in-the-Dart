@@ -15,10 +15,10 @@ class Starfield extends CustomPainter {
   List<Point<double>> points = [];
 
   Color color = Colors.black;
-  List<Star> particles = [];
+  List<Star> stars = [];
   AnimationController? controller;
   Canvas? canvas;
-  double radius = 0.0;
+  double radius = 1.0;
   int delay = 500;
   int currentTime = 0;
   int fps = 24;
@@ -30,6 +30,8 @@ class Starfield extends CustomPainter {
   final _random = new Random();
   int timeAlive = 0;
   int timeToLive = 24;
+  int zDecay = 1000;
+  BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
 
@@ -58,14 +60,37 @@ class Starfield extends CustomPainter {
 
     /// <-- Custom callback to call after Delay has passed
     this.animate,
+
+    ///
+    required this.sceneSize,
   }) : super(repaint: controller) {
     /// the delay in ms based on desired fps
     this.timeDecay = (1 / this.fps * 1000).round();
 
     /// default painter
-    Paint fill = Paint()
-      ..color = this.color
+
+    var painter = Paint()
+      ..color = this.color.withAlpha(1)
+      //..blendMode = this.blendMode ?? ui.BlendMode.src
       ..style = PaintingStyle.fill;
+
+    for (var i = 0; i < 1200; i++) {
+      Star s = Star(
+        x: this._random.nextDouble() * sceneSize.maxWidth - sceneSize.maxWidth * 0.5,
+        y: this._random.nextDouble() * sceneSize.maxHeight - sceneSize.maxHeight * 0.5,
+        z: this._random.nextDouble() * zDecay,
+        opacity: 1,
+        timeAlive: 0,
+        timeToLive: 500,
+        currentTime: 0,
+        progress: 0,
+        color: Colors.white,
+        radius: 1,
+        painter: painter,
+      );
+
+      stars.add(s);
+    }
 
     /// fire the animate after a delay
     if (this.delay > 0 && this.animate != null) {
@@ -76,6 +101,7 @@ class Starfield extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     this.canvas = canvas;
+    canvas.drawColor(Colors.black, BlendMode.src);
     paintImage(canvas, size);
   }
 
@@ -89,49 +115,77 @@ class Starfield extends CustomPainter {
   }
 
   void draw(Canvas canvas, Size size) {
+    double cx = this.sceneSize.maxWidth / 2;
+    double cy = this.sceneSize.maxHeight / 2;
+
     /// check if the controller is running
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
         if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
           /// reset the time
+
+          int elapsed = (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime);
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
 
           /// manual ticker
-          endT += this.rate ?? 0.009;
-          if (endT >= 1.0) {
-            endT = 1.0;
-          }
+          // endT += this.rate ?? 0.009;
+          // if (endT >= 1.0) {
+          //   endT = 1.0;
+          // }
 
-          renderLetter(particles);
-        } else if (this.timeAlive > 0) {
-          this.currentTime = DateTime.now().millisecondsSinceEpoch;
-          renderLetter(particles);
+          moveStars(elapsed * 0.1);
+
+          renderStars(cx, cy, size);
         } else {
-          renderLetter(particles);
+          renderStars(cx, cy, size);
         }
-      } else {
-        print("re-rendering points with no changes");
-        renderLetter(particles);
       }
     } else {
-      print("no controller");
-      renderLetter(particles);
+      print("re-rendering points with no changes");
     }
   }
 
   /// Render the letter particles
-  void renderLetter(List<Star>? points) {
-    if (points != null) {
-      ///
+  void renderStars(double cx, double cy, Size size) {
+    if (stars.length >= 0) {
+      double x = 0;
+      double y = 0;
+      for (var i = 0; i < stars.length; i++) {
+        x = cx + stars[i].getX() / (stars[i].getZ() * 0.001);
+        y = cy + stars[i].getY() / (stars[i].getZ() * 0.001);
 
-      for (var i = 0; i < points.length; i++) {
-        // points[i].painter = Paint()
-        //   ..color = this.color.withAlpha(0)
-        //   ..blendMode = this.blendMode ?? ui.BlendMode.src
-        //   ..style = PaintingStyle.fill;
+        if (x < 0 || x >= this.sceneSize.maxWidth || y < 0 || y >= this.sceneSize.maxHeight) {
+          continue;
+        }
 
-        drawType(0, 0, this.type, points[i].painter!);
+        double d = (stars[i].z / zDecay);
+        double b = 1 - d * d;
+
+        putPixel(x, y, b);
+
+        //drawType(0, 0, this.type, painter);
+      }
+    }
+  }
+
+  void putPixel(double x, double y, double brightness) {
+    int intensity = (brightness * 255).round();
+
+    var painter = Paint()
+      ..color = Color.fromARGB(255, intensity, intensity, intensity)
+      //..blendMode = this.blendMode ?? ui.BlendMode.src
+      ..style = PaintingStyle.fill;
+    drawRect(x, y, painter);
+  }
+
+  void moveStars(distance) {
+    int count = stars.length;
+    for (var i = 0; i < count; i++) {
+      stars[i].z -= distance;
+
+      while (stars[i].z <= 1) {
+        stars[i].z += zDecay;
       }
     }
   }
@@ -324,17 +378,8 @@ class Starfield extends CustomPainter {
   void rotate(double? x, double? y, VoidCallback callback) {
     double _x = x ?? 0;
     double _y = y ?? 0;
-    var scale = 1.0;
     canvas!.save();
     canvas!.translate(_x, _y);
-
-    if (scale != 1.0) {
-      //canvas!.translate(this.p0.x + _x, this.p0.y + _y);
-      var matrix = Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)..scale(scale);
-      //..translate(this.p0.x - _x, this.p0.y - _y);
-      canvas!.transform(matrix.storage);
-      //canvas!.scale(scale);
-    }
 
     //canvas!.translate(0, 0);
     callback();
