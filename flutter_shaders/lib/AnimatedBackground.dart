@@ -1,17 +1,17 @@
 import 'package:flutter/widgets.dart';
-import 'package:simple_animations/simple_animations.dart';
 
 class AnimatedBackground extends StatelessWidget {
-  BoxConstraints constraints;
-  double start = 0;
-  AnimatedBackground({Key? key, required this.constraints, s}) : super(key: key);
+  final BoxConstraints constraints;
+  final double start;
+  AnimatedBackground({Key? key, required this.constraints, required this.start}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    double s = this.start;
     return TweenAnimationBuilder(
-        tween: Tween(begin: start, end: this.constraints.maxHeight * 2),
+        tween: Tween(begin: s, end: this.constraints.maxHeight * 2),
         duration: Duration(seconds: 5),
-        onEnd: () => {start = 0},
+        onEnd: () => {s = 0},
         builder: (context, num offset, _) {
           return Positioned(
             top: 0,

@@ -14,6 +14,7 @@ import 'package:flutter_shaders/LetterParticles.dart';
 import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
+import 'package:flutter_shaders/PhysicsEngine.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
@@ -377,6 +378,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
             //         ),
             //       )
             //     : Container(),
+            /// STARFIELD
             Positioned(
               top: 0,
               left: 0,
@@ -384,15 +386,23 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                 padding: EdgeInsets.only(top: 0, left: 0),
                 child: CustomPaint(
                   key: UniqueKey(),
-                  painter: Starfield(
-                    fps: 30,
-                    color: randomColor(1),
-                    type: ShapeType.Circle,
+                  painter: PhysicsEngine(
                     controller: _starfieldController,
+                    fps: 20,
+                    color: randomColor(1.0),
+                    type: ShapeType.Rect,
                     delay: 0,
                     sceneSize: viewportConstraints,
-                    animate: null,
                   ),
+                  // Starfield(
+                  //   fps: 30,
+                  //   color: randomColor(1),
+                  //   type: ShapeType.Circle,
+                  //   controller: _starfieldController,
+                  //   delay: 0,
+                  //   sceneSize: viewportConstraints,
+                  //   animate: null,
+                  // ),
                   isComplex: true,
                   willChange: false,
                   child: Container(),
