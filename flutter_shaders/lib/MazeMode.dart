@@ -388,7 +388,7 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
                   key: UniqueKey(),
                   painter: PhysicsEngine(
                     controller: _starfieldController,
-                    fps: 20,
+                    fps: 60,
                     color: randomColor(1.0),
                     type: ShapeType.Rect,
                     delay: 0,

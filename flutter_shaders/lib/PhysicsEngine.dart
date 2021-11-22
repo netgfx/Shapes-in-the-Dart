@@ -13,7 +13,7 @@ import 'number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 class PhysicsEngine extends CustomPainter {
-  List<Square> gameObjects = [];
+  List<ObjectFX> gameObjects = [];
 
   Color color = Colors.black;
   List<Star> stars = [];
@@ -78,27 +78,48 @@ class PhysicsEngine extends CustomPainter {
     double cy = this.sceneSize.maxHeight / 2;
 
     for (var i = 0; i < 10; i++) {
-      this.gameObjects.add(Square(
-          canvas: canvas,
-          paint: painter,
-          type: ShapeType.Circle,
-          x: cx,
-          y: this._random.nextDouble() * sceneSize.maxHeight - sceneSize.maxHeight * 0.15,
-          vx: this._random.nextInt(50).toDouble(),
-          vy: doubleInRange(-50, 50),
-          mass: 1));
+      this.gameObjects.add(ObjectFX(
+            canvas: canvas,
+            paint: painter,
+            type: ShapeType.Rect,
+            x: cx,
+            y: this._random.nextDouble() * sceneSize.maxHeight - sceneSize.maxHeight * 0.15,
+            vx: this._random.nextInt(50).toDouble(),
+            vy: doubleInRange(-50, 50),
+            mass: 1,
+            staticBody: false,
+            size: Size(30, 30),
+          ));
     }
 
-    this.gameObjects.add(Square(
-        canvas: canvas,
-        paint: painter,
-        type: ShapeType.Circle,
-        x: cx,
-        y: this._random.nextDouble() * sceneSize.maxHeight - sceneSize.maxHeight * 0.15,
-        vx: this._random.nextInt(50).toDouble(),
-        vy: doubleInRange(-50, 50),
-        mass: 100,
-        radius: 40));
+    this.gameObjects.add(ObjectFX(
+          canvas: canvas,
+          paint: painter,
+          type: ShapeType.Rect,
+          x: cx,
+          y: 100,
+          vx: 0,
+          vy: 10,
+          mass: 500,
+          staticBody: false,
+          size: Size(50, 50),
+          //radius: 40,
+        ));
+
+    /// static block
+    this.gameObjects.add(ObjectFX(
+          canvas: canvas,
+          paint: painter,
+          type: ShapeType.Rect,
+          x: cx,
+          y: cy,
+          vx: 0,
+          vy: 0,
+          mass: 5000,
+          staticBody: true,
+          size: Size(100, 20),
+          radius: 20,
+        ));
 
     /// fire the animate after a delay
     if (this.delay > 0 && this.animate != null) {
@@ -139,8 +160,6 @@ class PhysicsEngine extends CustomPainter {
 
           detectCollisions();
 
-          detectEdgeCollisions();
-
           for (var i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].draw(this.canvas!);
           }
@@ -162,8 +181,8 @@ class PhysicsEngine extends CustomPainter {
   }
 
   void detectCollisions() {
-    Square obj1;
-    Square obj2;
+    ObjectFX obj1;
+    ObjectFX obj2;
 
     for (var i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].isColliding = false;
@@ -171,11 +190,19 @@ class PhysicsEngine extends CustomPainter {
 
     for (var i = 0; i < this.gameObjects.length; i++) {
       obj1 = this.gameObjects[i];
+
+      /// check for wall collision
+      bool wallCollision = detectEdgeCollisions(obj1);
+      if (wallCollision) {
+        //continue;
+      }
+
       for (var j = i + 1; j < this.gameObjects.length; j++) {
         obj2 = this.gameObjects[j];
 
-        if (this.circleIntersect(obj1.x, obj1.y, obj1.getWidth(), obj2.x, obj2.y, obj2.getWidth())) {
-          //this.rectIntersect(obj1.x, obj1.y, obj1.getWidth(), obj1.getHeight(), obj2.x, obj2.y, obj2.getWidth(), obj2.getHeight())) {
+        if (this.rectIntersect(obj1.x, obj1.y, obj1.getWidth(), obj1.getHeight(), obj2.x, obj2.y, obj2.getWidth(), obj2.getHeight())) {
+          //this.circleIntersect(obj1.x, obj1.y, obj1.getWidth(), obj2.x, obj2.y, obj2.getWidth())) {
+          //
           obj1.isColliding = true;
           obj2.isColliding = true;
 
@@ -186,44 +213,52 @@ class PhysicsEngine extends CustomPainter {
           var speed = vRelativeVelocity["x"]! * vCollisionNorm["x"]! + vRelativeVelocity["y"]! * vCollisionNorm["y"]!;
 
           speed *= min(obj1.restitution, obj2.restitution);
-          delayedPrint(speed.toString());
+          //delayedPrint(speed.toString());
           if (speed < 0) {
             break;
           }
 
           var impulse = 2 * speed / (obj1.getMass() + obj2.getMass());
-          obj1.vx -= (impulse * obj2.mass * vCollisionNorm["x"]!);
-          obj1.vy -= (impulse * obj2.mass * vCollisionNorm["y"]!);
-          obj2.vx += (impulse * obj1.mass * vCollisionNorm["x"]!);
-          obj2.vy += (impulse * obj1.mass * vCollisionNorm["y"]!);
+          obj1.vx -= (impulse * obj2.getMass() * vCollisionNorm["x"]!);
+          obj1.vy -= (impulse * obj2.getMass() * vCollisionNorm["y"]!);
+          obj2.vx += (impulse * obj1.getMass() * vCollisionNorm["x"]!);
+          obj2.vy += (impulse * obj1.getMass() * vCollisionNorm["y"]!);
+
+          /// check if one of them is static
+          // if (obj2.staticBody == true || obj1.staticBody == true) {
+          //   obj1.vy = 0;
+          //   obj2.vy = 0;
+          // }
         }
       }
     }
   }
 
-  void detectEdgeCollisions() {
-    Square obj;
-    for (var i = 0; i < gameObjects.length; i++) {
-      obj = gameObjects[i];
-
-      // Check for left and right
-      if (obj.x < obj.radius!) {
-        obj.vx = (obj.vx).abs() * obj.getRestitution();
-        obj.x = obj.getWidth().toDouble();
-      } else if (obj.x > sceneSize.maxWidth - obj.getHeight().toDouble()) {
-        obj.vx = -(obj.vx).abs() * obj.getRestitution();
-        obj.x = sceneSize.maxWidth - obj.radius!;
-      }
-
-      // Check for bottom and top
-      if (obj.y < obj.radius!) {
-        obj.vy = (obj.vy).abs() * obj.getRestitution();
-        obj.y = obj.getHeight().toDouble();
-      } else if (obj.y > sceneSize.maxHeight - obj.getHeight().toDouble()) {
-        obj.vy = -(obj.vy).abs() * obj.getRestitution();
-        obj.y = sceneSize.maxHeight - obj.getHeight().toDouble();
-      }
+  bool detectEdgeCollisions(ObjectFX obj) {
+    bool isColliding = false;
+    // Check for left and right
+    if (obj.x < obj.getWidth()) {
+      obj.vx = (obj.vx).abs() * obj.getRestitution();
+      obj.x = obj.getWidth().toDouble();
+      isColliding = true;
+    } else if (obj.x > sceneSize.maxWidth - obj.getWidth().toDouble()) {
+      obj.vx = -(obj.vx).abs() * obj.getRestitution();
+      obj.x = sceneSize.maxWidth - obj.getWidth();
+      isColliding = true;
     }
+
+    // Check for bottom and top
+    if (obj.y < obj.getHeight()) {
+      obj.vy = (obj.vy).abs() * obj.getRestitution();
+      obj.y = obj.getHeight().toDouble();
+      isColliding = true;
+    } else if (obj.y > sceneSize.maxHeight - obj.getHeight().toDouble()) {
+      obj.vy = -(obj.vy).abs() * obj.getRestitution();
+      obj.y = sceneSize.maxHeight - obj.getHeight().toDouble();
+      isColliding = true;
+    }
+
+    return isColliding;
   }
 
   rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {

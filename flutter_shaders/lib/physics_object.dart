@@ -4,7 +4,7 @@ import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:image/image.dart';
 import 'dart:ui' as ui;
 
-class Square {
+class ObjectFX {
   Canvas? canvas;
   double x;
   double y;
@@ -15,10 +15,12 @@ class Square {
   bool isColliding = false;
   int? radius = 20;
   int mass = 1;
-  double restitution = 0.90;
+  double restitution = 0.99;
   double gravity = 9.81;
-  bool gravityEnabled = true;
-  Square({
+  bool gravityEnabled = false;
+  bool staticBody = false;
+  Size? size = Size(100, 100);
+  ObjectFX({
     required this.canvas,
     required this.paint,
     required this.type,
@@ -27,21 +29,25 @@ class Square {
     required this.vx,
     required this.vy,
     required this.mass,
+    required this.staticBody,
+    this.size,
     this.radius,
   }) {
+    this.size = this.size ?? Size(100, 100);
     this.radius = this.radius ?? 20;
+    paint = Paint()
+      ..color = this.isColliding ? Colors.red : Colors.green
+      ..style = PaintingStyle.fill;
   }
 
   draw(Canvas canvas) {
     this.canvas = canvas;
-    var painter = Paint()
-      ..color = this.isColliding ? Colors.red : Colors.green
-      ..style = PaintingStyle.fill;
 
+    paint.color = this.isColliding ? Colors.red : Colors.green;
     if (this.type == ShapeType.Rect) {
-      drawRect(x, y, painter);
+      drawRect(x, y, paint);
     } else {
-      drawCircle(x, y, painter);
+      drawCircle(x, y, paint);
     }
   }
 
@@ -55,11 +61,14 @@ class Square {
 
   void drawRect(double x, double y, Paint paint) {
     if (this.canvas != null) {
-      rotate(x, y, () {
-        canvas!.drawRect(rect(), paint);
+      rotate(0, 0, () {
+        Rect rect = Rect.fromLTWH(x, y, this.size!.width, this.size!.height);
+        canvas!.drawRect(rect, paint);
       });
     }
   }
+
+  void setSize(Size size) {}
 
   Rect rect() => Rect.fromCircle(center: Offset.zero, radius: radius!.toDouble());
 
@@ -77,11 +86,11 @@ class Square {
   }
 
   int getWidth() {
-    return radius!;
+    return this.staticBody == true || this.type == ShapeType.Rect ? this.size!.width.round() : radius!;
   }
 
   int getHeight() {
-    return radius!;
+    return this.staticBody == true || this.type == ShapeType.Rect ? this.size!.height.round() : radius!;
   }
 
   int getMass() {
@@ -93,10 +102,13 @@ class Square {
   }
 
   update(double secondsPassed) {
-    if (gravityEnabled) {
+    if (gravityEnabled == true && staticBody == false) {
       this.vy += this.gravity * secondsPassed;
     }
-    this.x += this.vx * secondsPassed;
-    this.y += this.vy * secondsPassed;
+
+    if (this.staticBody == false) {
+      this.x += this.vx * secondsPassed;
+      this.y += this.vy * secondsPassed;
+    }
   }
 }
