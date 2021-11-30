@@ -56,7 +56,7 @@ class BGAnimator extends CustomPainter {
     if (this.scrollDirection == Direction.Vertical) {
       double ratio = (imageSize.height / 3);
       finalCalc = ((imageSize.height - ratio) + this.offset.dy.abs()).round();
-      print("$ratio, $finalCalc ${imageSize.height - ratio} ${this.offset.dy}");
+      //print("$ratio, $finalCalc ${imageSize.height - ratio} ${this.offset.dy}");
     } else {
       double ratio = (imageSize.width / 3);
       finalCalc = ((imageSize.width - ratio) + this.offset.dx.abs()).round();
@@ -83,7 +83,7 @@ class BGAnimator extends CustomPainter {
             //this.controller.stop();
           }
 
-          print("${constraints.maxHeight}, $maxHeight, $innitialOffset, $timeDecay, $size");
+          //print("${constraints.maxHeight}, $maxHeight, $innitialOffset, $timeDecay, $size");
 
           this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
         } else {

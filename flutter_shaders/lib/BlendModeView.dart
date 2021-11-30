@@ -23,7 +23,7 @@ class _BlendModeViewState extends State<BlendModeView> {
   ui.Image? patImage;
   String logoImage = "assets/logo.png";
   double _currentSliderValue = 100;
-  late File tempPath;
+  late String tempPath;
   final _picker = ImagePicker();
   Map<String, dynamic> cachedPatterns = {};
   List<String> patterns = [];
@@ -63,9 +63,7 @@ class _BlendModeViewState extends State<BlendModeView> {
     final ByteData data = await rootBundle.load(path);
     ui.Image image = await loadImage(new Uint8List.view(data.buffer));
 
-    String dir = (await getApplicationDocumentsDirectory()).path;
-    File _path = await writeToFile(data, '$dir/tempfile1.png');
-    tempPath = _path;
+    tempPath = path;
 
     return image;
   }
@@ -91,28 +89,29 @@ class _BlendModeViewState extends State<BlendModeView> {
   void resizePatImage() async {
     /// go forward if patImage is not null
     if (patImage != null) {
-      Uint8List bytes = await tempPath.readAsBytes();
+      Uint8List bytes;
+      final ByteData data = await rootBundle.load(tempPath);
+      bytes = new Uint8List.view(data.buffer);
 
       int w = (1024 * _currentSliderValue / 100).round();
       int h = (1024 * _currentSliderValue / 100).round();
 
       /// compress the byte list
-      Uint8List list = await compressByteList(bytes, w, h);
+      ui.Image result = await compressImage(bytes, w, h);
 
-      /// create a ui.Image object
-      ui.decodeImageFromList(list, (result) {
-        print(result);
-        setState(() {
-          patImage = result;
-        });
+      setState(() {
+        patImage = result;
       });
     }
   }
 
-  Future<Uint8List> compressByteList(Uint8List list, int width, int height) async {
-    var result = await FlutterImageCompress.compressWithList(list, minHeight: width, minWidth: height, format: CompressFormat.png);
+  Future<ui.Image> compressImage(Uint8List list, int width, int height) async {
+    print("$width, $height");
 
-    return result;
+    ui.Codec c = await ui.instantiateImageCodec(list, targetHeight: height, targetWidth: width);
+    ui.FrameInfo info = await c.getNextFrame();
+
+    return info.image;
   }
 
   /// show bottom picker UI
@@ -152,15 +151,14 @@ class _BlendModeViewState extends State<BlendModeView> {
     if (image == null) {
       return;
     }
-    tempPath = File(image.path);
-    Uint8List finalImage = await image.readAsBytes();
+    tempPath = image.path;
+    Uint8List finalImage = await File(image.path).readAsBytes();
 
     /// compress the image in dimensions
-    Uint8List list = await compressByteList(finalImage, 1024, 1024);
-    ui.decodeImageFromList(list, (result) {
-      setState(() {
-        patImage = result;
-      });
+    ui.Image result = await compressImage(finalImage, 1024, 1024);
+
+    setState(() {
+      patImage = result;
     });
   }
 
@@ -170,15 +168,14 @@ class _BlendModeViewState extends State<BlendModeView> {
     if (image == null) {
       return;
     }
-    tempPath = File(image.path);
-    Uint8List finalImage = await image.readAsBytes();
+    tempPath = image.path;
+    Uint8List finalImage = await File(image.path).readAsBytes();
 
     /// compress the image in dimensions
-    Uint8List list = await compressByteList(finalImage, 1024, 1024);
-    ui.decodeImageFromList(list, (result) {
-      setState(() {
-        patImage = result;
-      });
+    ui.Image result = await compressImage(finalImage, 1024, 1024);
+
+    setState(() {
+      patImage = result;
     });
   }
 
