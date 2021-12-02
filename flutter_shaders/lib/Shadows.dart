@@ -49,6 +49,7 @@ class Shadows extends CustomPainter {
   Function? animate;
   Paint? painter;
   Paint? wallPaint;
+  Paint? paintStroke;
   List<Point> stageCorners = [];
   Point light = Point(0, 0);
 
@@ -89,6 +90,11 @@ class Shadows extends CustomPainter {
       ..blendMode = ui.BlendMode.overlay
       ..style = PaintingStyle.fill;
 
+    paintStroke = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
     var NUMBER_OF_WALLS = 4;
     this.walls = [];
     var i, x, y;
@@ -125,6 +131,9 @@ class Shadows extends CustomPainter {
     paintImage(canvas, size);
 
     drawCircle(this.light.x.toDouble(), this.light.y.toDouble(), this.wallPaint!);
+
+    /// walls
+    this.drawWalls();
   }
 
   void paintImage(Canvas canvas, Size size) async {
@@ -147,31 +156,16 @@ class Shadows extends CustomPainter {
         if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
           /// reset the time
 
-          int elapsed = (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime);
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
 
-          /// walls
-          this.drawWalls();
-
           this.performRayCasting();
-
-          /// manual ticker
-          // endT += this.rate ?? 0.009;
-          // if (endT >= 1.0) {
-          //   endT = 1.0;
-          // }
-
         } else {
-          /// walls
-          this.drawWalls();
           this.performRayCasting();
         }
       }
     } else {
       print("re-rendering points with no changes");
 
-      /// walls
-      this.drawWalls();
       this.performRayCasting();
     }
   }
@@ -419,34 +413,17 @@ class Shadows extends CustomPainter {
     // shine through.
     Path path = Path();
 
-    //path.fillType = PathFillType.nonZero;
-    //delayedPrint(points.toString());
     path.moveTo(points[0].x.toDouble(), points[0].y.toDouble());
     for (var j = 0; j < points.length; j++) {
       path.lineTo(points[j].x.toDouble(), points[j].y.toDouble());
     }
 
-    Paint paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..blendMode = BlendMode.overlay
-      ..strokeWidth = 2.0;
-
     path.close();
     canvas!.drawPath(path, painter!);
 
-    Paint paintStroke = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    //Path rayBitmap = Path();
-    //rayBitmap.moveTo(points[0].x.toDouble(), points[0].y.toDouble());
+    //
     for (var k = 0; k < points.length; k++) {
-      // rayBitmap.moveTo(this.light.x.toDouble(), this.light.y.toDouble());
-      // rayBitmap.lineTo(points[k].x, points[k].y);
-      // rayBitmap.fillRect(points[k].x - 2, points[k].y - 2, 4, 4);
-      canvas!.drawLine(Offset(this.light.x.toDouble(), this.light.y.toDouble()), Offset(points[k].x - 2, points[k].y - 2), paintStroke);
+      canvas!.drawLine(Offset(this.light.x.toDouble(), this.light.y.toDouble()), Offset(points[k].x - 2, points[k].y - 2), this.paintStroke!);
     }
   }
 
@@ -454,7 +431,7 @@ class Shadows extends CustomPainter {
   void drawType(double x, double y, ShapeType type, Paint painter) {
     switch (type) {
       case ShapeType.Circle:
-        drawCircle(x, y, painter);
+        print("not supported");
         break;
       case ShapeType.Rect:
         drawRect(x, y, null, null, painter);
@@ -484,19 +461,19 @@ class Shadows extends CustomPainter {
         drawPolygon(x, y, 12, painter, initialAngle: 0);
         break;
       case ShapeType.Heart:
-        drawHeart(x, y, painter);
+        print("not supported");
         break;
       case ShapeType.Star5:
-        drawStar(x, y, 10, painter, initialAngle: 15);
+        print("not supported");
         break;
       case ShapeType.Star6:
-        drawStar(x, y, 12, painter, initialAngle: 0);
+        print("not supported");
         break;
       case ShapeType.Star7:
-        drawStar(x, y, 14, painter, initialAngle: 0);
+        print("not supported");
         break;
       case ShapeType.Star8:
-        drawStar(x, y, 16, painter, initialAngle: 0);
+        print("not supported");
         break;
     }
   }
@@ -531,37 +508,6 @@ class Shadows extends CustomPainter {
         final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
         final double x = radius * cos(radian);
         final double y = radius * sin(radian);
-        if (i == 0) {
-          path.moveTo(x, y);
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-      path.close();
-      canvas!.drawPath(path, paint);
-    });
-  }
-
-  void drawHeart(double x, double y, Paint paint) {
-    rotate(x, y, () {
-      final Path path = Path();
-
-      path.moveTo(0, radius);
-
-      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0, -radius * 0.5);
-      path.cubicTo(radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
-
-      canvas!.drawPath(path, paint);
-    });
-  }
-
-  void drawStar(double x, double y, int num, Paint paint, {double initialAngle = 0}) {
-    rotate(x, y, () {
-      final Path path = Path();
-      for (int i = 0; i < num; i++) {
-        final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
-        final double x = radius * (i.isEven ? 0.5 : 1) * cos(radian);
-        final double y = radius * (i.isEven ? 0.5 : 1) * sin(radian);
         if (i == 0) {
           path.moveTo(x, y);
         } else {
