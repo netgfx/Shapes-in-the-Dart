@@ -8,8 +8,8 @@ import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/physics_object.dart';
 import 'dart:ui' as ui;
-import 'alphabet_paths.dart';
-import 'number_paths.dart';
+import 'helpers/alphabet_paths.dart';
+import 'helpers/number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 class PhysicsEngine extends CustomPainter {

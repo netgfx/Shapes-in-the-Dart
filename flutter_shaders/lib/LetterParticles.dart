@@ -5,9 +5,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
+import 'package:flutter_shaders/helpers/utils.dart';
 import 'dart:ui' as ui;
-import 'alphabet_paths.dart';
-import 'number_paths.dart';
+import 'helpers/alphabet_paths.dart';
+import 'helpers/number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 enum CharacterParticleEffect {
@@ -149,8 +150,8 @@ class LetterParticles extends CustomPainter {
       double randX = 0;
       double randY = 0;
       if (this.effect == CharacterParticleEffect.SPREAD) {
-        randX = doubleInRange(-200, 200);
-        randY = doubleInRange(-200, 200);
+        randX = Utils.shared.doubleInRange(-200, 200);
+        randY = Utils.shared.doubleInRange(-200, 200);
       } else if (this.effect == CharacterParticleEffect.FADEIN) {
         fill = Paint()
           ..color = this.color.withAlpha(0)
@@ -163,7 +164,7 @@ class LetterParticles extends CustomPainter {
             color: this.color,
             x: randX,
             y: randY,
-            renderDelay: randomDelay(min: 500 + 50 * i.toDouble(), max: 1000 + 50 * i.toDouble()),
+            renderDelay: Utils.shared.randomDelay(min: 500 + 50 * i.toDouble(), max: 1000 + 50 * i.toDouble()),
             opacity: 1.0,
             radius: this.radius,
             timeToLive: this.timeToLive.toDouble(),
@@ -253,16 +254,16 @@ class LetterParticles extends CustomPainter {
         double finalX = points[i].getEndPath().x.toDouble();
         double finalY = points[i].getEndPath().y.toDouble();
         if (this.effect == CharacterParticleEffect.TREX) {
-          double randX = doubleInRange(finalX - 1.5, finalX + 1.5);
-          double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
+          double randX = Utils.shared.doubleInRange(finalX - 1.5, finalX + 1.5);
+          double randY = Utils.shared.doubleInRange(finalY - 1.5, finalY + 1.5);
           finalX = ui.lerpDouble(randX, finalX, this.controller!.value)!;
           finalY = ui.lerpDouble(randY, finalY, this.controller!.value)!;
         } else if (this.effect == CharacterParticleEffect.JITTER) {
-          double randX = doubleInRange(finalX - 1.5, finalX + 1.5);
-          double randY = doubleInRange(finalY - 1.5, finalY + 1.5);
+          double randX = Utils.shared.doubleInRange(finalX - 1.5, finalX + 1.5);
+          double randY = Utils.shared.doubleInRange(finalY - 1.5, finalY + 1.5);
 
-          finalX = doubleInRange(randX, finalX);
-          finalY = doubleInRange(randY, finalY);
+          finalX = Utils.shared.doubleInRange(randX, finalX);
+          finalY = Utils.shared.doubleInRange(randY, finalY);
         } else if (this.effect == CharacterParticleEffect.SPREAD) {
           if (this.stagger == true) {
             double easeResult = getStagger(points[i].progress);
@@ -299,38 +300,38 @@ class LetterParticles extends CustomPainter {
     switch (this.ease) {
       case Easing.EASE_OUT_SINE:
         {
-          easeResult = easeOutSine(progress);
+          easeResult = Utils.shared.easeOutSine(progress);
         }
         break;
 
       case Easing.EASE_OUT_QUART:
         {
-          easeResult = easeOutQuart(progress);
+          easeResult = Utils.shared.easeOutQuart(progress);
         }
         break;
       case Easing.EASE_OUT_QUAD:
         {
-          easeResult = easeOutQuad(progress);
+          easeResult = Utils.shared.easeOutQuad(progress);
         }
         break;
       case Easing.EASE_OUT_CUBIC:
         {
-          easeResult = easeOutCubic(progress);
+          easeResult = Utils.shared.easeOutCubic(progress);
         }
         break;
       case Easing.EASE_OUT_CIRC:
         {
-          easeResult = easeOutCirc(progress);
+          easeResult = Utils.shared.easeOutCirc(progress);
         }
         break;
       case Easing.EASE_OUT_BACK:
         {
-          easeResult = easeOutBack(progress);
+          easeResult = Utils.shared.easeOutBack(progress);
         }
         break;
       case Easing.EASE_IN_OUT_BACK:
         {
-          easeResult = easeInOutBack(progress);
+          easeResult = Utils.shared.easeInOutBack(progress);
         }
         break;
       default:
@@ -466,60 +467,6 @@ class LetterParticles extends CustomPainter {
   }
 
   Rect rect() => Rect.fromCircle(center: Offset.zero, radius: radius);
-
-  double doubleInRange(double start, double end) {
-    if (start == end) {
-      return start;
-    } else {
-      return _random.nextDouble() * (end - start) + start;
-    }
-  }
-
-  double randomDelay({double min = 0.005, double max = 0.05}) {
-    if (min == max) {
-      return min;
-    } else {
-      return doubleInRange(min, max);
-    }
-  }
-
-  double easeOutBack(double x) {
-    const c1 = 1.70158;
-    const c3 = c1 + 1;
-
-    return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
-  }
-
-  double easeOutCirc(double x) {
-    return sqrt(1 - pow(x - 1, 2));
-  }
-
-  double easeOutQuart(double x) {
-    return 1 - pow(1 - x, 4).toDouble();
-  }
-
-  double easeOutQuad(double x) {
-    return 1 - (1 - x) * (1 - x);
-  }
-
-  double easeOutCubic(double x) {
-    return 1 - pow(1 - x, 3).toDouble();
-  }
-
-  double easeOutSine(double x) {
-    return sin((x * pi) / 2);
-  }
-
-  double easeOutQuint(double x) {
-    return 1 - pow(1 - x, 5).toDouble();
-  }
-
-  double easeInOutBack(double x) {
-    const c1 = 1.70158;
-    const c2 = c1 * 1.525;
-
-    return x < 0.5 ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
-  }
 
   void delayedPrint(String str) {
     if (DateTime.now().millisecondsSinceEpoch - this.printTime > 100) {

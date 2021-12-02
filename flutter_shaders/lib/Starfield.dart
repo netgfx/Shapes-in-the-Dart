@@ -7,8 +7,8 @@ import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'dart:ui' as ui;
-import 'alphabet_paths.dart';
-import 'number_paths.dart';
+import 'helpers/alphabet_paths.dart';
+import 'helpers/number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 class Starfield extends CustomPainter {
@@ -328,44 +328,6 @@ class Starfield extends CustomPainter {
     } else {
       return doubleInRange(min, max);
     }
-  }
-
-  double easeOutBack(double x) {
-    const c1 = 1.70158;
-    const c3 = c1 + 1;
-
-    return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
-  }
-
-  double easeOutCirc(double x) {
-    return sqrt(1 - pow(x - 1, 2));
-  }
-
-  double easeOutQuart(double x) {
-    return 1 - pow(1 - x, 4).toDouble();
-  }
-
-  double easeOutQuad(double x) {
-    return 1 - (1 - x) * (1 - x);
-  }
-
-  double easeOutCubic(double x) {
-    return 1 - pow(1 - x, 3).toDouble();
-  }
-
-  double easeOutSine(double x) {
-    return sin((x * pi) / 2);
-  }
-
-  double easeOutQuint(double x) {
-    return 1 - pow(1 - x, 5).toDouble();
-  }
-
-  double easeInOutBack(double x) {
-    const c1 = 1.70158;
-    const c2 = c1 * 1.525;
-
-    return x < 0.5 ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
   }
 
   void delayedPrint(String str) {
