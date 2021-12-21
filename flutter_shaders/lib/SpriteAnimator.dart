@@ -8,20 +8,23 @@ enum LoopMode {
 }
 
 class SpriteAnimator extends CustomPainter {
-  List<ui.Image> images = [];
+  Map<String, List<Map<String, dynamic>>> images = {};
   AnimationController controller;
   Canvas? canvas;
   int timeDecay = 250;
   int currentTime = 0;
   late ui.Image currentImage;
-  int currentImageIndex = 0;
+  String currentFrame = "";
   int fps = 250;
   bool static = true;
   LoopMode loop;
+  ui.Image texture;
+  int currentIndex = 0;
   SpriteAnimator({
     required this.images,
+    required this.texture,
     required this.static,
-    required this.currentImageIndex,
+    required this.currentFrame,
     required this.fps,
     required this.controller,
     required this.loop,
@@ -47,27 +50,43 @@ class SpriteAnimator extends CustomPainter {
   }
 
   void draw(Canvas canvas, Size size) {
+    var img = images[currentFrame]![currentIndex];
     if (static == false) {
       // print("${this.controller}");
       if (this.controller.lastElapsedDuration != null) {
         if (this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
-          canvas.drawImage(images[currentImageIndex], new Offset(0.0, 0.0), new Paint());
-          currentImageIndex++;
-          if (currentImageIndex >= images.length) {
-            currentImageIndex = 0;
+          this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
+          canvas.drawImageRect(
+            this.texture,
+            Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
+            Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
+            new Paint(),
+          );
+          currentIndex++;
+          if (currentIndex >= images[currentFrame]!.length) {
+            currentIndex = 0;
             if (this.loop == LoopMode.Single) {
               this.controller.stop();
             }
           }
-          this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
         } else {
           // do nothing?
-          canvas.drawImage(images[currentImageIndex], new Offset(0.0, 0.0), new Paint());
+          canvas.drawImageRect(
+            this.texture,
+            Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
+            Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
+            new Paint(),
+          );
         }
       }
     } else {
       //print("no loop");
-      canvas.drawImage(images[this.currentImageIndex], new Offset(0.0, 0.0), new Paint());
+      canvas.drawImageRect(
+        this.texture,
+        Rect.fromLTWH(img["x"], img["y"], img["width"], img["height"]),
+        Rect.fromLTWH(0, 0, img["width"], img["height"]),
+        new Paint(),
+      );
     }
   }
 }

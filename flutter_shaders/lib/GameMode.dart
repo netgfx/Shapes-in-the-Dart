@@ -282,6 +282,7 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                               onPressed: () {
                                 setState(() {
                                   spriteDirection["direction"] = "PlayerLeftStand/ls";
+                                  spriteDirection["x"] = spriteDirection["x"] - 16;
                                 });
                               }),
                           Column(
@@ -293,6 +294,7 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                                     setState(() {
                                       setState(() {
                                         spriteDirection["direction"] = "PlayerUpStand/us";
+                                        spriteDirection["y"] = spriteDirection["y"] - 16;
                                       });
                                     });
                                   }),
@@ -303,6 +305,7 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                                     setState(() {
                                       setState(() {
                                         spriteDirection["direction"] = "PlayerDownStand/ds";
+                                        spriteDirection["y"] = spriteDirection["y"] + 16;
                                       });
                                     });
                                   }),

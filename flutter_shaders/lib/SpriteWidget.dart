@@ -53,6 +53,8 @@ class SpriteWidget extends StatefulWidget {
 class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMixin {
   late AnimationController _spriteController;
   List<ui.Image> spriteImages = [];
+  Map<String, List<Map<String, dynamic>>> spriteData = {};
+  late ui.Image textureImage;
   int sliceWidth = 192;
   int sliceHeight = 212;
   @override
@@ -108,108 +110,23 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
   }
 
   void loadSprite() async {
-    Map<String, List<Map<String, dynamic>>> spriteData;
-    File imageData = await loadImageTexture(widget.texturePath);
+    final ByteData data = await rootBundle.load(widget.texturePath);
+    this.textureImage = await imageFromBytes(data);
+
     if (widget.jsonPath != null && widget.jsonPath != "") {
       var data = loadJsonData(widget.jsonPath!);
-
-      uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(imageData.path);
-      print("DATA: $data");
       data.then((value) => {
-            print(value),
-            spriteData = parseJSON(value),
-            loadSpriteImage(spriteData, imageData, true),
+            setState(() {
+              spriteData = parseJSON(value);
+            }),
           });
     }
   }
 
-  void loadSpriteImage(Map<String, List<Map<String, dynamic>>> spriteData, File path, bool all) async {
-    uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
-    print("$spriteData, ${props.width} ${props.height} ${spriteData.length}");
-
-    if (all == true) {
-      Map<String, List<ui.Image>> spriteTexturesByFrameName = {};
-      for (var item in widget.delimiters) {
-        if (spriteData[item] != null) {
-          spriteTexturesByFrameName[item] = [];
-          List<Map<String, dynamic>> frames = spriteData[item]!;
-          for (var i = 0; i < frames.length; i++) {
-            File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, frames[i]['x'], frames[i]['y'], frames[i]["width"], frames[i]['height']);
-
-            Uint8List bytes = croppedFile.readAsBytesSync();
-            ui.Image image = await loadImage(bytes);
-            spriteTexturesByFrameName[item]!.add(image);
-          }
-        }
-      }
-
-      widget.setCache(widget.name, spriteTexturesByFrameName);
-      print(widget.startFrameName);
-      setState(() {
-        spriteImages = spriteTexturesByFrameName[widget.startFrameName]!.toList();
-      });
-    } else {
-      List<Map<String, dynamic>>? spriteToRender = widget.startFrameName != null ? spriteData[widget.startFrameName] : spriteData[widget.delimiters[0]];
-      if (props.width != null && spriteData.length == 0) {
-        for (var i = 0; i < props.width! / sliceWidth; i++) {
-          File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, sliceWidth * i, 0, sliceWidth, sliceHeight);
-
-          Uint8List bytes = croppedFile.readAsBytesSync();
-          ui.Image image = await loadImage(bytes);
-          spriteImages.add(image);
-        }
-      } else {
-        spriteImages.clear();
-        if (spriteToRender != null) {
-          /// do split based on json data x, y
-          for (var i = 0; i < spriteToRender.length; i++) {
-            File croppedFile = await uiImage.FlutterNativeImage.cropImage(
-                path.path, spriteToRender[i]['x'], spriteToRender[i]['y'], spriteToRender[i]["width"], spriteToRender[i]['height']);
-
-            Uint8List bytes = croppedFile.readAsBytesSync();
-            ui.Image image = await loadImage(bytes);
-            spriteImages.add(image);
-          }
-        }
-      }
-    }
-
-    if (mounted) {
-      setState(() => {});
-
-      try {
-        if (spriteImages.length > 0) {
-          await path.delete(recursive: false);
-        }
-        print("deleted file");
-      } catch (e) {
-        print("error");
-      }
-    }
-
-    //ui.decodeImageFromList(imgData, (result) {
-    //spriteImages.add(imgData);
-    //print(result);
-    //var testImg = (result).toByteData(format: ui.ImageByteFormat.png);
-    // testImg.then((value) => {
-    //       setState(() => {testImage = value!.buffer.asUint8List()})
-    //     });
-    // });
-  }
-
-  Future<File> loadImageTexture(String spriteTexture) async {
-    final ByteData data = await rootBundle.load(spriteTexture);
-
-    String dir = (await getApplicationDocumentsDirectory()).path;
-    File path = await writeToFile(data, '$dir/tempfile1.png');
-
-    return path;
-  }
-
-//write to app path
-  Future<File> writeToFile(ByteData data, String path) {
-    final buffer = data.buffer;
-    return new File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes), flush: true);
+  Future<ui.Image> imageFromBytes(ByteData data) async {
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    return frameInfo.image;
   }
 
   Future<Map<String, dynamic>> loadJsonData(String path) async {
@@ -234,7 +151,6 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
       });
     }
 
-    print(sprites);
     return sprites;
   }
 
@@ -249,8 +165,7 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    print(">>>>> ${spriteImages.length}");
-    if (spriteImages.length > 0) {
+    if (spriteData.isEmpty == false) {
       return Positioned(
         left: widget.position.dx,
         top: widget.position.dy,
@@ -261,9 +176,10 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
               painter: SpriteAnimator(
                   controller: _spriteController,
                   static: false,
-                  images: spriteImages,
+                  images: spriteData,
+                  texture: this.textureImage,
                   fps: widget.desiredFPS,
-                  currentImageIndex: 0,
+                  currentFrame: widget.startFrameName!,
                   loop: widget.loop == true ? LoopMode.Repeat : LoopMode.Single),
             ),
           ),
