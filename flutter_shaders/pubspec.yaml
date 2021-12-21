@@ -37,6 +37,8 @@ dependencies:
   spring: ^2.0.2
   simple_animations: ^3.1.1
   supercharged: ^2.0.0
+  performance: ^0.1.0+1
+  tiled: ^0.7.2
 
   # flutter_native_image:
   #   git:

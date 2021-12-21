@@ -1,13 +1,13 @@
-- Particle size
-- Number of particles
-- Color
-- End animation (Instant, Fade out)
-- Particle types (Fire, Explode)
-- Spread behavior (One Time, Continuous)
-- Min/Max speed
-- Time to live (ms)
-- Has center base object
-- Added blend mode option
+- ~~Particle size~~
+- ~~Number of particles~~
+- ~~Color~~
+- ~~End animation (Instant, Fade out)~~
+- ~~Particle types (Fire, Explode)~~
+- ~~Spread behavior (One Time, Continuous)~~
+- ~~Min/Max speed~~
+- ~~Time to live (ms)~~
+- ~~Has center base object~~
+- ~~Added blend mode option~~
 
 
 
@@ -53,3 +53,14 @@ painter: ParticleEmitter(
                               blendMode: BlendMode.srcOver,
                               delay: 5))))
 ```
+
+## Rendering Engine
+
+- Master controller with one CustomPainter and one ticker
+- Custom ticker to control desired fps
+- `addObject` `removeObject` `moveObject(x,y)` functions to control rendering of DL (display list)
+- `static` `dynamic` `collidable` properties for checking collision and overlap
+- Recycle mechanic and proper dispose
+- Experiment with isolates and await on the `draw`
+- Better image loading and manipulation
+- Test performance for animated sprites

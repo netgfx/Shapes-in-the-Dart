@@ -56,7 +56,6 @@ class BGAnimator extends CustomPainter {
     if (this.scrollDirection == Direction.Vertical) {
       double ratio = (imageSize.height / 3);
       finalCalc = ((imageSize.height - ratio) + this.offset.dy.abs()).round();
-      //print("$ratio, $finalCalc ${imageSize.height - ratio} ${this.offset.dy}");
     } else {
       double ratio = (imageSize.width / 3);
       finalCalc = ((imageSize.width - ratio) + this.offset.dx.abs()).round();
@@ -80,16 +79,15 @@ class BGAnimator extends CustomPainter {
           int maxHeight = calculateMaxOffset();
           if (innitialOffset <= (maxHeight * -1)) {
             innitialOffset = this.offset.dy.abs() * -1;
-            //this.controller.stop();
           }
-
-          //print("${constraints.maxHeight}, $maxHeight, $innitialOffset, $timeDecay, $size");
 
           this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
         } else {
           // do nothing?
           canvas.drawImage(image, new Offset(0.0, innitialOffset), new Paint());
         }
+      } else {
+        canvas.drawImage(image, new Offset(0.0, innitialOffset), new Paint());
       }
     } else {
       //print("no loop");

@@ -60,4 +60,11 @@ class Utils {
 
     return x < 0.5 ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
   }
+
+  bool chanceRoll(double? chance) {
+    if (chance == null) {
+      chance = 50;
+    }
+    return chance > 0 && (_random.nextDouble() * 100 <= chance);
+  }
 }

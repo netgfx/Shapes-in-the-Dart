@@ -15,7 +15,7 @@ import 'package:path_provider/path_provider.dart';
 
 class SpriteWidget extends StatefulWidget {
   int? startingIndex = 0;
-  int? desiredFPS = 24;
+  int desiredFPS = 24;
   bool? loop = true;
   final Map<String, int> constraints;
   final String texturePath;
@@ -27,6 +27,7 @@ class SpriteWidget extends StatefulWidget {
   Map<String, List<ui.Image>>? cache;
   Function setCache;
   String name;
+  Offset position = Offset(0, 0);
   SpriteWidget({
     Key? key,
     required this.texturePath,
@@ -34,8 +35,9 @@ class SpriteWidget extends StatefulWidget {
     required this.delimiters,
     this.startFrameName,
     this.startingIndex,
-    this.desiredFPS,
+    required this.desiredFPS,
     this.loop,
+    required this.position,
     required this.constraints,
     this.stopped,
     this.scale,
@@ -112,13 +114,18 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
       var data = loadJsonData(widget.jsonPath!);
 
       uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(imageData.path);
-      data.then((value) => {spriteData = parseJSON(value), loadSpriteImage(spriteData, imageData, true)});
+      print("DATA: $data");
+      data.then((value) => {
+            print(value),
+            spriteData = parseJSON(value),
+            loadSpriteImage(spriteData, imageData, true),
+          });
     }
   }
 
   void loadSpriteImage(Map<String, List<Map<String, dynamic>>> spriteData, File path, bool all) async {
     uiImage.ImageProperties props = await uiImage.FlutterNativeImage.getImageProperties(path.path);
-    print("${props.width} ${props.height} ${spriteData.length}");
+    print("$spriteData, ${props.width} ${props.height} ${spriteData.length}");
 
     if (all == true) {
       Map<String, List<ui.Image>> spriteTexturesByFrameName = {};
@@ -137,8 +144,10 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
       }
 
       widget.setCache(widget.name, spriteTexturesByFrameName);
-
-      spriteImages = spriteTexturesByFrameName[widget.startFrameName]!;
+      print(widget.startFrameName);
+      setState(() {
+        spriteImages = spriteTexturesByFrameName[widget.startFrameName]!.toList();
+      });
     } else {
       List<Map<String, dynamic>>? spriteToRender = widget.startFrameName != null ? spriteData[widget.startFrameName] : spriteData[widget.delimiters[0]];
       if (props.width != null && spriteData.length == 0) {
@@ -154,7 +163,8 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
         if (spriteToRender != null) {
           /// do split based on json data x, y
           for (var i = 0; i < spriteToRender.length; i++) {
-            File croppedFile = await uiImage.FlutterNativeImage.cropImage(path.path, spriteToRender[i]['x'], spriteToRender[i]['y'], spriteToRender[i]["width"], spriteToRender[i]['height']);
+            File croppedFile = await uiImage.FlutterNativeImage.cropImage(
+                path.path, spriteToRender[i]['x'], spriteToRender[i]['y'], spriteToRender[i]["width"], spriteToRender[i]['height']);
 
             Uint8List bytes = croppedFile.readAsBytesSync();
             ui.Image image = await loadImage(bytes);
@@ -239,16 +249,22 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    print(spriteImages.length);
+    print(">>>>> ${spriteImages.length}");
     if (spriteImages.length > 0) {
       return Positioned(
-        left: widget.constraints["width"]! * 0.5 - spriteImages[0].width * (widget.scale ?? 1) * 0.5,
-        top: widget.constraints["height"]! * 0.5 - spriteImages[0].height * (widget.scale ?? 1) * 0.5,
+        left: widget.position.dx,
+        top: widget.position.dy,
         child: Transform.scale(
           scale: widget.scale ?? 1.0,
           child: RepaintBoundary(
             child: CustomPaint(
-              painter: SpriteAnimator(controller: _spriteController, static: false, images: spriteImages, fps: 24, currentImageIndex: 0, loop: widget.loop == true ? LoopMode.Repeat : LoopMode.Single),
+              painter: SpriteAnimator(
+                  controller: _spriteController,
+                  static: false,
+                  images: spriteImages,
+                  fps: widget.desiredFPS,
+                  currentImageIndex: 0,
+                  loop: widget.loop == true ? LoopMode.Repeat : LoopMode.Single),
             ),
           ),
         ),

@@ -18,8 +18,14 @@ class SpriteAnimator extends CustomPainter {
   int fps = 250;
   bool static = true;
   LoopMode loop;
-  SpriteAnimator({required this.images, required this.static, required this.currentImageIndex, required this.fps, required this.controller, required this.loop})
-      : super(repaint: controller) {
+  SpriteAnimator({
+    required this.images,
+    required this.static,
+    required this.currentImageIndex,
+    required this.fps,
+    required this.controller,
+    required this.loop,
+  }) : super(repaint: controller) {
     print("draw");
     this.fps = (1 / this.fps * 1000).round();
     this.timeDecay = this.fps;

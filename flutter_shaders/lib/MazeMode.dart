@@ -21,6 +21,7 @@ import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:performance/performance.dart';
 
 import 'ShapeMaster.dart';
 import 'SpriteWidget.dart';
@@ -273,481 +274,483 @@ class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.grey.shade800,
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: Colors.black),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        // IconButton(
-                        //     color: Colors.white,
-                        //     icon: Icon(Icons.album),
-                        //     onPressed: () {
-                        //       setState(() {
-                        //         if (selectedMode == SelectedMode.StrokeWidth) showBottomList = !showBottomList;
-                        //         selectedMode = SelectedMode.StrokeWidth;
-                        //       });
-                        //     }),
-                        // IconButton(
-                        //     color: Colors.white,
-                        //     icon: Icon(Icons.opacity),
-                        //     onPressed: () {
-                        //       setState(() {
-                        //         if (selectedMode == SelectedMode.Opacity) showBottomList = !showBottomList;
-                        //         selectedMode = SelectedMode.Opacity;
-                        //       });
-                        //     }),
-                        // IconButton(
-                        //     color: Colors.white,
-                        //     icon: Icon(Icons.clear),
-                        //     onPressed: () {
-                        //       setState(() {
-                        //         showBottomList = false;
-                        //         points.clear();
-                        //       });
-                        //     }),
-                      ],
-                    ),
-                  ],
-                ),
-              )),
-        ),
-        body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
-          this.viewportConstraints = viewportConstraints;
-          return GestureDetector(
-            //   onTapDown: (details) {
-            //     // setState(() {
-            //     //   particlePoint = details.globalPosition;
-            //     // });
-            //     particlePoint.value = details.globalPosition;
-            //     _controller.repeat();
-            //   },
-            //   onTapCancel: () {
-            //     setState(() {
-            //       points.add(null);
-            //     });
-            //   },
-
-            onPanUpdate: (details) => _onPanUpdate(context, details),
-            //   setState(() {
-            //     RenderBox? renderBox = context.findRenderObject() as RenderBox;
-            //     points.add(DrawingPoints(
-            //         points: renderBox.globalToLocal(details.globalPosition),
-            //         paint: Paint()
-            //           ..strokeCap = strokeCap
-            //           ..isAntiAlias = true
-            //           ..color = selectedColor.withOpacity(opacity)
-            //           ..strokeWidth = strokeWidth));
-            //   });
-            // },
-            // onPanStart: (details) {
-            //   setState(() {
-            //     RenderBox renderBox = context.findRenderObject() as RenderBox;
-            //     points.add(DrawingPoints(
-            //         points: renderBox.globalToLocal(details.globalPosition),
-            //         paint: Paint()
-            //           ..strokeCap = strokeCap
-            //           ..isAntiAlias = true
-            //           ..color = selectedColor.withOpacity(opacity)
-            //           ..strokeWidth = strokeWidth));
-            //   });
-            // },
-            // onPanEnd: (details) {
-            //   setState(() {
-            //     points.add(null);
-            //   });
-            // },
-            child: Stack(children: [
-              bgImage != null
-                  ? Padding(
-                      padding: EdgeInsets.only(top: 0, left: 0),
-                      child: CustomPaint(
-                        key: UniqueKey(),
-                        painter: BGAnimator(
-                          image: bgImage!,
-                          constraints: viewportConstraints,
-                          static: false,
-                          fps: 30,
-                          controller: _bgController,
-                          offset: Offset(0, -50),
-                          imageSize: Size(655, 3072),
-                          scrollDirection: Direction.Vertical,
-                        ),
-                        isComplex: true,
-                        willChange: false,
-                        child: Container(),
-                      ),
-                    )
-                  : Container(),
-
-              /// STARFIELD
-              Positioned(
-                top: 0,
-                left: 0,
+    return CustomPerformanceOverlay(
+      child: Scaffold(
+          backgroundColor: Colors.grey.shade800,
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: Colors.black),
                 child: Padding(
-                  padding: EdgeInsets.only(top: 0, left: 0),
-                  child: CustomPaint(
-                    key: UniqueKey(),
-                    painter: Shadows(
-                        controller: _starfieldController,
-                        fps: 10,
-                        color: Color.fromARGB(255, 100, 100, 100),
-                        type: ShapeType.Triangle,
-                        light: lightSource,
-                        sceneSize: viewportConstraints),
-                    // PhysicsEngine(
-                    //   controller: _starfieldController,
-                    //   fps: 60,
-                    //   color: randomColor(1.0),
-                    //   type: ShapeType.Rect,
-                    //   delay: 0,
-                    //   sceneSize: viewportConstraints,
-                    // ),
-                    // Starfield(
-                    //   fps: 30,
-                    //   color: randomColor(1),
-                    //   type: ShapeType.Circle,
-                    //   controller: _starfieldController,
-                    //   delay: 0,
-                    //   sceneSize: viewportConstraints,
-                    //   animate: null,
-                    // ),
-                    isComplex: true,
-                    willChange: false,
-                    child: Container(),
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          // IconButton(
+                          //     color: Colors.white,
+                          //     icon: Icon(Icons.album),
+                          //     onPressed: () {
+                          //       setState(() {
+                          //         if (selectedMode == SelectedMode.StrokeWidth) showBottomList = !showBottomList;
+                          //         selectedMode = SelectedMode.StrokeWidth;
+                          //       });
+                          //     }),
+                          // IconButton(
+                          //     color: Colors.white,
+                          //     icon: Icon(Icons.opacity),
+                          //     onPressed: () {
+                          //       setState(() {
+                          //         if (selectedMode == SelectedMode.Opacity) showBottomList = !showBottomList;
+                          //         selectedMode = SelectedMode.Opacity;
+                          //       });
+                          //     }),
+                          // IconButton(
+                          //     color: Colors.white,
+                          //     icon: Icon(Icons.clear),
+                          //     onPressed: () {
+                          //       setState(() {
+                          //         showBottomList = false;
+                          //         points.clear();
+                          //       });
+                          //     }),
+                        ],
+                      ),
+                    ],
                   ),
+                )),
+          ),
+          body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
+            this.viewportConstraints = viewportConstraints;
+            return GestureDetector(
+              //   onTapDown: (details) {
+              //     // setState(() {
+              //     //   particlePoint = details.globalPosition;
+              //     // });
+              //     particlePoint.value = details.globalPosition;
+              //     _controller.repeat();
+              //   },
+              //   onTapCancel: () {
+              //     setState(() {
+              //       points.add(null);
+              //     });
+              //   },
+
+              onPanUpdate: (details) => _onPanUpdate(context, details),
+              //   setState(() {
+              //     RenderBox? renderBox = context.findRenderObject() as RenderBox;
+              //     points.add(DrawingPoints(
+              //         points: renderBox.globalToLocal(details.globalPosition),
+              //         paint: Paint()
+              //           ..strokeCap = strokeCap
+              //           ..isAntiAlias = true
+              //           ..color = selectedColor.withOpacity(opacity)
+              //           ..strokeWidth = strokeWidth));
+              //   });
+              // },
+              // onPanStart: (details) {
+              //   setState(() {
+              //     RenderBox renderBox = context.findRenderObject() as RenderBox;
+              //     points.add(DrawingPoints(
+              //         points: renderBox.globalToLocal(details.globalPosition),
+              //         paint: Paint()
+              //           ..strokeCap = strokeCap
+              //           ..isAntiAlias = true
+              //           ..color = selectedColor.withOpacity(opacity)
+              //           ..strokeWidth = strokeWidth));
+              //   });
+              // },
+              // onPanEnd: (details) {
+              //   setState(() {
+              //     points.add(null);
+              //   });
+              // },
+              child: Stack(children: [
+                bgImage != null
+                    ? Padding(
+                        padding: EdgeInsets.only(top: 0, left: 0),
+                        child: CustomPaint(
+                          key: UniqueKey(),
+                          painter: BGAnimator(
+                            image: bgImage!,
+                            constraints: viewportConstraints,
+                            static: false,
+                            fps: 30,
+                            controller: _bgController,
+                            offset: Offset(0, -50),
+                            imageSize: Size(655, 3072),
+                            scrollDirection: Direction.Vertical,
+                          ),
+                          isComplex: true,
+                          willChange: false,
+                          child: Container(),
+                        ),
+                      )
+                    : Container(),
+
+                /// STARFIELD
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 0, left: 0),
+                    child: CustomPaint(
+                      key: UniqueKey(),
+                      painter: Shadows(
+                          controller: _starfieldController,
+                          fps: 10,
+                          color: Color.fromARGB(255, 100, 100, 100),
+                          type: ShapeType.Triangle,
+                          light: lightSource,
+                          sceneSize: viewportConstraints),
+                      // PhysicsEngine(
+                      //   controller: _starfieldController,
+                      //   fps: 60,
+                      //   color: randomColor(1.0),
+                      //   type: ShapeType.Rect,
+                      //   delay: 0,
+                      //   sceneSize: viewportConstraints,
+                      // ),
+                      // Starfield(
+                      //   fps: 30,
+                      //   color: randomColor(1),
+                      //   type: ShapeType.Circle,
+                      //   controller: _starfieldController,
+                      //   delay: 0,
+                      //   sceneSize: viewportConstraints,
+                      //   animate: null,
+                      // ),
+                      isComplex: true,
+                      willChange: false,
+                      child: Container(),
+                    ),
+                  ),
+
+                  /// LETTER PARTICLES
+                  // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "W",
+                  //           radius: 3,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Circle,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_BACK,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 80, height: 0),
+                  //     ),
+                  //   ),
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "E",
+                  //           radius: 3,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Diamond,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_SINE,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 45, height: 0),
+                  //     ),
+                  //   ),
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "L",
+                  //           radius: 4,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Diamond,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_CIRC,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 50, height: 0),
+                  //     ),
+                  //   ),
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "C",
+                  //           radius: 3,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Diamond,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_SINE,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 45, height: 0),
+                  //     ),
+                  //   ),
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "O",
+                  //           radius: 3,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Heart,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_SINE,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 45, height: 0),
+                  //     ),
+                  //   ),
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "M",
+                  //           radius: 3,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Diamond,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_QUART,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 80, height: 0),
+                  //     ),
+                  //   ),
+                  //   Padding(
+                  //     padding: EdgeInsets.only(top: 0, left: 0),
+                  //     child: CustomPaint(
+                  //       key: UniqueKey(),
+                  //       painter: LetterParticles(
+                  //           character: "E",
+                  //           radius: 3,
+                  //           fps: 60,
+                  //           color: randomColor(1),
+                  //           type: ShapeType.Star5,
+                  //           controller: _letterController,
+                  //           effect: lettersEffect,
+                  //           delay: 0,
+                  //           stagger: true,
+                  //           ease: Easing.EASE_OUT_SINE,
+                  //           animate: () => {print("animate was called...")}),
+                  //       isComplex: true,
+                  //       willChange: false,
+                  //       child: Container(width: 50, height: 0),
+                  //     ),
+                  //   )
+                  // ]),
                 ),
+                // SpriteWidget(
+                //     constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
+                //     texturePath: "assets/flying_monster.png",
+                //     jsonPath: "assets/flying_monster.json",
+                //     delimiters: ["death/Death_animations", "fly/Fly2_Bats"],
+                //     startFrameName: batFirstFrame,
+                //     loop: batLoop,
+                //     scale: 0.5,
+                //     setCache: cacheSpriteImages,
+                //     cache: spriteCache["bat"],
+                //     name: "bat"),
+                ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return RadialGradient(
+                        radius: 50,
+                        center: Alignment.topCenter,
+                        colors: <Color>[Colors.black, Colors.black54],
+                        tileMode: TileMode.clamp,
+                      ).createShader(bounds);
+                    },
+                    //blendMode: BlendMode.srcOut,
+                    child: Stack(children: [
+                      Container(
+                        width: viewportConstraints.maxWidth,
+                        height: viewportConstraints.maxHeight,
+                        color: Colors.transparent,
+                        clipBehavior: Clip.none,
+                      ),
 
-                /// LETTER PARTICLES
-                // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "W",
-                //           radius: 3,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Circle,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_BACK,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 80, height: 0),
-                //     ),
-                //   ),
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "E",
-                //           radius: 3,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Diamond,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_SINE,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 45, height: 0),
-                //     ),
-                //   ),
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "L",
-                //           radius: 4,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Diamond,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_CIRC,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 50, height: 0),
-                //     ),
-                //   ),
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "C",
-                //           radius: 3,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Diamond,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_SINE,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 45, height: 0),
-                //     ),
-                //   ),
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "O",
-                //           radius: 3,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Heart,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_SINE,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 45, height: 0),
-                //     ),
-                //   ),
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "M",
-                //           radius: 3,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Diamond,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_QUART,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 80, height: 0),
-                //     ),
-                //   ),
-                //   Padding(
-                //     padding: EdgeInsets.only(top: 0, left: 0),
-                //     child: CustomPaint(
-                //       key: UniqueKey(),
-                //       painter: LetterParticles(
-                //           character: "E",
-                //           radius: 3,
-                //           fps: 60,
-                //           color: randomColor(1),
-                //           type: ShapeType.Star5,
-                //           controller: _letterController,
-                //           effect: lettersEffect,
-                //           delay: 0,
-                //           stagger: true,
-                //           ease: Easing.EASE_OUT_SINE,
-                //           animate: () => {print("animate was called...")}),
-                //       isComplex: true,
-                //       willChange: false,
-                //       child: Container(width: 50, height: 0),
-                //     ),
-                //   )
-                // ]),
-              ),
-              // SpriteWidget(
-              //     constraints: {"width": viewportConstraints.maxWidth.toInt(), "height": viewportConstraints.maxHeight.toInt()},
-              //     texturePath: "assets/flying_monster.png",
-              //     jsonPath: "assets/flying_monster.json",
-              //     delimiters: ["death/Death_animations", "fly/Fly2_Bats"],
-              //     startFrameName: batFirstFrame,
-              //     loop: batLoop,
-              //     scale: 0.5,
-              //     setCache: cacheSpriteImages,
-              //     cache: spriteCache["bat"],
-              //     name: "bat"),
-              ShaderMask(
-                  shaderCallback: (Rect bounds) {
-                    return RadialGradient(
-                      radius: 50,
-                      center: Alignment.topCenter,
-                      colors: <Color>[Colors.black, Colors.black54],
-                      tileMode: TileMode.clamp,
-                    ).createShader(bounds);
+                      // mazeData != null
+                      //     ? Padding(
+                      //         padding: EdgeInsets.only(top: 50, left: 5),
+                      //         child: CustomPaint(
+                      //           key: UniqueKey(),
+                      //           painter: MazePainter(mazeData!, viewportConstraints.maxWidth, viewportConstraints.maxHeight, (data) {}),
+                      //           isComplex: true,
+                      //           willChange: false,
+                      //           child: Container(),
+                      //         ))
+                      //   : Container(),
+
+                      Stack(
+                        children: getCircles(),
+                      ),
+                      // CustomPaint(
+                      //   size: Size.infinite,
+                      //   painter: DrawingPainter(
+                      //     pointsList: points,
+                      //   ),
+                      // ),
+                    ])),
+                ValueListenableBuilder<Offset>(
+                  valueListenable: particlePoint,
+                  builder: (BuildContext context, Offset value, Widget? child) {
+                    if (isStopped == true) {
+                      return Container();
+                    } else {
+                      return Transform.translate(
+                        offset: value,
+                        child: RepaintBoundary(
+                          child: CustomPaint(
+                            key: UniqueKey(),
+                            isComplex: true,
+                            willChange: true,
+                            child: Container(),
+                            // painter: ParticleEmitter(
+                            //     listenable: _controller,
+                            //     controller: _controller,
+                            //     particleSize: Size(50, 50),
+                            //     minParticles: 50,
+                            //     center: Offset.zero,
+                            //     color: _color,
+                            //     radius: 10,
+                            //     type: ShapeType.Circle,
+                            //     endAnimation: EndAnimation.SCALE_DOWN,
+                            //     particleType: ParticleType.FIRE,
+                            //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
+                            //     minimumSpeed: 0.1,
+                            //     maximumSpeed: 0.2,
+                            //     timeToLive: {"min": 50, "max": 250},
+                            //     hasBase: true,
+                            //     blendMode: BlendMode.srcOver,
+                            //     delay: 2)
+                            //             //
+                            //             // FOUNTAIN
+                            //             //
+                            painter: ParticleEmitter(
+                                listenable: _controller,
+                                particleSize: Size(64, 64),
+                                minParticles: 20,
+                                center: Offset.zero,
+                                color: null,
+                                radius: 10,
+                                type: ShapeType.Star5,
+                                endAnimation: EndAnimation.SCALE_DOWN,
+                                particleType: ParticleType.FOUNTAIN,
+                                spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                                minimumSpeed: 0.1,
+                                maximumSpeed: 0.5,
+                                timeToLive: {"min": 250, "max": 800},
+                                hasBase: false,
+                                blendMode: BlendMode.srcOver,
+                                hasWalls: false,
+                                wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
+                                delay: 0),
+                          ),
+                        ),
+                      );
+                    }
                   },
-                  //blendMode: BlendMode.srcOut,
-                  child: Stack(children: [
-                    Container(
-                      width: viewportConstraints.maxWidth,
-                      height: viewportConstraints.maxHeight,
-                      color: Colors.transparent,
-                      clipBehavior: Clip.none,
-                    ),
-
-                    // mazeData != null
-                    //     ? Padding(
-                    //         padding: EdgeInsets.only(top: 50, left: 5),
-                    //         child: CustomPaint(
-                    //           key: UniqueKey(),
-                    //           painter: MazePainter(mazeData!, viewportConstraints.maxWidth, viewportConstraints.maxHeight, (data) {}),
-                    //           isComplex: true,
-                    //           willChange: false,
-                    //           child: Container(),
-                    //         ))
-                    //   : Container(),
-
-                    Stack(
-                      children: getCircles(),
-                    ),
-                    // CustomPaint(
-                    //   size: Size.infinite,
-                    //   painter: DrawingPainter(
-                    //     pointsList: points,
-                    //   ),
-                    // ),
-                  ])),
-              ValueListenableBuilder<Offset>(
-                valueListenable: particlePoint,
-                builder: (BuildContext context, Offset value, Widget? child) {
-                  if (isStopped == true) {
-                    return Container();
-                  } else {
-                    return Transform.translate(
-                      offset: value,
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          key: UniqueKey(),
-                          isComplex: true,
-                          willChange: true,
-                          child: Container(),
-                          // painter: ParticleEmitter(
-                          //     listenable: _controller,
-                          //     controller: _controller,
-                          //     particleSize: Size(50, 50),
-                          //     minParticles: 50,
-                          //     center: Offset.zero,
-                          //     color: _color,
-                          //     radius: 10,
-                          //     type: ShapeType.Circle,
-                          //     endAnimation: EndAnimation.SCALE_DOWN,
-                          //     particleType: ParticleType.FIRE,
-                          //     spreadBehaviour: SpreadBehaviour.CONTINUOUS,
-                          //     minimumSpeed: 0.1,
-                          //     maximumSpeed: 0.2,
-                          //     timeToLive: {"min": 50, "max": 250},
-                          //     hasBase: true,
-                          //     blendMode: BlendMode.srcOver,
-                          //     delay: 2)
-                          //             //
-                          //             // FOUNTAIN
-                          //             //
-                          painter: ParticleEmitter(
-                              listenable: _controller,
-                              particleSize: Size(64, 64),
-                              minParticles: 20,
-                              center: Offset.zero,
-                              color: null,
-                              radius: 10,
-                              type: ShapeType.Star5,
-                              endAnimation: EndAnimation.SCALE_DOWN,
-                              particleType: ParticleType.FOUNTAIN,
-                              spreadBehaviour: SpreadBehaviour.ONE_TIME,
-                              minimumSpeed: 0.1,
-                              maximumSpeed: 0.5,
-                              timeToLive: {"min": 250, "max": 800},
-                              hasBase: false,
-                              blendMode: BlendMode.srcOver,
-                              hasWalls: false,
-                              wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
-                              delay: 0),
+                ),
+                ValueListenableBuilder<Offset>(
+                  valueListenable: particlePoint2,
+                  builder: (BuildContext context, Offset value, Widget? child) {
+                    print(">>>>> ${value}");
+                    if (isStopped == true) {
+                      return Container();
+                    } else {
+                      return Transform.translate(
+                        offset: value,
+                        child: RepaintBoundary(
+                          child: CustomPaint(
+                            key: UniqueKey(),
+                            isComplex: true,
+                            willChange: true,
+                            child: Container(),
+                            painter: ParticleEmitter(
+                                listenable: _controller,
+                                particleSize: Size(64, 64),
+                                minParticles: 20,
+                                center: Offset.zero,
+                                color: null,
+                                radius: 10,
+                                type: ShapeType.Star5,
+                                endAnimation: EndAnimation.SCALE_DOWN,
+                                particleType: ParticleType.FOUNTAIN,
+                                spreadBehaviour: SpreadBehaviour.ONE_TIME,
+                                minimumSpeed: 0.1,
+                                maximumSpeed: 0.5,
+                                timeToLive: {"min": 250, "max": 800},
+                                hasBase: false,
+                                blendMode: BlendMode.srcOver,
+                                hasWalls: false,
+                                wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
+                                delay: 0),
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                },
-              ),
-              ValueListenableBuilder<Offset>(
-                valueListenable: particlePoint2,
-                builder: (BuildContext context, Offset value, Widget? child) {
-                  print(">>>>> ${value}");
-                  if (isStopped == true) {
-                    return Container();
-                  } else {
-                    return Transform.translate(
-                      offset: value,
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          key: UniqueKey(),
-                          isComplex: true,
-                          willChange: true,
-                          child: Container(),
-                          painter: ParticleEmitter(
-                              listenable: _controller,
-                              particleSize: Size(64, 64),
-                              minParticles: 20,
-                              center: Offset.zero,
-                              color: null,
-                              radius: 10,
-                              type: ShapeType.Star5,
-                              endAnimation: EndAnimation.SCALE_DOWN,
-                              particleType: ParticleType.FOUNTAIN,
-                              spreadBehaviour: SpreadBehaviour.ONE_TIME,
-                              minimumSpeed: 0.1,
-                              maximumSpeed: 0.5,
-                              timeToLive: {"min": 250, "max": 800},
-                              hasBase: false,
-                              blendMode: BlendMode.srcOver,
-                              hasWalls: false,
-                              wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
-                              delay: 0),
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
-              // Positioned(
-              //   bottom: 100,
-              //   width: viewportConstraints.maxWidth,
-              //   child: Row(
-              //     crossAxisAlignment: CrossAxisAlignment.center,
-              //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //     children: [
-              //       ElevatedButton(onPressed: playFly, child: Text("Fly")),
-              //       SizedBox(
-              //         width: 50,
-              //       ),
-              //       ElevatedButton(onPressed: playExplode, child: Text("Explode")),
-              //     ],
-              //   ),
-              // ),
-            ]),
-          );
-          //);
-        }));
+                      );
+                    }
+                  },
+                ),
+                // Positioned(
+                //   bottom: 100,
+                //   width: viewportConstraints.maxWidth,
+                //   child: Row(
+                //     crossAxisAlignment: CrossAxisAlignment.center,
+                //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                //     children: [
+                //       ElevatedButton(onPressed: playFly, child: Text("Fly")),
+                //       SizedBox(
+                //         width: 50,
+                //       ),
+                //       ElevatedButton(onPressed: playExplode, child: Text("Explode")),
+                //     ],
+                //   ),
+                // ),
+              ]),
+            );
+            //);
+          })),
+    );
   }
 }
 
