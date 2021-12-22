@@ -252,11 +252,6 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
 
         var delay = ((100 * counter) - (40 * counter)).round();
 
-        var rotateXTween = (0).tweenTo(30);
-        var rotateYTween = (0.0).tweenTo(-90);
-        var scaleTween = (1.0).tweenTo(0.0);
-        var opacityTween = (1.0).tweenTo(0.0);
-
         AnimationController aController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
         controllers.add(aController);
         var _rotateXTween = Tween<double>(begin: 0.0, end: 30).animate(
@@ -291,24 +286,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
               animation: aController,
               builder: (BuildContext context, Widget? child) {
                 return Transform(
-                  transform: Matrix4(
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    1,
-                  )
+                  transform: Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
                     //..rotateX(_rotateXTween.value)
                     //..rotateY(0)
                     ..scale(_sizeTween.value),

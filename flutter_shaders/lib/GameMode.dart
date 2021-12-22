@@ -63,11 +63,14 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
   String batFirstFrame = "fly/Fly2_Bats";
   bool batLoop = true;
   Map<String, dynamic> spriteCache = {};
-  Map<String, dynamic> spriteDirection = {
+  Map<String, ui.Image> textureCache = {};
+  final ValueNotifier<Map<String, dynamic>> spriteDirection = ValueNotifier<Map<String, dynamic>>({
     "direction": "PlayerDownStand/ds",
     "x": 0.0,
     "y": 0.0,
-  };
+    "oldX": 0.0,
+    "oldY": 0.0,
+  });
 
   ///
   CharacterParticleEffect lettersEffect = CharacterParticleEffect.SPREAD;
@@ -106,7 +109,7 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
 
   void initScrollBG() async {
     await loadImages(["assets/forest.png"]);
-    _bgController.forward();
+    _bgController.repeat();
   }
 
   List<Widget> getCircles() {
@@ -249,9 +252,14 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
     });
   }
 
-  void cacheSpriteImages(String uniqueKey, Map<String, List<ui.Image>> images) {
+  void cacheSpriteImages(String uniqueKey, Map<String, List<Map<String, dynamic>>> images) {
     spriteCache[uniqueKey] = images;
     print("Saved $uniqueKey with ${images.length} images to cache");
+  }
+
+  void cacheSpriteTexture(String uniqueKey, ui.Image texture) {
+    this.textureCache[uniqueKey] = texture;
+    print("Saved $uniqueKey texture to cache");
   }
 
   void _onPanUpdate(BuildContext context, DragUpdateDetails details) {
@@ -280,10 +288,12 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                               color: Colors.white,
                               icon: Icon(Icons.chevron_left),
                               onPressed: () {
-                                setState(() {
-                                  spriteDirection["direction"] = "PlayerLeftStand/ls";
-                                  spriteDirection["x"] = spriteDirection["x"] - 16;
-                                });
+                                spriteDirection.value["direction"] = "PlayerLeftStand/ls";
+                                spriteDirection.value["oldX"] = spriteDirection.value["x"];
+                                spriteDirection.value["oldY"] = spriteDirection.value["y"];
+                                spriteDirection.value["x"] = spriteDirection.value["x"] - 16;
+
+                                spriteDirection.notifyListeners();
                               }),
                           Column(
                             children: [
@@ -291,23 +301,23 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                                   color: Colors.white,
                                   icon: Icon(Icons.expand_less),
                                   onPressed: () {
-                                    setState(() {
-                                      setState(() {
-                                        spriteDirection["direction"] = "PlayerUpStand/us";
-                                        spriteDirection["y"] = spriteDirection["y"] - 16;
-                                      });
-                                    });
+                                    spriteDirection.value["direction"] = "PlayerUpStand/us";
+                                    spriteDirection.value["oldX"] = spriteDirection.value["x"];
+                                    spriteDirection.value["oldY"] = spriteDirection.value["y"];
+                                    spriteDirection.value["y"] = spriteDirection.value["y"] - 16;
+
+                                    spriteDirection.notifyListeners();
                                   }),
                               IconButton(
                                   color: Colors.white,
                                   icon: Icon(Icons.expand_more),
                                   onPressed: () {
-                                    setState(() {
-                                      setState(() {
-                                        spriteDirection["direction"] = "PlayerDownStand/ds";
-                                        spriteDirection["y"] = spriteDirection["y"] + 16;
-                                      });
-                                    });
+                                    spriteDirection.value["direction"] = "PlayerDownStand/ds";
+                                    spriteDirection.value["oldX"] = spriteDirection.value["x"];
+                                    spriteDirection.value["oldY"] = spriteDirection.value["y"];
+                                    spriteDirection.value["y"] = spriteDirection.value["y"] + 16;
+
+                                    spriteDirection.notifyListeners();
                                   }),
                             ],
                           ),
@@ -315,12 +325,12 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                               color: Colors.white,
                               icon: Icon(Icons.chevron_right),
                               onPressed: () {
-                                setState(() {
-                                  setState(() {
-                                    spriteDirection["direction"] = "PlayerRightStand/rs";
-                                    spriteDirection["x"] = spriteDirection["x"] + 16;
-                                  });
-                                });
+                                spriteDirection.value["direction"] = "PlayerRightStand/rs";
+                                spriteDirection.value["oldX"] = spriteDirection.value["x"];
+                                spriteDirection.value["oldY"] = spriteDirection.value["y"];
+                                spriteDirection.value["x"] = spriteDirection.value["x"] + 16;
+
+                                spriteDirection.notifyListeners();
                               }),
                         ],
                       ),
@@ -413,32 +423,41 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                SpriteWidget(
-                    constraints: {
-                      "width": viewportConstraints.maxWidth.toInt(),
-                      "height": viewportConstraints.maxHeight.toInt(),
-                    },
-                    texturePath: "assets/knight.png",
-                    jsonPath: "assets/knight.json",
-                    delimiters: [
-                      "PlayerDownMove/dm",
-                      "PlayerDownStand/ds",
-                      "PlayerLeftMove/lm",
-                      "PlayerLeftStand/ls",
-                      "PlayerRightMove/rm",
-                      "PlayerRightStand/rs",
-                      "PlayerUpMove/um",
-                      "PlayerUpStand/us",
-                    ],
-                    startFrameName: spriteDirection["direction"],
-                    loop: true,
-                    scale: 0.80,
-                    position: Offset(spriteDirection["x"] as double, spriteDirection["y"] as double),
-                    desiredFPS: 3,
-                    setCache: cacheSpriteImages,
-                    cache: spriteCache["knight"],
-                    name: "knight"),
-
+                ValueListenableBuilder<Map<String, dynamic>>(
+                  valueListenable: spriteDirection,
+                  builder: (BuildContext context, Map<String, dynamic> value, Widget? child) {
+                    print(value);
+                    return SpriteWidget(
+                        //key: UniqueKey(),
+                        constraints: {
+                          "width": viewportConstraints.maxWidth.toInt(),
+                          "height": viewportConstraints.maxHeight.toInt(),
+                        },
+                        directionObject: value,
+                        texturePath: "assets/knight.png",
+                        jsonPath: "assets/knight.json",
+                        delimiters: [
+                          "PlayerDownMove/dm",
+                          "PlayerDownStand/ds",
+                          "PlayerLeftMove/lm",
+                          "PlayerLeftStand/ls",
+                          "PlayerRightMove/rm",
+                          "PlayerRightStand/rs",
+                          "PlayerUpMove/um",
+                          "PlayerUpStand/us",
+                        ],
+                        startFrameName: spriteDirection.value["direction"],
+                        loop: true,
+                        scale: 0.80,
+                        position: Offset(spriteDirection.value["x"] as double, spriteDirection.value["y"] as double),
+                        desiredFPS: 3,
+                        setTextureCache: cacheSpriteTexture,
+                        setCache: cacheSpriteImages,
+                        cache: spriteCache["knight"],
+                        textureCache: this.textureCache["knight"],
+                        name: "knight");
+                  },
+                ),
                 ValueListenableBuilder<Offset>(
                   valueListenable: particlePoint,
                   builder: (BuildContext context, Offset value, Widget? child) {

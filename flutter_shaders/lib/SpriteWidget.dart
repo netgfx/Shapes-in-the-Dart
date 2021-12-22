@@ -24,10 +24,13 @@ class SpriteWidget extends StatefulWidget {
   final List<String> delimiters;
   final String? startFrameName;
   bool? stopped = false;
-  Map<String, List<ui.Image>>? cache;
+  Map<String, List<Map<String, dynamic>>>? cache;
   Function setCache;
   String name;
   Offset position = Offset(0, 0);
+  Function setTextureCache;
+  Map<String, dynamic> directionObject = {};
+  ui.Image? textureCache;
   SpriteWidget({
     Key? key,
     required this.texturePath,
@@ -38,10 +41,13 @@ class SpriteWidget extends StatefulWidget {
     required this.desiredFPS,
     this.loop,
     required this.position,
+    required this.directionObject,
     required this.constraints,
     this.stopped,
     this.scale,
     this.cache,
+    required this.setTextureCache,
+    this.textureCache,
     required this.name,
     required this.setCache,
   }) : super(key: key);
@@ -54,9 +60,10 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
   late AnimationController _spriteController;
   List<ui.Image> spriteImages = [];
   Map<String, List<Map<String, dynamic>>> spriteData = {};
-  late ui.Image textureImage;
+  late ui.Image? textureImage;
   int sliceWidth = 192;
   int sliceHeight = 212;
+  late Animation<double> _animTween;
   @override
   void initState() {
     // TODO: implement initState
@@ -75,7 +82,8 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
           if (widget.startFrameName != null) {
             print("loading from cache");
             setState(() {
-              spriteImages = widget.cache![widget.startFrameName]!;
+              spriteData = widget.cache!;
+              textureImage = widget.textureCache;
             });
           }
         }
@@ -95,8 +103,9 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
         } else {
           _spriteController.repeat();
         }
+
         setState(() {
-          spriteImages = widget.cache![widget.startFrameName]!;
+          spriteData = widget.cache!;
         });
       }
     }
@@ -112,15 +121,31 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
   void loadSprite() async {
     final ByteData data = await rootBundle.load(widget.texturePath);
     this.textureImage = await imageFromBytes(data);
-
+    widget.setTextureCache(widget.name, this.textureImage);
     if (widget.jsonPath != null && widget.jsonPath != "") {
       var data = loadJsonData(widget.jsonPath!);
       data.then((value) => {
             setState(() {
               spriteData = parseJSON(value);
             }),
+            widget.setCache(widget.name, spriteData)
           });
     }
+  }
+
+  AnimationController getAnimation() {
+    AnimationController aController = AnimationController(duration: const Duration(milliseconds: 250), vsync: this);
+    //controllers.add(aController);
+    _animTween = Tween<double>(begin: getStart(), end: getEnd()).animate(
+      CurvedAnimation(
+        parent: aController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
+    aController.forward();
+
+    return aController;
   }
 
   Future<ui.Image> imageFromBytes(ByteData data) async {
@@ -154,37 +179,70 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
     return sprites;
   }
 
-  Future<ui.Image> loadImage(Uint8List img) async {
-    final Completer<ui.Image> completer = new Completer();
+  double getStart() {
+    double value = widget.directionObject["oldX"].toDouble() == widget.position.dx.toDouble()
+        ? widget.directionObject["oldY"].toDouble()
+        : widget.directionObject["oldX"].toDouble();
+    print("start value $value");
+    return value;
+  }
 
-    ui.decodeImageFromList(img, (ui.Image img) {
-      return completer.complete(img);
-    });
-    return completer.future;
+  double getEnd() {
+    double value = widget.directionObject["oldX"].toDouble() == widget.position.dx.toDouble() ? widget.position.dy : widget.position.dx;
+    print("end value $value");
+    return value;
+  }
+
+  double getMovingXAxis(num offset) {
+    print("X Offset $offset");
+    double value = widget.directionObject["oldX"].toDouble() == widget.position.dx.toDouble() ? widget.position.dx : offset.toDouble();
+    print("moving to X: $value");
+    return value;
+  }
+
+  double getMovingYAxis(num offset) {
+    print("Y Offset $offset");
+    double value = widget.directionObject["oldY"].toDouble() == widget.position.dy.toDouble() ? widget.position.dy : offset.toDouble();
+    print("moving to Y: $value");
+    return value;
+  }
+
+  Tween<double> getTween() {
+    return new Tween(begin: getStart(), end: getEnd());
+  }
+
+  AnimatedBuilder getTweenBuilder(BuildContext context, double s, double e) {
+    print("start $s end $e");
+    return AnimatedBuilder(
+        animation: getAnimation(),
+        builder: (BuildContext context, Widget? child) {
+          print(">>>> ${_animTween.value}");
+          return Positioned(
+            left: getMovingXAxis(_animTween.value),
+            top: getMovingYAxis(_animTween.value),
+            child: Transform.scale(
+              scale: widget.scale ?? 1.0,
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: SpriteAnimator(
+                      controller: _spriteController,
+                      static: false,
+                      images: spriteData,
+                      texture: this.textureImage!,
+                      fps: widget.desiredFPS,
+                      currentFrame: widget.startFrameName!,
+                      loop: widget.loop == true ? LoopMode.Repeat : LoopMode.Single),
+                ),
+              ),
+            ),
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (spriteData.isEmpty == false) {
-      return Positioned(
-        left: widget.position.dx,
-        top: widget.position.dy,
-        child: Transform.scale(
-          scale: widget.scale ?? 1.0,
-          child: RepaintBoundary(
-            child: CustomPaint(
-              painter: SpriteAnimator(
-                  controller: _spriteController,
-                  static: false,
-                  images: spriteData,
-                  texture: this.textureImage,
-                  fps: widget.desiredFPS,
-                  currentFrame: widget.startFrameName!,
-                  loop: widget.loop == true ? LoopMode.Repeat : LoopMode.Single),
-            ),
-          ),
-        ),
-      );
+    if (spriteData.isEmpty == false && this.textureImage != null) {
+      return getTweenBuilder(context, getStart(), getEnd());
     } else {
       return Container();
     }
