@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:csv/csv.dart';
+import 'package:csv/csv_settings_autodetection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
@@ -19,25 +24,24 @@ class TileMapPainter extends CustomPainter {
   int currentTime = 0;
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
-  ShapeType type = ShapeType.Circle;
   int timeDecay = 0;
   double? rate = 10;
   double endT = 0.0;
-  final _random = new Random();
   int timeAlive = 0;
   int timeToLive = 24;
-  int zDecay = 1000;
-  List<Point> walls = [];
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
   Paint? painter;
-  Paint? wallPaint;
   Paint? paintStroke;
-  Size size = Size(200, 338);
-  List<List<String>> map = [];
-  Map<String, dynamic> tiles = {};
-  List<Point> stageCorners = [];
+  //List<List<String>> map = [];
+  String csvFile = "";
+  String tilesFile = "";
+  int tileSize = 0;
+  Size size = Size(0, 0);
+  List<List<dynamic>> tilesList = [];
+  ui.Image? textureImage;
+  bool tilemapCreated = false;
 
   /// Constructor
   TileMapPainter({
@@ -47,23 +51,27 @@ class TileMapPainter extends CustomPainter {
     /// <-- Desired FPS
     required this.fps,
 
-    /// <-- Color of the particles
-    required this.color,
-
     /// <-- The particles blend mode (default: BlendMode.src)
     this.blendMode,
 
     /// <-- The tiles to use for the map
-    required this.tiles,
+    required this.tilesFile,
 
     /// <-- The map data
-    required this.map,
+    required this.csvFile,
+
+    /// <-- The tilemap size
+    required size,
+
+    /// <-- The tile size
+    required tileSize,
 
     /// <-- Custom callback to call after Delay has passed
     this.animate,
   }) : super(repaint: controller) {
     /// the delay in ms based on desired fps
     this.timeDecay = (1 / this.fps * 1000).round();
+    this.tileSize = tileSize;
 
     /// default painter
 
@@ -77,12 +85,22 @@ class TileMapPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    stageCorners = [
-      Point(0, 0),
-      Point(this.sceneSize.maxWidth, 0),
-      Point(this.sceneSize.maxWidth, this.sceneSize.maxHeight),
-      Point(0, this.sceneSize.maxHeight)
-    ];
+    loadMapData();
+  }
+
+  void loadMapData() async {
+    var d = new FirstOccurrenceSettingsDetector(eols: ['\r\n', '\n']);
+    final input = await rootBundle.loadString(this.csvFile);
+    tilesList = CsvToListConverter(csvSettingsDetector: d).convert(input);
+    print(tilesList);
+
+    await loadTileImage();
+  }
+
+  Future<ui.Image?> loadTileImage() async {
+    final ByteData data = await rootBundle.load(this.tilesFile);
+    textureImage = await Utils.shared.imageFromBytes(data);
+    return textureImage;
   }
 
   @override
@@ -94,6 +112,8 @@ class TileMapPainter extends CustomPainter {
 
   void paintImage(Canvas canvas, Size size) async {
     draw(canvas, size);
+
+    //createTilemap(canvas);
   }
 
   @override
@@ -118,23 +138,31 @@ class TileMapPainter extends CustomPainter {
     } else {
       print("re-rendering points with no changes");
     }
+    createTilemap(canvas);
   }
 
-  int getSign() {
-    return _random.nextBool() == false ? 1 : -1;
-  }
-
-  Point midPoint(Point start, Point end) {
-    Point out = Point(0, 0);
-    out = Point((start.x + end.x) / 2, (start.y + end.y) / 2);
-    return out;
-  }
-
-  double distance(x1, y1, x2, y2) {
-    var dx = x1 - x2;
-    var dy = y1 - y2;
-
-    return sqrt(dx * dx + dy * dy);
+  void createTilemap(Canvas canvas) {
+    if (this.textureImage != null) {
+      //if (this.tilemapCreated == false) {
+      for (var i = 0; i < this.tilesList.length; i++) {
+        for (var j = 0; j < this.tilesList[i].length; j++) {
+          int pos = this.tilesList[i][j];
+          if (pos == -1) {
+            continue;
+          }
+          canvas.drawImageRect(
+            this.textureImage!,
+            Rect.fromLTWH(0, 0, this.tileSize.toDouble(), this.tileSize.toDouble()),
+            Rect.fromLTWH(j * this.tileSize.toDouble(), i * this.tileSize.toDouble(), this.tileSize.toDouble(), this.tileSize.toDouble()),
+            new Paint(),
+          );
+          //print("$tileSize $j $i");
+        }
+        //}
+        //print("map created");
+        this.tilemapCreated = true;
+      }
+    }
   }
 
   void delayedPrint(String str) {

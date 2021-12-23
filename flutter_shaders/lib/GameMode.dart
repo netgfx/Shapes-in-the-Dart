@@ -20,6 +20,7 @@ import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
 import 'package:flutter_shaders/game_classes/thunder_painter.dart';
+import 'package:flutter_shaders/game_classes/tilemap.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:performance/performance.dart';
@@ -388,17 +389,27 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                     ? Padding(
                         padding: EdgeInsets.only(top: 0, left: 0),
                         child: CustomPaint(
-                          key: UniqueKey(),
-                          painter: BGAnimator(
-                            image: bgImage!,
-                            constraints: viewportConstraints,
-                            static: false,
-                            fps: 30,
-                            controller: _bgController,
-                            offset: Offset(0, -50),
-                            imageSize: Size(655, 3072),
-                            scrollDirection: Direction.Vertical,
+                          //key: UniqueKey(),
+                          painter: TileMapPainter(
+                            controller: this._bgController,
+                            fps: 60,
+                            blendMode: null,
+                            tilesFile: "assets/PlainGround.png",
+                            csvFile: "assets/tile.csv",
+                            animate: null,
+                            size: Size(1024, 1024),
+                            tileSize: 128,
                           ),
+                          // BGAnimator(
+                          //   image: bgImage!,
+                          //   constraints: viewportConstraints,
+                          //   static: false,
+                          //   fps: 30,
+                          //   controller: _bgController,
+                          //   offset: Offset(0, -50),
+                          //   imageSize: Size(655, 3072),
+                          //   scrollDirection: Direction.Vertical,
+                          // ),
                           isComplex: true,
                           willChange: false,
                           child: Container(),
@@ -407,22 +418,22 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                     : Container(),
 
                 /// STARFIELD
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 0, left: 0),
-                    child: CustomPaint(
-                      key: UniqueKey(),
-                      painter: ThunderPainter(
-                        controller: _controller,
-                        color: Colors.white,
-                        fps: 30,
-                        animate: () => {},
-                      ),
-                    ),
-                  ),
-                ),
+                // Positioned(
+                //   top: 0,
+                //   left: 0,
+                //   child: Padding(
+                //     padding: EdgeInsets.only(top: 0, left: 0),
+                //     child: CustomPaint(
+                //       key: UniqueKey(),
+                //       painter: ThunderPainter(
+                //         controller: _controller,
+                //         color: Colors.white,
+                //         fps: 30,
+                //         animate: () => {},
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 ValueListenableBuilder<Map<String, dynamic>>(
                   valueListenable: spriteDirection,
                   builder: (BuildContext context, Map<String, dynamic> value, Widget? child) {
@@ -456,45 +467,6 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                         cache: spriteCache["knight"],
                         textureCache: this.textureCache["knight"],
                         name: "knight");
-                  },
-                ),
-                ValueListenableBuilder<Offset>(
-                  valueListenable: particlePoint,
-                  builder: (BuildContext context, Offset value, Widget? child) {
-                    if (isStopped == true) {
-                      return Container();
-                    } else {
-                      return Transform.translate(
-                        offset: value,
-                        child: RepaintBoundary(
-                          child: CustomPaint(
-                            key: UniqueKey(),
-                            isComplex: true,
-                            willChange: true,
-                            child: Container(),
-                            painter: ParticleEmitter(
-                                listenable: _controller,
-                                particleSize: Size(64, 64),
-                                minParticles: 20,
-                                center: Offset.zero,
-                                color: null,
-                                radius: 10,
-                                type: ShapeType.Hexagon,
-                                endAnimation: EndAnimation.SCALE_DOWN,
-                                particleType: ParticleType.EXPLODE,
-                                spreadBehaviour: SpreadBehaviour.ONE_TIME,
-                                minimumSpeed: 0.1,
-                                maximumSpeed: 0.5,
-                                timeToLive: {"min": 250, "max": 800},
-                                hasBase: false,
-                                blendMode: BlendMode.srcOver,
-                                hasWalls: false,
-                                wallsObj: {"bottom": (viewportConstraints.maxHeight - value.dy).toInt()},
-                                delay: 0),
-                          ),
-                        ),
-                      );
-                    }
                   },
                 ),
               ]),

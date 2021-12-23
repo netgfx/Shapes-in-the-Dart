@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
+import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 
 class Utils {
   static Utils shared = Utils._();
@@ -66,5 +69,11 @@ class Utils {
       chance = 50;
     }
     return chance > 0 && (_random.nextDouble() * 100 <= chance);
+  }
+
+  Future<ui.Image> imageFromBytes(ByteData data) async {
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    return frameInfo.image;
   }
 }

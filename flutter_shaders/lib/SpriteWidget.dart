@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:flutter_shaders/helpers/utils.dart';
 
 import 'package:path_provider/path_provider.dart';
 
@@ -64,12 +65,14 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
   int sliceWidth = 192;
   int sliceHeight = 212;
   late Animation<double> _animTween;
+  late AnimationController aController;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
     print("init sprite");
+    aController = AnimationController(duration: const Duration(milliseconds: 450), vsync: this);
     _spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     _spriteController.repeat();
 
@@ -120,7 +123,7 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
 
   void loadSprite() async {
     final ByteData data = await rootBundle.load(widget.texturePath);
-    this.textureImage = await imageFromBytes(data);
+    this.textureImage = await Utils.shared.imageFromBytes(data);
     widget.setTextureCache(widget.name, this.textureImage);
     if (widget.jsonPath != null && widget.jsonPath != "") {
       var data = loadJsonData(widget.jsonPath!);
@@ -134,8 +137,7 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
   }
 
   AnimationController getAnimation() {
-    AnimationController aController = AnimationController(duration: const Duration(milliseconds: 250), vsync: this);
-    //controllers.add(aController);
+    aController = AnimationController(duration: const Duration(milliseconds: 250), vsync: this);
     _animTween = Tween<double>(begin: getStart(), end: getEnd()).animate(
       CurvedAnimation(
         parent: aController,
@@ -143,15 +145,15 @@ class _SpriteWidgetState extends State<SpriteWidget> with TickerProviderStateMix
       ),
     );
 
+    _animTween.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        aController.dispose();
+      }
+    });
+
     aController.forward();
 
     return aController;
-  }
-
-  Future<ui.Image> imageFromBytes(ByteData data) async {
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-    ui.FrameInfo frameInfo = await codec.getNextFrame();
-    return frameInfo.image;
   }
 
   Future<Map<String, dynamic>> loadJsonData(String path) async {

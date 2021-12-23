@@ -39,6 +39,7 @@ dependencies:
   supercharged: ^2.0.0
   performance: ^0.1.0+1
   tiled: ^0.7.2
+  csv: ^5.0.1
 
   # flutter_native_image:
   #   git:
