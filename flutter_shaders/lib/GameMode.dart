@@ -17,7 +17,6 @@ import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/PhysicsEngine.dart';
 import 'package:flutter_shaders/Shadows.dart';
 import 'package:flutter_shaders/SpriteAnimator.dart';
-import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
 import 'package:flutter_shaders/game_classes/thunder_painter.dart';
 import 'package:flutter_shaders/game_classes/tilemap.dart';
@@ -43,16 +42,24 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
   bool showBottomList = false;
   double opacity = 1.0;
   List<ui.Image> spriteImages = [];
-  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
+  StrokeCap strokeCap = StrokeCap.round;
   SelectedMode selectedMode = SelectedMode.StrokeWidth;
-  List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
+  List<Color> colors = [
+    Colors.red,
+    Colors.green,
+    Colors.blue,
+    Colors.amber,
+    Colors.black
+  ];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
 
   late AnimationController _bgController;
 
-  final ValueNotifier<Offset> particlePoint = ValueNotifier<Offset>(Offset(0, 0));
-  final ValueNotifier<Offset> particlePoint2 = ValueNotifier<Offset>(Offset(0, 0));
+  final ValueNotifier<Offset> particlePoint =
+      ValueNotifier<Offset>(Offset(0, 0));
+  final ValueNotifier<Offset> particlePoint2 =
+      ValueNotifier<Offset>(Offset(0, 0));
   Color _color = Colors.green;
   final _random = new Random();
   int _counter = 0;
@@ -65,12 +72,16 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
   bool batLoop = true;
   Map<String, dynamic> spriteCache = {};
   Map<String, ui.Image> textureCache = {};
-  final ValueNotifier<Map<String, dynamic>> spriteDirection = ValueNotifier<Map<String, dynamic>>({
+  final ValueNotifier<Map<String, dynamic>> spriteDirection =
+      ValueNotifier<Map<String, dynamic>>({
     "direction": "PlayerDownStand/ds",
     "x": 0.0,
     "y": 0.0,
     "oldX": 0.0,
     "oldY": 0.0,
+    "loop": true,
+    "fps": 5,
+    "endFrameName": null,
   });
 
   ///
@@ -81,8 +92,10 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
 
     // Curves.easeOutBack // explode
 
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
-    _bgController = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _bgController =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
 
     SchedulerBinding.instance!.addPostFrameCallback((_) {
       initScrollBG();
@@ -122,7 +135,8 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
       }
       finalList.add(
         Transform.translate(
-            offset: Offset(points[i]!.points.dx - 20, points[i]!.points.dy - 20),
+            offset:
+                Offset(points[i]!.points.dx - 20, points[i]!.points.dy - 20),
             child: PhysicalModel(
                 color: Colors.yellow,
                 shape: BoxShape.circle,
@@ -133,11 +147,22 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                   width: 40,
                   height: 40,
                   constraints: BoxConstraints(maxWidth: 100, maxHeight: 100),
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black, // Color does not matter but should not be transparent
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors
+                          .black, // Color does not matter but should not be transparent
                       //borderRadius: BorderRadius.circular(20),
                       boxShadow: [
-                        BoxShadow(blurRadius: 4, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 2),
-                        BoxShadow(blurRadius: 2, offset: const Offset(0, 0), color: Colors.black, spreadRadius: 8)
+                        BoxShadow(
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                            color: Colors.black,
+                            spreadRadius: 2),
+                        BoxShadow(
+                            blurRadius: 2,
+                            offset: const Offset(0, 0),
+                            color: Colors.black,
+                            spreadRadius: 8)
                       ]),
                   child: Container(
                       width: 20,
@@ -253,7 +278,8 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
     });
   }
 
-  void cacheSpriteImages(String uniqueKey, Map<String, List<Map<String, dynamic>>> images) {
+  void cacheSpriteImages(
+      String uniqueKey, Map<String, List<Map<String, dynamic>>> images) {
     spriteCache[uniqueKey] = images;
     print("Saved $uniqueKey with ${images.length} images to cache");
   }
@@ -267,6 +293,20 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
     //checkCollision();
   }
 
+  void animationUpdate() {
+    SchedulerBinding.instance!.addPostFrameCallback((_) {
+      spriteDirection.value["oldX"] = spriteDirection.value["x"];
+      spriteDirection.value["oldY"] = spriteDirection.value["y"];
+      spriteDirection.value["direction"] =
+          spriteDirection.value["endFrameName"];
+      spriteDirection.value["loop"] = true;
+      spriteDirection.value["fps"] = 5;
+      spriteDirection.value["endFrameName"] = null;
+      print(spriteDirection.value["direction"]);
+      spriteDirection.notifyListeners();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomPerformanceOverlay(
@@ -276,7 +316,9 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
             padding: const EdgeInsets.all(8.0),
             child: Container(
                 padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: Colors.black),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50.0),
+                    color: Colors.black),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -289,10 +331,19 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                               color: Colors.white,
                               icon: Icon(Icons.chevron_left),
                               onPressed: () {
-                                spriteDirection.value["direction"] = "PlayerLeftStand/ls";
-                                spriteDirection.value["oldX"] = spriteDirection.value["x"];
-                                spriteDirection.value["oldY"] = spriteDirection.value["y"];
-                                spriteDirection.value["x"] = spriteDirection.value["x"] - 16;
+                                spriteDirection.value["direction"] =
+                                    "PlayerLeftMove/lm";
+                                spriteDirection.value["endFrameName"] =
+                                    "PlayerLeftStand/ls";
+                                spriteDirection.value["fps"] = 13;
+                                spriteDirection.value["loop"] = false;
+
+                                spriteDirection.value["oldX"] =
+                                    spriteDirection.value["x"];
+                                spriteDirection.value["oldY"] =
+                                    spriteDirection.value["y"];
+                                spriteDirection.value["x"] =
+                                    spriteDirection.value["x"] - 16;
 
                                 spriteDirection.notifyListeners();
                               }),
@@ -302,10 +353,18 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                                   color: Colors.white,
                                   icon: Icon(Icons.expand_less),
                                   onPressed: () {
-                                    spriteDirection.value["direction"] = "PlayerUpStand/us";
-                                    spriteDirection.value["oldX"] = spriteDirection.value["x"];
-                                    spriteDirection.value["oldY"] = spriteDirection.value["y"];
-                                    spriteDirection.value["y"] = spriteDirection.value["y"] - 16;
+                                    spriteDirection.value["direction"] =
+                                        "PlayerUpMove/um";
+                                    spriteDirection.value["endFrameName"] =
+                                        "PlayerUpStand/us";
+                                    spriteDirection.value["fps"] = 13;
+                                    spriteDirection.value["loop"] = false;
+                                    spriteDirection.value["oldX"] =
+                                        spriteDirection.value["x"];
+                                    spriteDirection.value["oldY"] =
+                                        spriteDirection.value["y"];
+                                    spriteDirection.value["y"] =
+                                        spriteDirection.value["y"] - 16;
 
                                     spriteDirection.notifyListeners();
                                   }),
@@ -313,10 +372,19 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                                   color: Colors.white,
                                   icon: Icon(Icons.expand_more),
                                   onPressed: () {
-                                    spriteDirection.value["direction"] = "PlayerDownStand/ds";
-                                    spriteDirection.value["oldX"] = spriteDirection.value["x"];
-                                    spriteDirection.value["oldY"] = spriteDirection.value["y"];
-                                    spriteDirection.value["y"] = spriteDirection.value["y"] + 16;
+                                    spriteDirection.value["direction"] =
+                                        "PlayerDownMove/dm";
+                                    spriteDirection.value["endFrameName"] =
+                                        "PlayerDownStand/ds";
+                                    spriteDirection.value["fps"] = 13;
+                                    spriteDirection.value["loop"] = false;
+
+                                    spriteDirection.value["oldX"] =
+                                        spriteDirection.value["x"];
+                                    spriteDirection.value["oldY"] =
+                                        spriteDirection.value["y"];
+                                    spriteDirection.value["y"] =
+                                        spriteDirection.value["y"] + 16;
 
                                     spriteDirection.notifyListeners();
                                   }),
@@ -326,10 +394,19 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                               color: Colors.white,
                               icon: Icon(Icons.chevron_right),
                               onPressed: () {
-                                spriteDirection.value["direction"] = "PlayerRightStand/rs";
-                                spriteDirection.value["oldX"] = spriteDirection.value["x"];
-                                spriteDirection.value["oldY"] = spriteDirection.value["y"];
-                                spriteDirection.value["x"] = spriteDirection.value["x"] + 16;
+                                spriteDirection.value["direction"] =
+                                    "PlayerRightMove/rm";
+                                spriteDirection.value["endFrameName"] =
+                                    "PlayerRightStand/rs";
+                                spriteDirection.value["fps"] = 13;
+                                spriteDirection.value["loop"] = false;
+                                spriteDirection.value["oldX"] =
+                                    spriteDirection.value["x"];
+                                spriteDirection.value["oldY"] =
+                                    spriteDirection.value["y"];
+
+                                spriteDirection.value["x"] =
+                                    spriteDirection.value["x"] + 16;
 
                                 spriteDirection.notifyListeners();
                               }),
@@ -339,7 +416,8 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                   ),
                 )),
           ),
-          body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
+          body: LayoutBuilder(builder:
+              (BuildContext context, BoxConstraints viewportConstraints) {
             this.viewportConstraints = viewportConstraints;
             return GestureDetector(
               //   onTapDown: (details) {
@@ -436,7 +514,8 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                 // ),
                 ValueListenableBuilder<Map<String, dynamic>>(
                   valueListenable: spriteDirection,
-                  builder: (BuildContext context, Map<String, dynamic> value, Widget? child) {
+                  builder: (BuildContext context, Map<String, dynamic> value,
+                      Widget? child) {
                     print(value);
                     return SpriteWidget(
                         //key: UniqueKey(),
@@ -458,12 +537,15 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
                           "PlayerUpStand/us",
                         ],
                         startFrameName: spriteDirection.value["direction"],
-                        loop: true,
+                        endFrameName: spriteDirection.value["endFrameName"],
+                        loop: spriteDirection.value["loop"],
                         scale: 0.80,
-                        position: Offset(spriteDirection.value["x"] as double, spriteDirection.value["y"] as double),
-                        desiredFPS: 3,
+                        position: Offset(spriteDirection.value["x"] as double,
+                            spriteDirection.value["y"] as double),
+                        desiredFPS: spriteDirection.value["fps"],
                         setTextureCache: cacheSpriteTexture,
                         setCache: cacheSpriteImages,
+                        endAnimationCallback: animationUpdate,
                         cache: spriteCache["knight"],
                         textureCache: this.textureCache["knight"],
                         name: "knight");
@@ -486,9 +568,15 @@ class DrawingPainter extends CustomPainter {
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
         var path = Path();
-        path.addOval(Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
+        path.addOval(
+            Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
         //canvas.drawLine(pointsList[i]!.points, pointsList[i + 1]!.points, pointsList[i]!.paint);
-        canvas.drawShadow(path.shift(Offset(pointsList[i]!.points.dx - 5, pointsList[i]!.points.dy - 5)), Colors.black54, 5.0, true);
+        canvas.drawShadow(
+            path.shift(Offset(
+                pointsList[i]!.points.dx - 5, pointsList[i]!.points.dy - 5)),
+            Colors.black54,
+            5.0,
+            true);
         canvas.drawPath(path, pointsList[i]!.paint);
       } else if (pointsList[i] != null && pointsList[i + 1] == null) {
         offsetPoints.clear();
@@ -496,7 +584,8 @@ class DrawingPainter extends CustomPainter {
         // offsetPoints.add(Offset(pointsList[i]!.points.dx + 0.1, pointsList[i]!.points.dy + 0.1));
         // canvas.drawPoints(PointMode.points, offsetPoints, pointsList[i]!.paint);
         var path = Path();
-        path.addOval(Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
+        path.addOval(
+            Rect.fromCircle(center: pointsList[i]!.points, radius: 25.0));
         canvas.drawShadow(path, Colors.black87, 5.0, true);
         canvas.drawPath(path, pointsList[i]!.paint);
       }

@@ -11,11 +11,11 @@ class SpriteAnimator extends CustomPainter {
   Map<String, List<Map<String, dynamic>>> images = {};
   AnimationController controller;
   Canvas? canvas;
-  int timeDecay = 250;
+  double timeDecay = 250;
   int currentTime = 0;
   late ui.Image currentImage;
   String currentFrame = "";
-  int fps = 250;
+  double fps = 250;
   bool static = true;
   LoopMode loop;
   ui.Image texture;
@@ -29,9 +29,10 @@ class SpriteAnimator extends CustomPainter {
     required this.controller,
     required this.loop,
   }) : super(repaint: controller) {
-    print("draw");
-    this.fps = (1 / this.fps * 1000).round();
+    print("draw animation sprite ${this.fps}");
+    this.fps = (1 / this.fps) * 1000;
     this.timeDecay = this.fps;
+    print("fps ${this.fps} decay: ${this.timeDecay}");
   }
 
   @override
@@ -52,29 +53,36 @@ class SpriteAnimator extends CustomPainter {
   void draw(Canvas canvas, Size size) {
     var img = images[currentFrame]![currentIndex];
     if (static == false) {
-      // print("${this.controller}");
+      //print("${this.timeDecay}");
       if (this.controller.lastElapsedDuration != null) {
-        if (this.controller.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
-          this.currentTime = this.controller.lastElapsedDuration!.inMilliseconds;
+        if (this.controller.lastElapsedDuration!.inMilliseconds -
+                this.currentTime >=
+            this.timeDecay) {
+          this.currentTime =
+              this.controller.lastElapsedDuration!.inMilliseconds;
           canvas.drawImageRect(
             this.texture,
-            Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
-            Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
+            Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(),
+                img["width"].toDouble(), img["height"].toDouble()),
+            Rect.fromLTWH(
+                0, 0, img["width"].toDouble(), img["height"].toDouble()),
             new Paint(),
           );
           currentIndex++;
           if (currentIndex >= images[currentFrame]!.length) {
             currentIndex = 0;
             if (this.loop == LoopMode.Single) {
-              this.controller.stop();
+              this.controller.notifyStatusListeners(AnimationStatus.completed);
             }
           }
         } else {
           // do nothing?
           canvas.drawImageRect(
             this.texture,
-            Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
-            Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
+            Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(),
+                img["width"].toDouble(), img["height"].toDouble()),
+            Rect.fromLTWH(
+                0, 0, img["width"].toDouble(), img["height"].toDouble()),
             new Paint(),
           );
         }
@@ -83,8 +91,9 @@ class SpriteAnimator extends CustomPainter {
       //print("no loop");
       canvas.drawImageRect(
         this.texture,
-        Rect.fromLTWH(img["x"], img["y"], img["width"], img["height"]),
-        Rect.fromLTWH(0, 0, img["width"], img["height"]),
+        Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(),
+            img["width"].toDouble(), img["height"].toDouble()),
+        Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
         new Paint(),
       );
     }

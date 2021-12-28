@@ -29,7 +29,8 @@ class TileMapPainter extends CustomPainter {
   double endT = 0.0;
   int timeAlive = 0;
   int timeToLive = 24;
-  BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
+  BoxConstraints sceneSize = BoxConstraints(
+      minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
   Paint? painter;
@@ -129,15 +130,20 @@ class TileMapPainter extends CustomPainter {
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds -
+                    this.currentTime >=
+                timeDecay &&
+            this.timeAlive == 0) {
           /// reset the time
 
-          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
+          this.currentTime =
+              this.controller!.lastElapsedDuration!.inMilliseconds;
         } else {}
       }
     } else {
       print("re-rendering points with no changes");
     }
+    // TODO: add offset to show unit movement on the map
     createTilemap(canvas);
   }
 
@@ -150,10 +156,16 @@ class TileMapPainter extends CustomPainter {
           if (pos == -1) {
             continue;
           }
+          //TODO: Add way to pick specific tiles
           canvas.drawImageRect(
             this.textureImage!,
-            Rect.fromLTWH(0, 0, this.tileSize.toDouble(), this.tileSize.toDouble()),
-            Rect.fromLTWH(j * this.tileSize.toDouble(), i * this.tileSize.toDouble(), this.tileSize.toDouble(), this.tileSize.toDouble()),
+            Rect.fromLTWH(
+                0, 0, this.tileSize.toDouble(), this.tileSize.toDouble()),
+            Rect.fromLTWH(
+                j * this.tileSize.toDouble(),
+                i * this.tileSize.toDouble(),
+                this.tileSize.toDouble(),
+                this.tileSize.toDouble()),
             new Paint(),
           );
           //print("$tileSize $j $i");
