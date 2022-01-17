@@ -18,16 +18,6 @@ enum CharacterParticleEffect {
   FADEIN,
   TREX,
 }
-enum Easing {
-  LINEAR,
-  EASE_OUT_BACK,
-  EASE_OUT_SINE,
-  EASE_OUT_CIRC,
-  EASE_OUT_QUART,
-  EASE_OUT_QUAD,
-  EASE_OUT_CUBIC,
-  EASE_IN_OUT_BACK,
-}
 
 class LetterParticles extends CustomPainter {
   List<Point<double>> points = [];
