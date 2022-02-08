@@ -305,29 +305,50 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
     List<Widget> list = [];
     int count = 0;
 
-    for (var i = 0; i < 4; i++) {
-      for (var j = 0; j < 3; j++) {
-        list.add(
-          CustomPaint(
-            //key: UniqueKey(),
-            painter: FlipImage(
-              controller: this._controller,
-              imageData: this.imageData!,
-              front: "grey",
-              back: "red",
-              fps: 60,
-              delay: 1000 + 250 * count, //Utils.shared.randomDelay(min: 1000, max: 2000).ceil(),
-              ease: Easing.EASE_OUT_CUBIC,
-            ),
+    list.add(
+      CustomPaint(
+        //key: UniqueKey(),
+        painter: FlipImage(
+          controller: this._controller,
+          imageData: this.imageData!,
+          front: "grey",
+          back: "red",
+          fps: 60,
+          delay: 1000 + 150 * count, //Utils.shared.randomDelay(min: 1000, max: 2000).ceil(),
+          ease: Easing.EASE_OUT_CUBIC,
+        ),
 
-            isComplex: true,
-            willChange: false,
-            child: Container(),
-          ),
-        );
-        count += 1;
-      }
-    }
+        isComplex: true,
+        willChange: false,
+        child: Container(),
+      ),
+    );
+
+    return list;
+
+    // for (var i = 0; i < 4; i++) {
+    //   for (var j = 0; j < 3; j++) {
+    //     list.add(
+    //       CustomPaint(
+    //         //key: UniqueKey(),
+    //         painter: FlipImage(
+    //           controller: this._controller,
+    //           imageData: this.imageData!,
+    //           front: "grey",
+    //           back: "red",
+    //           fps: 60,
+    //           delay: 1000 + 150 * count, //Utils.shared.randomDelay(min: 1000, max: 2000).ceil(),
+    //           ease: Easing.EASE_OUT_CUBIC,
+    //         ),
+
+    //         isComplex: true,
+    //         willChange: false,
+    //         child: Container(),
+    //       ),
+    //     );
+    //     count += 1;
+    //   }
+    // }
 
     return list;
   }

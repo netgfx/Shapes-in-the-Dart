@@ -16,7 +16,8 @@ class FlipImage extends CustomPainter {
   AnimationController? controller;
   Canvas? canvas;
   double angle = 0;
-  int delay = 500;
+  final int delay;
+  int runningDelay = 500;
   int currentTime = 0;
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
@@ -64,6 +65,9 @@ class FlipImage extends CustomPainter {
     /// the delay in ms based on desired fps
     this.timeDecay = (1 / this.fps * 1000).round();
 
+    /// setting a temp delay which is mutable
+    this.runningDelay = this.delay;
+
     /// default painter
     Paint fill = Paint()
       ..color = this.color
@@ -96,30 +100,40 @@ class FlipImage extends CustomPainter {
     /// check if the controller is running
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
+        if (this.runningDelay > 0) {
+          this.runningDelay -= this.timeDecay;
+          //print(this.runningDelay);
+        }
+
+        if (this.delay > 0) {
+          if (this.runningDelay > 0) {
+            drawImage(
+              canvas,
+              this.imageData["texture"],
+            );
+
+            return;
+          }
+        }
+
         /// in order to run in our required frames per second
         if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0 && this.timesFlipped <= 1) {
           /// reset the time
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
 
-          if (this.delay > 0) {
-            if (this.currentTime > this.delay) {
-              /// manual ticker
-              if (endT < 1.0) {
-                endT += this.rate ?? 0.009;
-              } else {
-                endT -= this.rate ?? 0.009;
-              }
-            }
+          /// manual ticker
+          if (endT < 1.0) {
+            endT += this.rate ?? 0.009;
           }
 
           if (endT >= 1.0) {
             if (this.timesFlipped == 0) {
               endT = 0.0;
-              this.currentTime = 0;
+              this.runningDelay = this.delay;
               this.start = 1;
               this.end = 0;
             }
-            this.timesFlipped += 2;
+            this.timesFlipped += 1;
           } else if (endT <= 0) {
             //endT = 0.0;
             this.finalFlipY = 0;
@@ -145,6 +159,7 @@ class FlipImage extends CustomPainter {
   void drawImage(Canvas canvas, ui.Image texture, {bool? skip = false}) {
     var side = this.finalFlipY <= 0.5 ? this.front : this.back;
     var img = this.metadata[side]![0];
+    delayedPrint("$side $endT ${this.finalFlipY} ${this.start} ${this.end}");
 
     if (skip == false) {
       /// flip the canvas
