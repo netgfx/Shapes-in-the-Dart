@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_shaders/AnimatedBorder.dart';
 import 'package:flutter_shaders/BlendModeView.dart';
 import 'package:flutter_shaders/GameMode.dart';
 import 'package:flutter_shaders/MazeMode.dart';
@@ -16,6 +17,9 @@ Map<String, Widget Function(BuildContext)> routes = {
         key: UniqueKey(),
       ),
   'GameMode': (context) => GameMode(
+        key: UniqueKey(),
+      ),
+  'AnimatedBorder': (context) => AnimatedBorder(
         key: UniqueKey(),
       ),
   'BlendMode': (context) => BlendModeView(
