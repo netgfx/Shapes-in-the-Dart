@@ -9,36 +9,10 @@ import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
+import "package:bezier/bezier.dart";
 
-class BorderCanvas extends CustomPainter {
-  List<Map<String, dynamic>> points = [
-    // test
-    // {"point": Point(0.0, 0.0), "targetPoint": Point(10.0, 0.0), "direction": "x", "amount": 10.0},
-    // {"point": Point(10.0, 0.0), "targetPoint": Point(10.0, 10.0), "direction": "y", "amount": 10.0},
-    // {"point": Point(10.0, 10.0), "targetPoint": Point(0.0, 10.0), "direction": "x", "amount": -10.0},
-    // {"point": Point(0.0, 10.0), "targetPoint": Point(0.0, 0.0), "direction": "y", "amount": -10.0},
-    // end of test
-    // {"point": Point(0.0, 0.0), "targetPoint": Point(10.0, 0.0)},
-    // {"point": Point(20.0, 0.0), "targetPoint": Point(30.0, 0.0)},
-    // {"point": Point(40.0, 0.0), "targetPoint": Point(50.0, 0.0)},
-    // {"point": Point(60.0, 0.0), "targetPoint": Point(70.0, 0.0)},
-    // {"point": Point(80.0, 0.0), "targetPoint": Point(90.0, 0.0)},
-    // {"point": Point(90.0, 0.0), "targetPoint": Point(90.0, 10.0)},
-    // {"point": Point(90.0, 20.0), "targetPoint": Point(90.0, 30.0)},
-    // {"point": Point(90.0, 40.0), "targetPoint": Point(90.0, 50.0)},
-    // {"point": Point(90.0, 60.0), "targetPoint": Point(90.0, 70.0)},
-    // {"point": Point(90.0, 80.0), "targetPoint": Point(90.0, 90.0)},
-    // {"point": Point(90.0, 90.0), "targetPoint": Point(80.0, 90.0)},
-    // {"point": Point(70.0, 90.0), "targetPoint": Point(60.0, 90.0)},
-    // {"point": Point(50.0, 90.0), "targetPoint": Point(40.0, 90.0)},
-    // {"point": Point(30.0, 90.0), "targetPoint": Point(20.0, 90.0)},
-    // {"point": Point(10.0, 90.0), "targetPoint": Point(0.0, 90.0)},
-    // {"point": Point(0.0, 90.0), "targetPoint": Point(0.0, 80.0)},
-    // {"point": Point(0.0, 70.0), "targetPoint": Point(0.0, 60.0)},
-    // {"point": Point(0.0, 50.0), "targetPoint": Point(0.0, 40.0)},
-    // {"point": Point(0.0, 30.0), "targetPoint": Point(0.0, 20.0)},
-    // {"point": Point(0.0, 10.0), "targetPoint": Point(0.0, 0.0)},
-  ];
+class PathFollowerCanvas extends CustomPainter {
+  List<Map<String, dynamic>> points = [];
 
   Color color = Colors.black;
   var index = 0;
@@ -50,35 +24,30 @@ class BorderCanvas extends CustomPainter {
   int currentTime = 0;
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
-  ShapeType type = ShapeType.Circle;
   int timeDecay = 0;
-  double? rate = 0.05;
+  double? rate = 0.01;
   double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;
   int timeToLive = 24;
-  int zDecay = 1000;
   double width = 100;
   double height = 100;
-  int gap = 10;
-  int dashWidth = 10;
-  int maxDashesX = 10;
-  int maxDashesY = 10;
+  int curveIndex = 0;
+  var computedPoint = vectorMath.Vector2(0, 0);
+  List<List<vectorMath.Vector2>> curve = [];
+  List<QuadraticBezier> quadBeziers = [];
+
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
 
   /// Constructor
-  BorderCanvas({
+  PathFollowerCanvas({
     /// <-- The animation controller
     required this.controller,
 
     /// <-- Desired FPS
     required this.fps,
-    required this.dashWidth,
-
-    ///
-    required this.gap,
 
     /// <-- Color of the particles
     required this.color,
@@ -103,64 +72,23 @@ class BorderCanvas extends CustomPainter {
       //..blendMode = this.blendMode ?? ui.BlendMode.src
       ..style = PaintingStyle.fill;
 
-    /// calculate points
-    int dashAndGap = this.dashWidth + gap - 1;
-    maxDashesX = (this.width / dashAndGap).floor();
-    maxDashesY = (this.height / dashAndGap).floor();
-    print("$dashAndGap MAX DASHES: $maxDashesX $maxDashesY");
-    int totalDashesX = (maxDashesX);
-    int totalDashesY = (maxDashesY);
+    this.curve = [
+      [
+        vectorMath.Vector2(100, height - 100),
+        vectorMath.Vector2(100, height - 200),
+        vectorMath.Vector2(150, height - 250),
+      ],
+      [
+        vectorMath.Vector2(150, height - 250),
+        vectorMath.Vector2(220, height - 200),
+        vectorMath.Vector2(280, height - 100),
+      ]
+    ];
 
-    /// make points
-    var counter = 0;
-    var side = "x";
-    var currentSide = 0;
-    int posX = 0;
-    int posY = 0;
-    List<Map<String, dynamic>> side1 = [];
-    List<Map<String, dynamic>> side2 = [];
-    List<Map<String, dynamic>> side3 = [];
-    List<Map<String, dynamic>> side4 = [];
-
-    for (var i = 0; i < totalDashesX; i++) {
-      posX = i == 0 ? i * dashWidth : i * dashWidth + gap * i;
-      var finalPosX = posX + dashWidth;
-      var point = {"point": Point(posX, posY), "targetPoint": Point(finalPosX, posY)};
-      side1.add(point);
-      posX = finalPosX;
-    }
-
-    for (var i = 0; i < totalDashesY; i++) {
-      posY = i == 0 ? i * dashWidth : i * dashWidth + gap * i;
-      var finalPosY = posY + dashWidth;
-      var point = {"point": Point(posX, posY), "targetPoint": Point(posX, finalPosY)};
-      side2.add(point);
-      posY = finalPosY;
-    }
-
-    for (var i = 0; i < totalDashesX; i++) {
-      posX = i == 0 ? i * dashWidth : i * dashWidth + gap * i;
-      var finalPosX = posX + dashWidth;
-      var point = {"point": Point(finalPosX, posY), "targetPoint": Point(posX, posY)};
-      side3.add(point);
-    }
-    posX = 0;
-    side3 = new List.from(side3.reversed);
-
-    for (var i = 0; i < totalDashesY; i++) {
-      posY = i == 0 ? i * dashWidth : i * dashWidth + gap * i;
-      var finalPosY = posY + dashWidth;
-      var point = {"point": Point(posX, finalPosY), "targetPoint": Point(posX, posY)};
-      side4.add(point);
-    }
-    points = [];
-    side4 = new List.from(side4.reversed);
-    print("$side3");
-
-    List<List<Map<String, dynamic>>> mainArr = [side1, side2, side3, side4];
-    mainArr.forEach((e) => points.addAll(e));
-
-    //print(points);
+    quadBeziers = [
+      QuadraticBezier(this.curve[0]),
+      QuadraticBezier(this.curve[1]),
+    ];
 
     /// fire the animate after a delay
     if (this.delay > 0 && this.animate != null) {
@@ -192,7 +120,7 @@ class BorderCanvas extends CustomPainter {
       ..color = color
       ..strokeWidth = 2.0
       ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.fill;
+      ..style = PaintingStyle.stroke;
 
     /// check if the controller is running
     if (this.controller != null) {
@@ -206,53 +134,46 @@ class BorderCanvas extends CustomPainter {
 
           /// manual ticker
           endT += this.rate ?? 0.009;
-          if (endT >= 1.0) {
+          if (endT >= 1.0 && this.curveIndex < this.curve.length) {
             endT = 0.0;
+            this.curveIndex += 1;
             //offset = offset == 0 ? 1 : 0;
           }
-
-          for (var i = 0; i < points.length; i++) {
-            Map<String, dynamic> nextPos = points[i];
-            if (i + 1 >= points.length) {
-              nextPos = points[0];
-            } else {
-              nextPos = points[i + 1];
-            }
-
-            var x = ui.lerpDouble(points[i]["point"].x, nextPos["point"].x, endT)!;
-            var y = ui.lerpDouble(points[i]["point"].y, nextPos["point"].y, endT)!;
-
-            var targetX = ui.lerpDouble(points[i]["targetPoint"].x, nextPos["targetPoint"].x, endT)!;
-            var targetY = ui.lerpDouble(points[i]["targetPoint"].y, nextPos["targetPoint"].y, endT)!;
-
-            //print("$x $y");
-
-            drawLine(x, y, targetX, targetY, _paint);
+          if (this.curveIndex >= this.curve.length) {
+            endT = 1.0;
+            this.curveIndex = this.curve.length;
           }
+
+          for (var i = 0; i < this.curve.length; i++) {
+            drawCurve(this.curve[i], width, height, _paint);
+          }
+
+          // paint the ball
+          computedPoint = getCurvePoint(this.endT);
+          drawCircle(computedPoint.x, computedPoint.y, _paint);
         } else {
-          for (var i = 0; i < points.length; i++) {
-            //double directionX = points[i]["direction"] == "x" ? points[i]["amount"].abs() : 0.0;
-            //double directionY = points[i]["direction"] == "y" ? (points[i]["amount"]).abs() : 0.0;
-            Map<String, dynamic> nextPos = points[i];
-            if (i + 1 >= points.length) {
-              nextPos = points[0];
-            } else {
-              nextPos = points[i + 1];
-            }
-
-            var x = ui.lerpDouble(points[i]["point"].x, nextPos["point"].x, endT)!;
-            var y = ui.lerpDouble(points[i]["point"].y, nextPos["point"].y, endT)!;
-
-            var targetX = ui.lerpDouble(points[i]["targetPoint"].x, nextPos["targetPoint"].x, endT)!;
-            var targetY = ui.lerpDouble(points[i]["targetPoint"].y, nextPos["targetPoint"].y, endT)!;
-
-            drawLine(x, y, targetX, targetY, _paint);
+          for (var i = 0; i < this.curve.length; i++) {
+            drawCurve(this.curve[i], width, height, _paint);
           }
+          drawCircle(computedPoint.x, computedPoint.y, _paint);
         }
       }
     } else {
-      print("re-rendering points with no changes");
+      print("no controller running");
     }
+  }
+
+  vectorMath.Vector2 getCurvePoint(double perc) {
+    //delayedPrint('>>> ${(perc.clamp(0, 1)).toString()} ${curveIndex}');
+    var _perc = perc;
+    if (perc < 0) {
+      _perc = 0;
+    } else if (perc > 1) {
+      _perc = 1;
+    } else {
+      _perc = perc.clamp(0, 1);
+    }
+    return quadBeziers[this.curveIndex.clamp(0, this.curve.length - 1)].pointAt(_perc);
   }
 
   int getSign() {
@@ -346,13 +267,13 @@ class BorderCanvas extends CustomPainter {
     });
   }
 
-  void drawCurve(double x, double y, double width, double height, Paint paint) {
-    rotate(x, y, () {
+  void drawCurve(List<vectorMath.Vector2> curve, double width, double height, Paint paint) {
+    rotate(curve[0].x, curve[0].y, () {
       final Path path = Path();
 
-      path.moveTo(0, y);
+      path.moveTo(curve[0].x, curve[0].y);
 
-      path.cubicTo(x, y, x + width * 0.5, y, x + width * 0.5, y + height * 0.5);
+      path.cubicTo(curve[0].x, curve[0].y, curve[1].x, curve[1].y, curve[2].x, curve[2].y);
 
       canvas!.drawPath(path, paint);
     });
@@ -390,7 +311,7 @@ class BorderCanvas extends CustomPainter {
   }
 
   void delayedPrint(String str) {
-    if (DateTime.now().millisecondsSinceEpoch - this.printTime > 100) {
+    if (DateTime.now().millisecondsSinceEpoch - this.printTime > 10) {
       this.printTime = DateTime.now().millisecondsSinceEpoch;
       print(str);
     }

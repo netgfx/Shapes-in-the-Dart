@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      initialRoute: "AnimatedBorder",
+      initialRoute: "TowerDefence",
       routes: routes,
       home: MyHomePage(
         title: 'Shapes in the Dart',

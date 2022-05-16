@@ -41,6 +41,7 @@ dependencies:
   tiled: ^0.7.2
   csv: ^5.0.1
   dotted_border: ^2.0.0+2
+  bezier: ^1.2.0 
 
   # flutter_native_image:
   #   git:
