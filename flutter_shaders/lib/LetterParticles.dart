@@ -7,8 +7,8 @@ import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'dart:ui' as ui;
-import 'helpers/alphabet_paths.dart';
-import 'helpers/number_paths.dart';
+import 'game_classes/alphabet_paths.dart';
+import 'game_classes/number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 enum CharacterParticleEffect {

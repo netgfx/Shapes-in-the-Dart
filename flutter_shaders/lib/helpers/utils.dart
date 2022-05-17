@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 
@@ -23,6 +24,7 @@ class Utils {
   static Utils get instance => shared;
   static const degreeToRadiansFactor = pi / 180;
   static const radianToDegreesFactor = 180 / pi;
+  int printTime = DateTime.now().millisecondsSinceEpoch;
 
   double radToDeg(radians) {
     return radians * radianToDegreesFactor;
@@ -37,6 +39,15 @@ class Utils {
     } else {
       return _random.nextDouble() * (end - start) + start;
     }
+  }
+
+  Color randomColor(double alpha) {
+    int r = (_random.nextDouble() * 255).floor();
+    int g = (_random.nextDouble() * 255).floor();
+    int b = (_random.nextDouble() * 255).floor();
+    int a = (alpha * 255).floor();
+
+    return Color.fromARGB(a, r, g, b);
   }
 
   double randomDelay({
@@ -102,6 +113,13 @@ class Utils {
     const c2 = c1 * 1.525;
 
     return x < 0.5 ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+  }
+
+  void delayedPrint(String str) {
+    if (DateTime.now().millisecondsSinceEpoch - this.printTime > 10) {
+      this.printTime = DateTime.now().millisecondsSinceEpoch;
+      print(str);
+    }
   }
 
   bool chanceRoll(

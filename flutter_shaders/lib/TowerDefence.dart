@@ -21,7 +21,8 @@ import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
 import 'package:flutter_shaders/game_classes/path_follower.dart';
-import 'package:flutter_shaders/helpers/border.dart';
+import 'package:flutter_shaders/helpers/utils.dart';
+import 'package:vector_math/vector_math.dart' as vectorMath;
 
 import 'package:path_provider/path_provider.dart';
 import 'package:performance/performance.dart';
@@ -86,20 +87,8 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
     super.dispose();
   }
 
-  Color randomColor(double alpha) {
-    int r = (_random.nextDouble() * 255).floor();
-    int g = (_random.nextDouble() * 255).floor();
-    int b = (_random.nextDouble() * 255).floor();
-    int a = (alpha * 255).floor();
-
-    return Color.fromARGB(a, r, g, b);
-  }
-
-  void _onPanUpdate(BuildContext context, DragUpdateDetails details) {
-    //checkCollision();
-    setState(() {
-      lightSource = Point(details.localPosition.dx, details.localPosition.dy);
-    });
+  void updateFn(double point) {
+    //Utils.shared.delayedPrint("update received:  $point");
   }
 
   Widget roundedRectBorderWidget() {
@@ -155,6 +144,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                       controller: _controller,
                       width: viewportConstraints.maxWidth,
                       height: viewportConstraints.maxHeight,
+                      update: updateFn,
                       fps: 60,
                       color: Colors.black,
                     ),

@@ -7,8 +7,8 @@ import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'dart:ui' as ui;
-import 'alphabet_paths.dart';
-import 'number_paths.dart';
+import '../game_classes/alphabet_paths.dart';
+import '../game_classes/number_paths.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 class Line {

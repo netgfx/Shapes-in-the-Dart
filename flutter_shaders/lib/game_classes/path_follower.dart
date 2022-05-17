@@ -38,6 +38,7 @@ class PathFollowerCanvas extends CustomPainter {
   double computedAngle = 0.0;
   List<List<vectorMath.Vector2>> curve = [];
   List<QuadraticBezier> quadBeziers = [];
+  Function? update;
 
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
@@ -50,6 +51,9 @@ class PathFollowerCanvas extends CustomPainter {
 
     /// <-- Desired FPS
     required this.fps,
+
+    /// <--- Update Fn
+    required this.update,
 
     /// <-- Color of the particles
     required this.color,
@@ -160,6 +164,10 @@ class PathFollowerCanvas extends CustomPainter {
           if (this.curveIndex >= this.curve.length) {
             endT = 1.0;
             this.curveIndex = this.curve.length;
+          }
+
+          if (update != null) {
+            //update!(this.endT);
           }
 
           for (var i = 0; i < this.curve.length; i++) {
