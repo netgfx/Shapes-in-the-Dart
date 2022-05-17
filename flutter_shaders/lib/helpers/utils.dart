@@ -21,6 +21,12 @@ class Utils {
   Utils._();
 
   static Utils get instance => shared;
+  static const degreeToRadiansFactor = pi / 180;
+  static const radianToDegreesFactor = 180 / pi;
+
+  double radToDeg(radians) {
+    return radians * radianToDegreesFactor;
+  }
 
   double doubleInRange(
     double start,
@@ -170,5 +176,57 @@ class Utils {
     }
 
     return sprites;
+  }
+
+  /**
+    * Find the angle of a segment from (x1, y1) -> (x2, y2).
+    * 
+    * @method Phaser.Math#angleBetween
+    * @param {number} x1 - The x coordinate of the first value.
+    * @param {number} y1 - The y coordinate of the first value.
+    * @param {number} x2 - The x coordinate of the second value.
+    * @param {number} y2 - The y coordinate of the second value.
+    * @return {number} The angle, in radians.
+    */
+  double angleBetween(double x1, double y1, double x2, double y2) {
+    return atan2(y2 - y1, x2 - x1);
+  }
+
+  /**
+    * Rotates currentAngle towards targetAngle, taking the shortest rotation distance.
+    * The lerp argument is the amount to rotate by in this call.
+    * 
+    * @method Phaser.Math#rotateToAngle
+    * @param {number} currentAngle - The current angle, in radians.
+    * @param {number} targetAngle - The target angle to rotate to, in radians.
+    * @param {number} [lerp=0.05] - The lerp value to add to the current angle.
+    * @return {number} The adjusted angle.
+    */
+  double rotateToAngle(double currentAngle, double targetAngle, {double lerp = 0.05}) {
+    const PI2 = pi * 2;
+
+    if (currentAngle == targetAngle) {
+      return currentAngle;
+    }
+
+    if ((targetAngle - currentAngle).abs() <= lerp || (targetAngle - currentAngle).abs() >= (PI2 - lerp)) {
+      currentAngle = targetAngle;
+    } else {
+      if ((targetAngle - currentAngle).abs() > pi) {
+        if (targetAngle < currentAngle) {
+          targetAngle += PI2;
+        } else {
+          targetAngle -= PI2;
+        }
+      }
+
+      if (targetAngle > currentAngle) {
+        currentAngle += lerp;
+      } else if (targetAngle < currentAngle) {
+        currentAngle -= lerp;
+      }
+    }
+
+    return currentAngle;
   }
 }

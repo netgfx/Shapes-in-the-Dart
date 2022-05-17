@@ -10,6 +10,7 @@ import 'package:flutter_shaders/Star.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
+import "../helpers//utils.dart";
 
 class PathFollowerCanvas extends CustomPainter {
   List<Map<String, dynamic>> points = [];
@@ -25,7 +26,7 @@ class PathFollowerCanvas extends CustomPainter {
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
   int timeDecay = 0;
-  double? rate = 0.01;
+  double? rate = 0.005;
   double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;
@@ -34,6 +35,7 @@ class PathFollowerCanvas extends CustomPainter {
   double height = 100;
   int curveIndex = 0;
   var computedPoint = vectorMath.Vector2(0, 0);
+  double computedAngle = 0.0;
   List<List<vectorMath.Vector2>> curve = [];
   List<QuadraticBezier> quadBeziers = [];
 
@@ -74,21 +76,26 @@ class PathFollowerCanvas extends CustomPainter {
 
     this.curve = [
       [
-        vectorMath.Vector2(100, height - 100),
-        vectorMath.Vector2(100, height - 200),
+        vectorMath.Vector2(50, height - 100),
+        vectorMath.Vector2(50, height - 250),
         vectorMath.Vector2(150, height - 250),
       ],
       [
         vectorMath.Vector2(150, height - 250),
-        vectorMath.Vector2(220, height - 200),
-        vectorMath.Vector2(280, height - 100),
+        vectorMath.Vector2(350, height - 250),
+        vectorMath.Vector2(350, height - 400),
+      ],
+      [
+        vectorMath.Vector2(350, height - 400),
+        vectorMath.Vector2(150, height - 350),
+        vectorMath.Vector2(150, height - 500),
       ]
     ];
 
-    quadBeziers = [
-      QuadraticBezier(this.curve[0]),
-      QuadraticBezier(this.curve[1]),
-    ];
+    quadBeziers = [];
+    for (var i = 0; i < this.curve.length; i++) {
+      quadBeziers.add(QuadraticBezier(this.curve[i]));
+    }
 
     /// fire the animate after a delay
     if (this.delay > 0 && this.animate != null) {
@@ -98,8 +105,19 @@ class PathFollowerCanvas extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    var _paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true
+      ..color = color
+      ..strokeWidth = 2.0
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.fill;
     this.canvas = canvas;
     paintImage(canvas, size);
+    //computedPoint = getCurvePoint(0.0);
+    //vectorMath.Vector2 nextPoint = getNextPoint(this.endT);
+    //computedAngle = Utils.shared.radToDeg(Utils.shared.angleBetween(computedPoint.x, computedPoint.y, nextPoint.x, nextPoint.y));
+    //drawPolygon(computedPoint.x, computedPoint.y, 3, _paint, initialAngle: computedAngle);
   }
 
   void paintImage(Canvas canvas, Size size) async {
@@ -149,13 +167,22 @@ class PathFollowerCanvas extends CustomPainter {
           }
 
           // paint the ball
+          vectorMath.Vector2 oldValues = computedPoint;
           computedPoint = getCurvePoint(this.endT);
-          drawCircle(computedPoint.x, computedPoint.y, _paint);
+          //vectorMath.Vector2 nextPoint = getNextPoint(this.endT);
+          computedAngle = Utils.shared.radToDeg(Utils.shared.angleBetween(oldValues.x, oldValues.y, computedPoint.x, computedPoint.y));
+          //delayedPrint("Angle: $computedAngle ${oldValues.x}, ${oldValues.y}, ${computedPoint.x}, ${computedPoint.y}");
+          if (computedAngle == 0.0 && this.curveIndex == this.curve.length) {
+            computedAngle = -90.0;
+          }
+          drawPolygon(computedPoint.x, computedPoint.y, 3, _paint..style = PaintingStyle.fill, initialAngle: computedAngle);
+          //drawCircle(computedPoint.x, computedPoint.y, _paint);
         } else {
           for (var i = 0; i < this.curve.length; i++) {
             drawCurve(this.curve[i], width, height, _paint);
           }
-          drawCircle(computedPoint.x, computedPoint.y, _paint);
+          drawPolygon(computedPoint.x, computedPoint.y, 3, _paint..style = PaintingStyle.fill, initialAngle: computedAngle);
+          //drawCircle(computedPoint.x, computedPoint.y, _paint);
         }
       }
     } else {
@@ -163,7 +190,19 @@ class PathFollowerCanvas extends CustomPainter {
     }
   }
 
-  vectorMath.Vector2 getCurvePoint(double perc) {
+  vectorMath.Vector2 getNextPoint(double perc) {
+    vectorMath.Vector2 nextPoint = vectorMath.Vector2(0, 0);
+    if (perc + 0.05 > 1) {
+      nextPoint = this.quadBeziers[(this.curveIndex + 1).clamp(0, this.curve.length - 1)].pointAt(0);
+    } else {
+      nextPoint = this.quadBeziers[(this.curveIndex + 1).clamp(0, this.curve.length - 1)].pointAt(perc + 0.1);
+    }
+
+    return nextPoint;
+  }
+
+  vectorMath.Vector2 getCurvePoint(double perc, {int? index: null}) {
+    int _index = index ?? this.curveIndex.clamp(0, this.curve.length - 1);
     //delayedPrint('>>> ${(perc.clamp(0, 1)).toString()} ${curveIndex}');
     var _perc = perc;
     if (perc < 0) {
@@ -173,7 +212,7 @@ class PathFollowerCanvas extends CustomPainter {
     } else {
       _perc = perc.clamp(0, 1);
     }
-    return quadBeziers[this.curveIndex.clamp(0, this.curve.length - 1)].pointAt(_perc);
+    return quadBeziers[_index].pointAt(_perc);
   }
 
   int getSign() {
@@ -256,6 +295,7 @@ class PathFollowerCanvas extends CustomPainter {
         final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
         final double x = radius * cos(radian);
         final double y = radius * sin(radian);
+        //delayedPrint("$x, $y, $radian");
         if (i == 0) {
           path.moveTo(x, y);
         } else {
@@ -264,7 +304,7 @@ class PathFollowerCanvas extends CustomPainter {
       }
       path.close();
       canvas!.drawPath(path, paint);
-    });
+    }, translate: true);
   }
 
   void drawCurve(List<vectorMath.Vector2> curve, double width, double height, Paint paint) {
@@ -317,12 +357,13 @@ class PathFollowerCanvas extends CustomPainter {
     }
   }
 
-  void rotate(double? x, double? y, VoidCallback callback) {
+  void rotate(double? x, double? y, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();
-    //canvas!.translate(_x, _y);
-
+    if (translate) {
+      canvas!.translate(_x, _y);
+    }
     canvas!.translate(0, 0);
     callback();
     canvas!.restore();
