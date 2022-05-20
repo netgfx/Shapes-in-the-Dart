@@ -13,6 +13,7 @@ import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
+import '../helpers/tiles.dart';
 
 class TileMapPainter extends CustomPainter {
   Color color = Colors.black;
@@ -29,8 +30,7 @@ class TileMapPainter extends CustomPainter {
   double endT = 0.0;
   int timeAlive = 0;
   int timeToLive = 24;
-  BoxConstraints sceneSize = BoxConstraints(
-      minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
+  BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
   Paint? painter;
@@ -38,11 +38,14 @@ class TileMapPainter extends CustomPainter {
   //List<List<String>> map = [];
   String csvFile = "";
   String tilesFile = "";
-  int tileSize = 0;
+  Size? tileSize = Size(54, 54);
   Size size = Size(0, 0);
-  List<List<dynamic>> tilesList = [];
+  List<String> tilesList = tiles;
+  Map<String, ui.Image> textureImages = {};
   ui.Image? textureImage;
   bool tilemapCreated = false;
+  String baseURL = "assets/td/";
+  String extensionStr = ".png";
 
   /// Constructor
   TileMapPainter({
@@ -60,12 +63,11 @@ class TileMapPainter extends CustomPainter {
 
     /// <-- The map data
     required this.csvFile,
-
-    /// <-- The tilemap size
-    required size,
+    required width,
+    required height,
 
     /// <-- The tile size
-    required tileSize,
+    tileSize,
 
     /// <-- Custom callback to call after Delay has passed
     this.animate,
@@ -75,7 +77,7 @@ class TileMapPainter extends CustomPainter {
     this.tileSize = tileSize;
 
     /// default painter
-
+    print("$width x $height");
     painter = Paint()
       ..color = Colors.white
       ..blendMode = ui.BlendMode.overlay
@@ -86,22 +88,30 @@ class TileMapPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    loadMapData();
+    //loadMapData();
+    for (var i = 0; i < this.tilesList.length; i++) {
+      loadTileImages(this.tilesList[i]);
+    }
   }
 
-  void loadMapData() async {
-    var d = new FirstOccurrenceSettingsDetector(eols: ['\r\n', '\n']);
-    final input = await rootBundle.loadString(this.csvFile);
-    tilesList = CsvToListConverter(csvSettingsDetector: d).convert(input);
-    print(tilesList);
+  /// uncomment to read CSV (preferable?)
+  // void loadMapData() async {
+  //   var d = new FirstOccurrenceSettingsDetector(eols: ['\r\n', '\n']);
+  //   final input = await rootBundle.loadString(this.csvFile);
+  //   tilesList = CsvToListConverter(csvSettingsDetector: d).convert(input);
+  //   print(tilesList);
 
-    await loadTileImage();
-  }
+  //   await loadTileImage();
+  // }
 
-  Future<ui.Image?> loadTileImage() async {
-    final ByteData data = await rootBundle.load(this.tilesFile);
-    textureImage = await Utils.shared.imageFromBytes(data);
-    return textureImage;
+  Future<ui.Image?> loadTileImages(String imageURL) async {
+    /// cache these externally
+    final ByteData data = await rootBundle.load(baseURL + imageURL + extensionStr);
+    var textureImage = await Utils.shared.imageFromBytes(data);
+    if (this.tileSize == null) {
+      //this.tileSize = Size(textureImage.width.toDouble(), textureImage.height.toDouble());
+    }
+    textureImages[imageURL] = textureImage;
   }
 
   @override
@@ -130,14 +140,10 @@ class TileMapPainter extends CustomPainter {
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds -
-                    this.currentTime >=
-                timeDecay &&
-            this.timeAlive == 0) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
           /// reset the time
 
-          this.currentTime =
-              this.controller!.lastElapsedDuration!.inMilliseconds;
+          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
         } else {}
       }
     } else {
@@ -148,39 +154,31 @@ class TileMapPainter extends CustomPainter {
   }
 
   void createTilemap(Canvas canvas) {
-    if (this.textureImage != null) {
-      //if (this.tilemapCreated == false) {
-      for (var i = 0; i < this.tilesList.length; i++) {
-        for (var j = 0; j < this.tilesList[i].length; j++) {
-          int pos = this.tilesList[i][j];
-          if (pos == -1) {
+    if (this.textureImages.isNotEmpty) {
+      var positionCounter = 0;
+      var paint = new Paint()
+        ..filterQuality = FilterQuality.high
+        ..isAntiAlias = false;
+
+      for (var i = 0; i < this.tilesList.length; i += 7) {
+        for (var j = 0; j < 7; j++) {
+          String pos = this.tilesList[i + j];
+          if (this.textureImages[pos] == null) {
             continue;
           }
-          //TODO: Add way to pick specific tiles
+
           canvas.drawImageRect(
-            this.textureImage!,
-            Rect.fromLTWH(
-                0, 0, this.tileSize.toDouble(), this.tileSize.toDouble()),
-            Rect.fromLTWH(
-                j * this.tileSize.toDouble(),
-                i * this.tileSize.toDouble(),
-                this.tileSize.toDouble(),
-                this.tileSize.toDouble()),
-            new Paint(),
+            this.textureImages[pos]!,
+            Rect.fromLTWH(0, 0, this.tileSize!.width, this.tileSize!.height),
+            Rect.fromLTWH(j * this.tileSize!.width, positionCounter * this.tileSize!.height, this.tileSize!.width, this.tileSize!.height),
+            paint,
           );
           //print("$tileSize $j $i");
         }
-        //}
-        //print("map created");
+
+        positionCounter += 1;
         this.tilemapCreated = true;
       }
-    }
-  }
-
-  void delayedPrint(String str) {
-    if (DateTime.now().millisecondsSinceEpoch - this.printTime > 100) {
-      this.printTime = DateTime.now().millisecondsSinceEpoch;
-      print(str);
     }
   }
 

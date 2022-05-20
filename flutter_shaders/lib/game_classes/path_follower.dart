@@ -26,7 +26,7 @@ class PathFollowerCanvas extends CustomPainter {
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
   int timeDecay = 0;
-  double? rate = 0.005;
+  double? rate = 0.025;
   double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;
@@ -37,7 +37,7 @@ class PathFollowerCanvas extends CustomPainter {
   var computedPoint = vectorMath.Vector2(0, 0);
   double computedAngle = 0.0;
   List<List<vectorMath.Vector2>> curve = [];
-  List<QuadraticBezier> quadBeziers = [];
+  List<CubicBezier> quadBeziers = [];
   Function? update;
 
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
@@ -80,25 +80,40 @@ class PathFollowerCanvas extends CustomPainter {
 
     this.curve = [
       [
-        vectorMath.Vector2(50, height - 100),
-        vectorMath.Vector2(50, height - 250),
-        vectorMath.Vector2(150, height - 250),
+        vectorMath.Vector2(85.7, calculateY(804.0)),
+        vectorMath.Vector2(78.9, calculateY(728.0)),
+        vectorMath.Vector2(137.1, calculateY(722.3)),
+        vectorMath.Vector2(181.1, calculateY(718.3)),
       ],
       [
-        vectorMath.Vector2(150, height - 250),
-        vectorMath.Vector2(350, height - 250),
-        vectorMath.Vector2(350, height - 400),
+        vectorMath.Vector2(181.1, calculateY(718.3)),
+        vectorMath.Vector2(250.3, calculateY(741.1)),
+        vectorMath.Vector2(276.6, calculateY(714.9)),
+        vectorMath.Vector2(269.1, calculateY(598.3)),
       ],
       [
-        vectorMath.Vector2(350, height - 400),
-        vectorMath.Vector2(150, height - 350),
-        vectorMath.Vector2(150, height - 500),
+        vectorMath.Vector2(269.1, calculateY(598.3)),
+        vectorMath.Vector2(269, calculateY(443.4)),
+        vectorMath.Vector2(208.6, calculateY(400.1)),
+        vectorMath.Vector2(104.0, calculateY(398.1)),
+      ],
+      [
+        vectorMath.Vector2(104.0, calculateY(398.1)),
+        vectorMath.Vector2(27, calculateY(415.4)),
+        vectorMath.Vector2(16, calculateY(362.1)),
+        vectorMath.Vector2(16, calculateY(262.1)),
+      ],
+      [
+        vectorMath.Vector2(16, calculateY(262.1)),
+        vectorMath.Vector2(18.9, calculateY(120)),
+        vectorMath.Vector2(75.4, calculateY(120)),
+        vectorMath.Vector2(151.4, calculateY(120)),
       ]
     ];
 
     quadBeziers = [];
     for (var i = 0; i < this.curve.length; i++) {
-      quadBeziers.add(QuadraticBezier(this.curve[i]));
+      quadBeziers.add(CubicBezier(this.curve[i]));
     }
 
     /// fire the animate after a delay
@@ -176,13 +191,14 @@ class PathFollowerCanvas extends CustomPainter {
 
           // paint the ball
           vectorMath.Vector2 oldValues = computedPoint;
-          computedPoint = getCurvePoint(this.endT);
-          //vectorMath.Vector2 nextPoint = getNextPoint(this.endT);
-          computedAngle = Utils.shared.radToDeg(Utils.shared.angleBetween(oldValues.x, oldValues.y, computedPoint.x, computedPoint.y));
-          //delayedPrint("Angle: $computedAngle ${oldValues.x}, ${oldValues.y}, ${computedPoint.x}, ${computedPoint.y}");
-          if (computedAngle == 0.0 && this.curveIndex == this.curve.length) {
-            computedAngle = -90.0;
+          if (this.curveIndex == this.curve.length) {
+            computedPoint = getCurvePoint(0.99);
+          } else {
+            computedPoint = getCurvePoint(this.endT);
           }
+
+          computedAngle = Utils.shared.radToDeg(Utils.shared.angleBetween(oldValues.x, oldValues.y, computedPoint.x, computedPoint.y));
+
           drawPolygon(computedPoint.x, computedPoint.y, 3, _paint..style = PaintingStyle.fill, initialAngle: computedAngle);
           //drawCircle(computedPoint.x, computedPoint.y, _paint);
         } else {
@@ -196,6 +212,10 @@ class PathFollowerCanvas extends CustomPainter {
     } else {
       print("no controller running");
     }
+  }
+
+  double calculateY(double y) {
+    return height - (height - y) - 60;
   }
 
   vectorMath.Vector2 getNextPoint(double perc) {
@@ -321,7 +341,8 @@ class PathFollowerCanvas extends CustomPainter {
 
       path.moveTo(curve[0].x, curve[0].y);
 
-      path.cubicTo(curve[0].x, curve[0].y, curve[1].x, curve[1].y, curve[2].x, curve[2].y);
+      //path.relativeCubicTo(x1, y1, x2, y2)
+      path.cubicTo(curve[1].x, curve[1].y, curve[2].x, curve[2].y, curve[3].x, curve[3].y);
 
       canvas!.drawPath(path, paint);
     });
