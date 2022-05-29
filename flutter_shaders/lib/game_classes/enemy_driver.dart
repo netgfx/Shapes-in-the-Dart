@@ -8,6 +8,7 @@ import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
+import 'package:flutter_shaders/game_classes/TDTower.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
@@ -40,6 +41,7 @@ class EnemyDriverCanvas extends CustomPainter {
   Function? update;
   Paint _paint = new Paint();
   List<TDEnemy> enemies = [];
+  List<TDTower> towers = [];
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
@@ -52,6 +54,7 @@ class EnemyDriverCanvas extends CustomPainter {
     /// <-- Desired FPS
     required this.fps,
     required this.enemies,
+    required this.towers,
     required this.curve,
     required this.quadBeziers,
 
@@ -92,6 +95,10 @@ class EnemyDriverCanvas extends CustomPainter {
     for (var i = 0; i < this.curve.length; i++) {
       drawCurve(this.curve[i], width, height, this._paint);
     }
+
+    for (var j = 0; j < this.towers.length; j++) {
+      this.towers[j].update(canvas, enemies);
+    }
   }
 
   void paintImage(Canvas canvas, Size size) async {
@@ -113,14 +120,27 @@ class EnemyDriverCanvas extends CustomPainter {
 
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
 
-          createEnemies(canvas, false);
+          createEnemies(canvas, true);
         } else {
-          createEnemies(canvas, false);
+          createEnemies(canvas, true);
         }
+      } else {
+        print("no elapsed duration");
       }
     } else {
       print("no controller running");
     }
+  }
+
+  void drawCircle(double x, double y) {
+    var _paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true
+      ..color = Colors.red.withOpacity(0.5)
+      ..style = PaintingStyle.fill;
+    rotate(x, y, null, () {
+      canvas!.drawCircle(Offset(0, 0), 5, _paint);
+    }, translate: true);
   }
 
   void createEnemies(Canvas canvas, bool shouldUpdate) {
@@ -130,37 +150,20 @@ class EnemyDriverCanvas extends CustomPainter {
 
     for (var i = 0; i < this.enemies.length; i++) {
       Size enemySize = this.enemies[i].getEnemySize();
+      Point<double> enemyCenter = this.enemies[i].enemyCenter;
       Point<double> enemyPos = this.enemies[i].enemyPosition;
       //Utils.shared.delayedPrint(enemyPos.toString());
       if (this.enemies[i].imageState == "done") {
         /// update the enemy
         if (shouldUpdate) {
-          this.enemies[i].update();
+          this.enemies[i].update(canvas);
         }
-
-        ///
-        rotate(0, 0, () {
-          painter.paintImage(
-              canvas: canvas,
-              rect: Rect.fromLTWH(enemyPos.x, enemyPos.y - 80, enemySize.width, enemySize.height),
-              image: this.enemies[i].enemyTexture!,
-              filterQuality: FilterQuality.high,
-              isAntiAlias: false,
-              fit: BoxFit.cover);
-          // canvas.drawImageRect(
-          //   this.enemies[i].enemyTexture!,
-          //   Rect.fromLTWH(0, 0, enemySize.width, enemySize.height),
-          //   Rect.fromLTWH(enemyPos.x, enemyPos.y - 80, enemySize.width, enemySize.height),
-          //   paint,
-          // );
-        });
       }
-      //print("$tileSize $j $i");
     }
   }
 
   void drawCurve(List<vectorMath.Vector2> curve, double width, double height, Paint paint) {
-    rotate(curve[0].x, curve[0].y, () {
+    rotate(curve[0].x, curve[0].y, null, () {
       final Path path = Path();
 
       path.moveTo(curve[0].x, curve[0].y);
@@ -172,14 +175,25 @@ class EnemyDriverCanvas extends CustomPainter {
     });
   }
 
-  void rotate(double? x, double? y, VoidCallback callback, {bool translate = false}) {
+  void rotate(double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();
+
     if (translate) {
       canvas!.translate(_x, _y);
     }
-    canvas!.translate(0, 0);
+
+    if (angle != null) {
+      // double x1 = (_x * cos(angle)) - (_y * sin(angle));
+      // double y1 = (_x * sin(angle)) + (_y * cos(angle));
+
+      canvas!.translate(_x, _y);
+      canvas?.rotate(angle);
+    } else {
+      //canvas?.rotate(0);
+    }
+    //canvas!.translate(0, 0);
     callback();
     canvas!.restore();
   }

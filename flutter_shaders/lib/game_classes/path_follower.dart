@@ -26,7 +26,7 @@ class PathFollowerCanvas extends CustomPainter {
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
   int timeDecay = 0;
-  double? rate = 0.025;
+  double? rate = 0.001;
   double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;

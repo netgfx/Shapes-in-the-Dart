@@ -22,6 +22,7 @@ import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
+import 'package:flutter_shaders/game_classes/TDTower.dart';
 import 'package:flutter_shaders/game_classes/enemy_driver.dart';
 import 'package:flutter_shaders/game_classes/path_follower.dart';
 import 'package:flutter_shaders/game_classes/tilemap.dart';
@@ -64,11 +65,8 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
   ui.Image? bgImage;
 
   bool isStopped = true; //global
-  String batFirstFrame = "fly/Fly2_Bats";
-  bool batLoop = true;
-  Map<String, dynamic> spriteCache = {};
   List<CubicBezier> quadBeziers = [];
-
+  List<TDTower> towers = [];
   @override
   void initState() {
     super.initState();
@@ -78,9 +76,12 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 2));
     _bgController = AnimationController(vsync: this, duration: Duration(seconds: 1));
 
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       //_letterController.repeat();
       _controller.repeat();
+
+      /// add tower
+      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 1.0, scale: 1));
     });
   }
 
@@ -230,11 +231,12 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                               type: "larva",
                               maxCurves: getCurves().length,
                               life: 100,
-                              speed: 0.1,
+                              speed: 0.0025,
                               quadBeziers: quadBeziers,
                               scale: 0.25,
                               position: Point<double>(getCurves()[0][0].x, getCurves()[0][0].y))
                         ],
+                        towers: towers,
                         fps: 60,
                         curve: getCurves(),
                         quadBeziers: quadBeziers,

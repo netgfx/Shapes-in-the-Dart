@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
 import "../helpers//utils.dart";
+import "../helpers/Rectangle.dart";
 import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 
@@ -15,7 +17,7 @@ class TDEnemy {
   ui.Image? textureImage;
   Point<double> position = Point(0, 0);
   double life = 100;
-  double speed = 0.1;
+  double speed = 0.0001;
   String imageState = "none";
   Size size = Size(0, 0);
   double scale = 1.0;
@@ -25,6 +27,8 @@ class TDEnemy {
   int maxCurves = 0;
   int curveIndex = 0;
   double angle = 0;
+  int textureWidth = 0;
+  int textureHeight = 0;
   List<CubicBezier> quadBeziers = [];
 
   TDEnemy({
@@ -40,7 +44,7 @@ class TDEnemy {
     loadImage();
   }
 
-  void update() {
+  void update(Canvas canvas) {
     ticker += this.speed;
     vectorMath.Vector2 point = vectorMath.Vector2(0, 0);
     if (ticker >= 1.0 && this.curveIndex < this.maxCurves) {
@@ -62,7 +66,12 @@ class TDEnemy {
       this.position = Point(point.x, point.y);
     }
 
-    this.angle = Utils.shared.radToDeg(Utils.shared.angleBetween(oldValues.x, oldValues.y, position.x, position.y));
+    double _angle = Utils.shared.angleBetween(oldValues.x, oldValues.y, position.x, position.y);
+    this.angle = _angle + pi / 2; //vectorMath.radians(_angle + (360 / 3) * 1);
+
+    if (this.imageState == "done") {
+      drawEnemy(canvas);
+    }
   }
 
   vectorMath.Vector2 getNextPoint(double perc) {
@@ -95,6 +104,8 @@ class TDEnemy {
     imageState = "loading";
     final ByteData data = await rootBundle.load(baseURL + this.type + extensionStr);
     textureImage = await Utils.shared.imageFromBytes(data);
+    this.textureWidth = textureImage!.width;
+    this.textureHeight = textureImage!.height;
     setEnemySize(textureImage!);
     imageState = "done";
   }
@@ -111,6 +122,58 @@ class TDEnemy {
     //print("size: $size");
   }
 
+  void drawEnemy(Canvas canvas) {
+    var paint = new Paint()
+      ..filterQuality = FilterQuality.high
+      ..isAntiAlias = false;
+
+    rotate(canvas, position.x, position.y, angle, () {
+      canvas.drawImageRect(
+        this.enemyTexture!,
+        Rect.fromLTWH(0, 0, textureWidth.toDouble(), textureHeight.toDouble()),
+        Rect.fromLTWH(-size.width / 2, -size.height / 2, size.width, size.height),
+        paint,
+      );
+    });
+
+    Rectangle rect = getEnemyRect();
+    drawRect(canvas, rect.x, rect.y, rect.width, rect.height);
+  }
+
+  void drawRect(Canvas canvas, double x, double y, double w, double h) {
+    var _paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true
+      ..color = Colors.blue.withOpacity(0.5)
+      ..style = PaintingStyle.fill;
+    rotate(canvas, x, y, null, () {
+      canvas.drawRect(Rect.fromLTWH(-w / 2, -h / 2, w, h), _paint);
+      //canvas.drawCircle(Offset(0, 0), radius, _paint);
+    }, translate: true);
+  }
+
+  void rotate(Canvas canvas, double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
+    double _x = x ?? 0;
+    double _y = y ?? 0;
+    canvas.save();
+
+    if (translate) {
+      canvas.translate(_x, _y);
+    }
+
+    if (angle != null) {
+      canvas.translate(_x, _y);
+      canvas.rotate(angle);
+    }
+    callback();
+    canvas.restore();
+  }
+
+  Rectangle getEnemyRect() {
+    Size _size = getEnemySize();
+    return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
+  }
+
   Point<double> get enemyPosition {
     return this.position;
   }
@@ -121,5 +184,11 @@ class TDEnemy {
 
   double get enemyAngle {
     return this.angle;
+  }
+
+  Point<double> get enemyCenter {
+    Size size = this.getEnemySize();
+
+    return Point(this.position.x + size.width * 0.5, this.position.y + size.height * 0.5);
   }
 }

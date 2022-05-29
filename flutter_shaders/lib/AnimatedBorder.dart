@@ -74,7 +74,7 @@ class _AnimatedBorderState extends State<AnimatedBorder> with TickerProviderStat
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 2));
     _bgController = AnimationController(vsync: this, duration: Duration(seconds: 1));
 
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       //_letterController.repeat();
       _controller.repeat();
     });

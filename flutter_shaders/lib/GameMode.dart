@@ -289,7 +289,7 @@ class _GameModeState extends State<GameMode> with TickerProviderStateMixin {
   }
 
   void animationUpdate() {
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       spriteDirection.value["oldX"] = spriteDirection.value["x"];
       spriteDirection.value["oldY"] = spriteDirection.value["y"];
       spriteDirection.value["direction"] = spriteDirection.value["endFrameName"];

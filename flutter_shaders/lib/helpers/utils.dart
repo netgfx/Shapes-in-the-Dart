@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/helpers/Circle.dart';
+import 'package:flutter_shaders/helpers/Rectangle.dart';
 
 enum Easing {
   LINEAR,
@@ -29,6 +30,10 @@ class Utils {
 
   double radToDeg(radians) {
     return radians * radianToDegreesFactor;
+  }
+
+  double degreesToRadians(double degrees) {
+    return degrees * (pi / 180);
   }
 
   double doubleInRange(
@@ -428,5 +433,268 @@ class Utils {
  */
   double clamp(double value, double minValue, double maxValue) {
     return max(minValue, min(maxValue, value));
+  }
+
+  Point<double> calculateXY(int canvasWidth, int canvasHeight, int width, int height, double angle) {
+    //calculate where the top left corner of the object would be relative to center of the canvas
+    //if the object had no rotation and was centered
+    double x = -width / 2;
+    double y = -height / 2;
+
+    //rotate relative x and y coordinates by angle degrees
+    double sinA = sin(angle * pi / 180);
+    double cosA = cos(angle * pi / 180);
+    double xRotated = x * cosA - y * sinA;
+    double yRotated = x * sinA + y * cosA;
+
+    //translate relative coordinates back to absolute
+    double canvasCenterX = canvasWidth / 2;
+    double canvasCenterY = canvasHeight / 2;
+    double finalX = xRotated + canvasCenterX;
+    double finalY = yRotated + canvasCenterY;
+
+    return Point(finalX, finalY);
+  }
+
+  /**
+    * Gets the shortest angle between `angle1` and `angle2`.
+    * Both angles must be in the range -180 to 180, which is the same clamped
+    * range that `sprite.angle` uses, so you can pass in two sprite angles to
+    * this method, and get the shortest angle back between the two of them.
+    *
+    * The angle returned will be in the same range. If the returned angle is
+    * greater than 0 then it's a counter-clockwise rotation, if < 0 then it's
+    * a clockwise rotation.
+    * 
+    * @method Phaser.Math#getShortestAngle
+    * @param {number} angle1 - The first angle. In the range -180 to 180.
+    * @param {number} angle2 - The second angle. In the range -180 to 180.
+    * @return {number} The shortest angle, in degrees. If greater than zero it's a counter-clockwise rotation.
+    */
+  double getShortestAngle(angle1, angle2) {
+    var difference = angle2 - angle1;
+
+    if (difference == 0) {
+      return 0;
+    }
+
+    var times = ((difference - (-180)) / 360).floor();
+
+    return difference - (times * 360);
+  }
+
+  /**
+* Increases the size of the Rectangle object by the specified amounts. The center point of the Rectangle object stays the same, and its size increases to the left and right by the dx value, and to the top and the bottom by the dy value.
+* @method Phaser.Rectangle.inflate
+* @param {Phaser.Rectangle} a - The Rectangle object.
+* @param {number} dx - The amount to be added to the left side of the Rectangle.
+* @param {number} dy - The amount to be added to the bottom side of the Rectangle.
+* @return {Phaser.Rectangle} This Rectangle object.
+*/
+  inflate(Rectangle a, double dx, double dy) {
+    a.x -= dx;
+    a.width += 2 * dx;
+    a.y -= dy;
+    a.height += 2 * dy;
+
+    return a;
+  }
+
+/**
+* Increases the size of the Rectangle object. This method is similar to the Rectangle.inflate() method except it takes a Point object as a parameter.
+* @method Phaser.Rectangle.inflatePoint
+* @param {Phaser.Rectangle} a - The Rectangle object.
+* @param {Phaser.Point} point - The x property of this Point object is used to increase the horizontal dimension of the Rectangle object. The y property is used to increase the vertical dimension of the Rectangle object.
+* @return {Phaser.Rectangle} The Rectangle object.
+*/
+  inflatePoint(Rectangle a, Point<double> point) {
+    return inflate(a, point.x, point.y);
+  }
+
+  /**
+* Adds two Rectangles together to create a new Rectangle object, by filling in the horizontal and vertical space between the two Rectangles.
+* @method Phaser.Rectangle.union
+* @param {Phaser.Rectangle} a - The first Rectangle object.
+* @param {Phaser.Rectangle} b - The second Rectangle object.
+* @param {Phaser.Rectangle} [output] - Optional Rectangle object. If given the new values will be set into this object, otherwise a brand new Rectangle object will be created and returned.
+* @return {Phaser.Rectangle} A Rectangle object that is the union of the two Rectangles.
+*/
+  union(Rectangle a, Rectangle b) {
+    return Rectangle(
+        x: min(a.x, b.x), y: min(a.y, b.y), width: max(a.right, b.right) - min(a.left, b.left), height: max(a.bottom, b.bottom) - min(a.top, b.top));
+  }
+
+  /**
+* Determines whether the two Rectangles are equal.
+* This method compares the x, y, width and height properties of each Rectangle.
+* @method Phaser.Rectangle.equals
+* @param {Phaser.Rectangle} a - The first Rectangle object.
+* @param {Phaser.Rectangle} b - The second Rectangle object.
+* @return {boolean} A value of true if the two Rectangles have exactly the same values for the x, y, width and height properties; otherwise false.
+*/
+  equals(Rectangle a, Rectangle b) {
+    return (a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height);
+  }
+
+  /**
+* Determines whether the specified point is contained within the rectangular region defined by this Rectangle object. This method is similar to the Rectangle.contains() method, except that it takes a Point object as a parameter.
+* @method Phaser.Rectangle.containsPoint
+* @param {Phaser.Rectangle} a - The Rectangle object.
+* @param {Phaser.Point} point - The point object being checked. Can be Point or any object with .x and .y values.
+* @return {boolean} A value of true if the Rectangle object contains the specified point; otherwise false.
+*/
+  containsPoint(a, point) {
+    return contains(a, point.x, point.y);
+  }
+
+/**
+* Determines if the two objects (either Rectangles or Rectangle-like) have the same width and height values under strict equality.
+* @method Phaser.Rectangle.sameDimensions
+* @param {Rectangle-like} a - The first Rectangle object.
+* @param {Rectangle-like} b - The second Rectangle object.
+* @return {boolean} True if the object have equivalent values for the width and height properties.
+*/
+  sameDimensions(Rectangle a, Rectangle b) {
+    return (a.width == b.width && a.height == b.height);
+  }
+
+  /**
+* If the Rectangle object specified in the toIntersect parameter intersects with this Rectangle object, returns the area of intersection as a Rectangle object. If the Rectangles do not intersect, this method returns an empty Rectangle object with its properties set to 0.
+* @method Phaser.Rectangle.intersection
+* @param {Phaser.Rectangle} a - The first Rectangle object.
+* @param {Phaser.Rectangle} b - The second Rectangle object.
+* @param {Phaser.Rectangle} [output] - Optional Rectangle object. If given the intersection values will be set into this object, otherwise a brand new Rectangle object will be created and returned.
+* @return {Phaser.Rectangle} A Rectangle object that equals the area of intersection. If the Rectangles do not intersect, this method returns an empty Rectangle object; that is, a Rectangle with its x, y, width, and height properties set to 0.
+*/
+  intersection(Rectangle a, Rectangle b) {
+    if (intersects(a, b)) {
+      double x = max(a.x, b.x);
+      double y = max(a.y, b.y);
+      double width = min(a.right, b.right) - x;
+      double height = min(a.bottom, b.bottom) - y;
+
+      return Rectangle(x: x, y: y, width: width, height: height);
+    }
+
+    return null;
+  }
+
+/**
+* Calculates the Axis Aligned Bounding Box (or aabb) from an array of points.
+*
+* @method Phaser.Rectangle#aabb
+* @param {Phaser.Point[]} points - The array of one or more points.
+* @param {Phaser.Rectangle} [out] - Optional Rectangle to store the value in, if not supplied a new Rectangle object will be created.
+* @return {Phaser.Rectangle} The new Rectangle object.
+* @static
+*/
+  aabb(points) {
+    double xMax = double.negativeInfinity;
+    double xMin = double.infinity;
+    double yMax = double.negativeInfinity;
+    double yMin = double.infinity;
+
+    points.forEach((point) {
+      if (point.x > xMax) {
+        xMax = point.x;
+      }
+      if (point.x < xMin) {
+        xMin = point.x;
+      }
+
+      if (point.y > yMax) {
+        yMax = point.y;
+      }
+      if (point.y < yMin) {
+        yMin = point.y;
+      }
+    });
+
+    Rectangle out = Rectangle(x: xMin, y: yMin, width: xMax - xMin, height: yMax - yMin);
+
+    return out;
+  }
+
+/**
+* Determines whether the object specified intersects (overlaps) with the given values.
+* @method Phaser.Rectangle.intersectsRaw
+* @param {number} left - The x coordinate of the left of the area.
+* @param {number} right - The right coordinate of the area.
+* @param {number} top - The y coordinate of the area.
+* @param {number} bottom - The bottom coordinate of the area.
+* @param {number} tolerance - A tolerance value to allow for an intersection test with padding, default to 0
+* @return {boolean} A value of true if the specified object intersects with the Rectangle; otherwise false.
+*/
+  intersectsRaw(Rectangle a, double left, double right, double top, double bottom, double tolerance) {
+    return !(left > a.right + tolerance || right < a.left - tolerance || top > a.bottom + tolerance || bottom < a.top - tolerance);
+  }
+
+/**
+* Determines whether the two Rectangles intersect with each other.
+* This method checks the x, y, width, and height properties of the Rectangles.
+* @method Phaser.Rectangle.intersects
+* @param {Phaser.Rectangle} a - The first Rectangle object.
+* @param {Phaser.Rectangle} b - The second Rectangle object.
+* @return {boolean} A value of true if the specified object intersects with this Rectangle object; otherwise false.
+*/
+  intersects(Rectangle a, Rectangle b) {
+    if (a.width <= 0 || a.height <= 0 || b.width <= 0 || b.height <= 0) {
+      return false;
+    }
+
+    return !(a.right < b.x || a.bottom < b.y || a.x > b.right || a.y > b.bottom);
+  }
+
+/**
+* Determines whether the specified coordinates are contained within the region defined by the given raw values.
+* @method Phaser.Rectangle.containsRaw
+* @param {number} rx - The x coordinate of the top left of the area.
+* @param {number} ry - The y coordinate of the top left of the area.
+* @param {number} rw - The width of the area.
+* @param {number} rh - The height of the area.
+* @param {number} x - The x coordinate of the point to test.
+* @param {number} y - The y coordinate of the point to test.
+* @return {boolean} A value of true if the Rectangle object contains the specified point; otherwise false.
+*/
+  containsRaw(double rx, double ry, double rw, double rh, double x, double y) {
+    return (x >= rx && x < (rx + rw) && y >= ry && y < (ry + rh));
+  }
+
+/**
+* Determines whether the specified coordinates are contained within the region defined by this Rectangle object.
+* @method Phaser.Rectangle.contains
+* @param {Phaser.Rectangle} a - The Rectangle object.
+* @param {number} x - The x coordinate of the point to test.
+* @param {number} y - The y coordinate of the point to test.
+* @return {boolean} A value of true if the Rectangle object contains the specified point; otherwise false.
+*/
+  containsRect(Rectangle a, double x, double y) {
+    if (a.width <= 0 || a.height <= 0) {
+      return false;
+    }
+
+    return (x >= a.x && x < a.right && y >= a.y && y < a.bottom);
+  }
+
+  containsFullRect(Rectangle a, Rectangle b) {
+    //  If the given rect has a larger volume than this one then it can never contain it
+    if (a.volume > b.volume) {
+      return false;
+    }
+
+    return (a.x >= b.x && a.y >= b.y && a.right < b.right && a.bottom < b.bottom);
+  }
+
+/**
+* The size of the Rectangle object, expressed as a Point object with the values of the width and height properties.
+* @method Phaser.Rectangle.size
+* @param {Phaser.Rectangle} a - The Rectangle object.
+* @param {Phaser.Point} [output] - Optional Point object. If given the values will be set into the object, otherwise a brand new Point object will be created and returned.
+* @return {Phaser.Point} The size of the Rectangle object
+*/
+  size(Rectangle a) {
+    Point output = Point(a.width, a.height);
+
+    return output;
   }
 }
