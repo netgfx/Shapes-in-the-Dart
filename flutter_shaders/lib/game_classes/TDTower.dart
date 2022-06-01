@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_shaders/game_classes/TDBullet.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
 import 'package:flutter_shaders/helpers/Circle.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
@@ -22,7 +23,8 @@ class TDTower {
   Point<double> position = Point(0, 0);
 
   /// rate of fire
-  double rof = 1.0;
+  double rof = 500.0;
+  int lastShot = 0;
   double damage = 1.0;
 
   ///
@@ -38,6 +40,7 @@ class TDTower {
   int turretTextureWidth = 0;
   int turretTextureHeight = 0;
   List<TDEnemy> enemies = [];
+  List<TDBullet> bullets = [];
   Rectangle radar = Rectangle(x: 0, y: 0, width: 0, height: 0); //Circle(x: 0, y: 0, radius: 40);
 
   TDTower({
@@ -49,33 +52,60 @@ class TDTower {
   }) {
     this.position = position ?? Point(0, 0);
     loadBaseImage();
-    loadTurretImage();
+    loadTurretImage(makeBullets);
   }
 
-  void update(Canvas canvas, List<TDEnemy> enemies) {
+  void update(Canvas canvas, List<TDEnemy> enemies, Rectangle? worldBounds) {
     this.enemies = enemies;
     for (var i = 0; i < enemies.length; i++) {
       Size enemySize = enemies[i].getEnemySize();
       Size _size = getSize(turretImage);
       Point<double> enemyCenter = Point(enemies[i].getEnemyRect().left, enemies[i].getEnemyRect().top);
 
-      // if (radar.contains(enemies[i].position.x, enemies[i].position.y)) {
-      //print("contains ${enemyCenter}");
-      double _angle = Utils.shared.angleBetween(
-        this.position.x + _size.width / 2,
-        this.position.y + _size.height / 2,
-        enemyCenter.x,
-        enemyCenter.y,
-      );
-      double deg = Utils.shared.radToDeg(_angle);
-      this.angle = Utils.shared.rotateToAngle(this.angle, _angle + pi / 2, lerp: 0.1);
+      if (radar.contains(enemies[i].position.x, enemies[i].position.y)) {
+        //print("contains ${enemyCenter}");
+        double _angle = Utils.shared.angleBetween(
+          this.position.x + _size.width / 2,
+          this.position.y + _size.height / 2,
+          enemyCenter.x,
+          enemyCenter.y,
+        );
+        double deg = Utils.shared.radToDeg(_angle);
+        this.angle = Utils.shared.rotateToAngle(this.angle, _angle + pi / 2, lerp: 0.1);
+        var diff = DateTime.now().millisecondsSinceEpoch - this.lastShot >= this.rof;
+        //print("diff: ${diff.toString()}");
+        //print("rof: ${this.rof.toString()}");
+
+        if (DateTime.now().millisecondsSinceEpoch - this.lastShot >= this.rof) {
+          this.shootBullet(enemyCenter);
+          this.lastShot = DateTime.now().millisecondsSinceEpoch;
+        }
+      }
+
+      // draw world bounds
+      if (worldBounds != null) {
+        drawRectBorder(canvas, 0, 0, worldBounds.width, worldBounds.height);
+      }
     }
+
     if (this.baseState == "done") {
       drawBase(canvas);
     }
     if (this.turretState == "done") {
       drawTurret(canvas);
       setTowerRadar(canvas);
+    }
+
+    drawBullets(canvas);
+  }
+
+  void drawBullets(Canvas canvas) {
+    if (this.bullets.length > 0) {
+      for (var i = 0; i < this.bullets.length; i++) {
+        if (this.bullets[i].alive == true) {
+          this.bullets[i].update(canvas);
+        }
+      }
     }
   }
 
@@ -120,6 +150,15 @@ class TDTower {
     // );
   }
 
+  Point originPosition() {
+    if (turretState == "done") {
+      Size _size = getSize(turretImage!);
+      return Point(this.position.x + _size.width / 2, this.position.y + _size.height / 2);
+    } else {
+      return Point(0, 0);
+    }
+  }
+
   Size getSize(ui.Image? img) {
     if (img == null) {
       return Size(0, 0);
@@ -129,6 +168,34 @@ class TDTower {
     int width = (height * aspectRatio).round();
     return Size(width.toDouble(), height.toDouble());
     //print("size: $size");
+  }
+
+  /// Make the bullets
+  void makeBullets() {
+    Size _size = getSize(turretImage!);
+    for (var i = 0; i < 1; i++) {
+      this.bullets.add(new TDBullet(x: this.position.x + _size.width / 2, y: this.position.y + _size.height / 2, velocity: 0.1));
+    }
+  }
+
+  void shootBullet(Point target) {
+    if (this.bullets.length > 0) {
+      Point origin = originPosition();
+      Point _target = Utils.shared.extendLine(50, origin, target);
+
+      /// take the first inactive bullet
+      var bullet = this.bullets.cast<TDBullet?>().firstWhere((element) => element!.alive == false, orElse: () => null);
+      if (bullet != null) {
+        bullet.alive = true;
+        bullet.target = _target;
+      } else {
+        Size _size = getSize(turretImage!);
+        TDBullet _bullet = new TDBullet(x: this.position.x + _size.width / 2, y: this.position.y + _size.height / 2, velocity: 0.1);
+        _bullet.alive = true;
+        _bullet.target = _target;
+        this.bullets.add(_bullet);
+      }
+    }
   }
 
   void loadBaseImage() async {
@@ -141,7 +208,7 @@ class TDTower {
     baseState = "done";
   }
 
-  void loadTurretImage() async {
+  void loadTurretImage(Function? onComplete) async {
     /// cache these externally
     turretState = "loading";
     final ByteData data = await rootBundle.load(baseURL + this.turretType + extensionStr);
@@ -149,6 +216,10 @@ class TDTower {
     turretTextureWidth = turretImage!.width;
     turretTextureHeight = turretImage!.height;
     turretState = "done";
+
+    if (onComplete != null) {
+      onComplete();
+    }
   }
 
   void setTowerRadar(Canvas canvas) {
@@ -192,6 +263,19 @@ class TDTower {
       canvas.drawRect(Rect.fromLTWH(0, 0, w, h), _paint);
       //canvas.drawCircle(Offset(0, 0), radius, _paint);
     }, translate: false);
+  }
+
+  void drawRectBorder(Canvas canvas, double x, double y, double w, double h) {
+    var _paint = Paint()
+      ..strokeCap = StrokeCap.square
+      ..isAntiAlias = true
+      ..color = Colors.red.withOpacity(1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5;
+    rotate(canvas, x, y, 0, () {
+      canvas.drawRect(Rect.fromLTWH(0, 0, w, h), _paint);
+      //canvas.drawCircle(Offset(0, 0), radius, _paint);
+    }, translate: true);
   }
 
   void drawLine(Canvas canvas, Point a, Point b) {

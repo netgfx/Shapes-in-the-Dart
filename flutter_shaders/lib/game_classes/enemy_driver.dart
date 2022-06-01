@@ -9,6 +9,7 @@ import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
 import 'package:flutter_shaders/game_classes/TDTower.dart';
+import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
@@ -45,6 +46,7 @@ class EnemyDriverCanvas extends CustomPainter {
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
+  Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
 
   /// Constructor
   EnemyDriverCanvas({
@@ -81,6 +83,9 @@ class EnemyDriverCanvas extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
 
+    /// calculate world bounds
+    this.worldBounds = Rectangle(x: 0, y: 0, width: this.width, height: this.height);
+
     /// fire the animate after a delay
     if (this.delay > 0 && this.animate != null) {
       Future.delayed(Duration(milliseconds: this.delay), () => {this.animate!()});
@@ -97,7 +102,7 @@ class EnemyDriverCanvas extends CustomPainter {
     }
 
     for (var j = 0; j < this.towers.length; j++) {
-      this.towers[j].update(canvas, enemies);
+      this.towers[j].update(canvas, enemies, worldBounds);
     }
   }
 

@@ -81,7 +81,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
       _controller.repeat();
 
       /// add tower
-      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 1.0, scale: 1));
+      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1));
     });
   }
 

@@ -697,4 +697,17 @@ class Utils {
 
     return output;
   }
+
+  extendLine(double distance, Point a, Point b) {
+    // Find Slope of the line
+    var slope = (b.y - a.y) / (b.x - a.x);
+
+    // Find angle of line
+    var theta = atan(slope);
+
+    // the coordinates of the A3 Point
+    Point<double> result = Point(b.x + distance * cos(theta), b.y + distance * sin(theta));
+
+    return result;
+  }
 }
