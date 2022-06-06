@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shaders/game_classes/TDBullet.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
+import 'package:flutter_shaders/game_classes/TDSpriteAnimator.dart';
+import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'package:flutter_shaders/helpers/Circle.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -42,17 +44,30 @@ class TDTower {
   List<TDEnemy> enemies = [];
   List<TDBullet> bullets = [];
   Rectangle radar = Rectangle(x: 0, y: 0, width: 0, height: 0); //Circle(x: 0, y: 0, radius: 40);
-
+  TDWorld world;
+  List<TDSpriteAnimator> collisionEffects = [];
   TDTower({
     required this.position,
     required this.baseType,
     required this.turretType,
     required this.rof,
     required this.scale,
+    required this.world,
   }) {
     this.position = position ?? Point(0, 0);
     loadBaseImage();
     loadTurretImage(makeBullets);
+    collisionEffects.add(TDSpriteAnimator(
+        position: Point(0, 0),
+        texturePath: "assets/bug_explode.png",
+        currentFrame: "Bat__Booger_FX",
+        jsonPath: "assets/bug_explode.json",
+        delimiters: [
+          "Bat__Booger_FX",
+        ],
+        fps: 1,
+        loop: LoopMode.Single,
+        scale: 0.25));
   }
 
   void update(Canvas canvas, List<TDEnemy> enemies, Rectangle? worldBounds) {
@@ -71,7 +86,7 @@ class TDTower {
           enemyCenter.y,
         );
         double deg = Utils.shared.radToDeg(_angle);
-        this.angle = Utils.shared.rotateToAngle(this.angle, _angle + pi / 2, lerp: 0.1);
+        this.angle = _angle + pi / 2; //Utils.shared.rotateToAngle(this.angle, _angle + pi / 2, lerp: 0.1);
         var diff = DateTime.now().millisecondsSinceEpoch - this.lastShot >= this.rof;
         //print("diff: ${diff.toString()}");
         //print("rof: ${this.rof.toString()}");
@@ -97,6 +112,60 @@ class TDTower {
     }
 
     drawBullets(canvas);
+
+    // do collision check
+    performCollisionChecks();
+
+    drawCollisionEffects(canvas);
+  }
+
+  void performCollisionChecks() {
+    for (var i = 0; i < this.enemies.length; i++) {
+      Map<String, dynamic> objA = {"type": "solo", "object": this.enemies[i]};
+      for (var j = 0; j < this.bullets.length; j++) {
+        Map<String, dynamic> objB = {"type": "solo", "object": this.bullets[j]};
+        bool result = world.checkCollision({"a": objA, "b": objB});
+        if (result == true) {
+          this.bullets[j].alive = false;
+          showCollisionEffect(this.enemies[i].enemyPosition);
+        }
+      }
+    }
+  }
+
+  void showCollisionEffect(Point<double> target) {
+    var effect = this.collisionEffects.cast<TDSpriteAnimator?>().firstWhere((element) => element!.alive == false, orElse: () => null);
+    if (effect != null) {
+      effect.alive = true;
+      effect.setPosition(target);
+    } else {
+      Size _size = getSize(turretImage!);
+
+      TDSpriteAnimator _effect = TDSpriteAnimator(
+          position: target,
+          texturePath: "assets/bug_explode.png",
+          currentFrame: "Bat__Booger_FX",
+          jsonPath: "assets/bug_explode.json",
+          delimiters: [
+            "Bat__Booger_FX",
+          ],
+          fps: 1,
+          loop: LoopMode.Single,
+          scale: 0.25);
+      _effect.alive = true;
+
+      this.collisionEffects.add(_effect);
+    }
+  }
+
+  void drawCollisionEffects(Canvas canvas) {
+    if (this.collisionEffects.length > 0) {
+      for (var i = 0; i < this.collisionEffects.length; i++) {
+        if (this.collisionEffects[i].alive == true) {
+          this.collisionEffects[i].update(canvas);
+        }
+      }
+    }
   }
 
   void drawBullets(Canvas canvas) {
@@ -181,7 +250,7 @@ class TDTower {
   void shootBullet(Point target) {
     if (this.bullets.length > 0) {
       Point origin = originPosition();
-      Point _target = Utils.shared.extendLine(50, origin, target);
+      Point _target = Utils.shared.extendLine(100, origin, target);
 
       /// take the first inactive bullet
       var bullet = this.bullets.cast<TDBullet?>().firstWhere((element) => element!.alive == false, orElse: () => null);

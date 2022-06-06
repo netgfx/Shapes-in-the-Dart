@@ -23,6 +23,7 @@ import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
 import 'package:flutter_shaders/Starfield.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
 import 'package:flutter_shaders/game_classes/TDTower.dart';
+import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'package:flutter_shaders/game_classes/enemy_driver.dart';
 import 'package:flutter_shaders/game_classes/path_follower.dart';
 import 'package:flutter_shaders/game_classes/tilemap.dart';
@@ -67,6 +68,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
   bool isStopped = true; //global
   List<CubicBezier> quadBeziers = [];
   List<TDTower> towers = [];
+  TDWorld mainWorld = TDWorld();
   @override
   void initState() {
     super.initState();
@@ -81,7 +83,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
       _controller.repeat();
 
       /// add tower
-      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1));
+      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1, world: mainWorld));
     });
   }
 

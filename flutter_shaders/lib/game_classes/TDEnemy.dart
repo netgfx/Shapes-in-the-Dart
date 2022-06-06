@@ -21,6 +21,7 @@ class TDEnemy {
   String imageState = "none";
   Size size = Size(0, 0);
   double scale = 1.0;
+  bool _alive = false;
 
   /// pixels per tick
   double ticker = 0;
@@ -108,6 +109,15 @@ class TDEnemy {
     this.textureHeight = textureImage!.height;
     setEnemySize(textureImage!);
     imageState = "done";
+    alive = true;
+  }
+
+  bool get alive {
+    return this._alive;
+  }
+
+  set alive(bool value) {
+    this._alive = value;
   }
 
   Size getEnemySize() {
@@ -170,6 +180,11 @@ class TDEnemy {
   }
 
   Rectangle getEnemyRect() {
+    Size _size = getEnemySize();
+    return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
+  }
+
+  Rectangle getBounds() {
     Size _size = getEnemySize();
     return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
   }

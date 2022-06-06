@@ -637,7 +637,7 @@ class Utils {
 * @param {Phaser.Rectangle} b - The second Rectangle object.
 * @return {boolean} A value of true if the specified object intersects with this Rectangle object; otherwise false.
 */
-  intersects(Rectangle a, Rectangle b) {
+  bool intersects(Rectangle a, Rectangle b) {
     if (a.width <= 0 || a.height <= 0 || b.width <= 0 || b.height <= 0) {
       return false;
     }
@@ -700,13 +700,16 @@ class Utils {
 
   extendLine(double distance, Point a, Point b) {
     // Find Slope of the line
-    var slope = (b.y - a.y) / (b.x - a.x);
+    // var slope = (b.y - a.y) / (b.x - a.x);
 
-    // Find angle of line
-    var theta = atan(slope);
+    // // Find angle of line
+    // var theta = atan(slope);
 
-    // the coordinates of the A3 Point
-    Point<double> result = Point(b.x + distance * cos(theta), b.y + distance * sin(theta));
+    // // the coordinates of the A3 Point
+    // Point<double> result = Point(b.x + distance * cos(theta), b.y + distance * sin(theta));
+
+    double lenAB = sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0));
+    Point<double> result = Point(b.x + (b.x - a.x) / lenAB * distance, b.y + (b.y - a.y) / lenAB * distance);
 
     return result;
   }

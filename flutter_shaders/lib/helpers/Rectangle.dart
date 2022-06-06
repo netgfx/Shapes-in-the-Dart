@@ -61,6 +61,10 @@ class Rectangle {
     this.type = "RECTANGLE";
   }
 
+  Map<String, double> getBounds() {
+    return {"left": this.left, "top": this.top, "right": this.right, "bottom": this.bottom, "width": this.width, "height": this.height};
+  }
+
   /**
     * Adjusts the location of the Rectangle object, as determined by its top-left corner, by the specified amounts.
     * @method Phaser.Rectangle#offset
@@ -597,5 +601,19 @@ class Rectangle {
 
   get randomY {
     return this.y + (Utils.shared.doubleInRange(0, 1) * this.height);
+  }
+
+  Rectangle getSum(Rectangle box1, Rectangle box2) {
+    // get boxes bounds
+    Map<String, double> b1Bounds = box1.getBounds();
+    Map<String, double> b2Bounds = box2.getBounds();
+
+    // return the inflated rectangle
+    return Rectangle(
+      x: b2Bounds["left"]! - b1Bounds["width"]! / 2,
+      y: b2Bounds["top"]! - b1Bounds["height"]! / 2,
+      width: b1Bounds["width"]! + b2Bounds["width"]!,
+      height: b1Bounds["height"]! + b2Bounds["height"]!,
+    );
   }
 }

@@ -9,6 +9,7 @@ import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
 import 'package:flutter_shaders/game_classes/TDTower.dart';
+import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -47,6 +48,7 @@ class EnemyDriverCanvas extends CustomPainter {
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
   Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
+  //
 
   /// Constructor
   EnemyDriverCanvas({

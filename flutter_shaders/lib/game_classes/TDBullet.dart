@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:ui';
+import '../helpers/Rectangle.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import 'package:flutter_shaders/helpers/utils.dart';
@@ -31,6 +32,10 @@ class TDBullet {
 
   set alive(bool value) {
     this._alive = value;
+    if (value == false) {
+      this.x = origin.x;
+      this.y = origin.y;
+    }
   }
 
   bool get alive {
@@ -69,7 +74,7 @@ class TDBullet {
     var _paint = Paint()
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true
-      ..color = Colors.black
+      ..color = Colors.black.withAlpha(this.alive == true ? 255 : 0)
       ..style = PaintingStyle.fill;
 
     rotate(canvas, this.x, this.y, null, () {
@@ -98,13 +103,16 @@ class TDBullet {
     this.x = ui.lerpDouble(this.x, target.x, getStagger(velocity, Easing.LINEAR))!;
     this.y = ui.lerpDouble(this.y, target.y, getStagger(velocity, Easing.LINEAR))!;
 
-    print("${this.x}, ${this.target.x}, ${this.velocity}");
+    //print("${this.x}, ${this.target.x}, ${this.velocity}");
     if (this.x >= target.x - 0.11 && this.y >= target.y - 0.11) {
       print("reached destination, recycling");
-      this.x = origin.x;
-      this.y = origin.y;
+
       alive = false;
     }
+  }
+
+  Rectangle getBounds() {
+    return Rectangle(x: this.x, y: this.y, width: 10, height: 10);
   }
 
   double getStagger(double progress, Easing ease) {
