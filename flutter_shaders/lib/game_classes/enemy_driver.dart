@@ -10,6 +10,7 @@ import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/TDEnemy.dart';
 import 'package:flutter_shaders/game_classes/TDTower.dart';
 import 'package:flutter_shaders/game_classes/TDWorld.dart';
+import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -31,7 +32,6 @@ class EnemyDriverCanvas extends CustomPainter {
   int printTime = DateTime.now().millisecondsSinceEpoch;
   int timeDecay = 0;
   final _random = new Random();
-  int timeAlive = 0;
   int timeToLive = 24;
   double width = 100;
   double height = 100;
@@ -48,6 +48,7 @@ class EnemyDriverCanvas extends CustomPainter {
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
   Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
+  TDWorld? _world = null;
   //
 
   /// Constructor
@@ -57,7 +58,6 @@ class EnemyDriverCanvas extends CustomPainter {
 
     /// <-- Desired FPS
     required this.fps,
-    required this.enemies,
     required this.towers,
     required this.curve,
     required this.quadBeziers,
@@ -88,6 +88,22 @@ class EnemyDriverCanvas extends CustomPainter {
     /// calculate world bounds
     this.worldBounds = Rectangle(x: 0, y: 0, width: this.width, height: this.height);
 
+    if (this._world == null) {
+      this._world = TDWorld();
+      GameObject.shared.setWorld(this._world!);
+    }
+
+    this.enemies = [
+      TDEnemy(
+          type: "larva",
+          maxCurves: this.curve.length,
+          life: 100,
+          speed: 0.0025,
+          quadBeziers: quadBeziers,
+          scale: 0.25,
+          position: Point<double>(this.curve[0][0].x, this.curve[0][0].y))
+    ];
+
     /// fire the animate after a delay
     if (this.delay > 0 && this.animate != null) {
       Future.delayed(Duration(milliseconds: this.delay), () => {this.animate!()});
@@ -97,6 +113,12 @@ class EnemyDriverCanvas extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     this.canvas = canvas;
+
+    /// add canvas to World
+    if (this._world != null) {
+      this._world!.canvas = this.canvas;
+      GameObject.shared.getWorld()!.canvas = this.canvas;
+    }
     paintImage(canvas, size);
 
     for (var i = 0; i < this.curve.length; i++) {
@@ -122,14 +144,17 @@ class EnemyDriverCanvas extends CustomPainter {
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay && this.timeAlive == 0) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
           /// reset the time
 
           this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
-
-          createEnemies(canvas, true);
+          if (GameObject.shared.getWorld() != null) {
+            GameObject.shared.getWorld()!.update();
+          }
         } else {
-          createEnemies(canvas, true);
+          if (GameObject.shared.getWorld() != null) {
+            GameObject.shared.getWorld()!.update();
+          }
         }
       } else {
         print("no elapsed duration");
@@ -148,25 +173,6 @@ class EnemyDriverCanvas extends CustomPainter {
     rotate(x, y, null, () {
       canvas!.drawCircle(Offset(0, 0), 5, _paint);
     }, translate: true);
-  }
-
-  void createEnemies(Canvas canvas, bool shouldUpdate) {
-    var paint = new Paint()
-      ..filterQuality = FilterQuality.high
-      ..isAntiAlias = false;
-
-    for (var i = 0; i < this.enemies.length; i++) {
-      Size enemySize = this.enemies[i].getEnemySize();
-      Point<double> enemyCenter = this.enemies[i].enemyCenter;
-      Point<double> enemyPos = this.enemies[i].enemyPosition;
-      //Utils.shared.delayedPrint(enemyPos.toString());
-      if (this.enemies[i].imageState == "done") {
-        /// update the enemy
-        if (shouldUpdate) {
-          this.enemies[i].update(canvas);
-        }
-      }
-    }
   }
 
   void drawCurve(List<vectorMath.Vector2> curve, double width, double height, Paint paint) {

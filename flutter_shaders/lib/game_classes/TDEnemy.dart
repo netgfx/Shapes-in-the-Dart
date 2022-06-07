@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_shaders/game_classes/TDWorld.dart';
+import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
 import "../helpers//utils.dart";
@@ -22,6 +24,7 @@ class TDEnemy {
   Size size = Size(0, 0);
   double scale = 1.0;
   bool _alive = false;
+  String _id = "";
 
   /// pixels per tick
   double ticker = 0;
@@ -41,37 +44,43 @@ class TDEnemy {
     required this.scale,
     position,
   }) {
+    TDWorld? world = GameObject.shared.getWorld();
+    if (world != null) {
+      this.id = world.add(this, null);
+    }
     this.position = position ?? Point(0, 0);
     loadImage();
   }
 
   void update(Canvas canvas) {
-    ticker += this.speed;
-    vectorMath.Vector2 point = vectorMath.Vector2(0, 0);
-    if (ticker >= 1.0 && this.curveIndex < this.maxCurves) {
-      ticker = 0.0;
-      this.curveIndex += 1;
-      //offset = offset == 0 ? 1 : 0;
-    }
-    if (this.curveIndex >= this.maxCurves) {
-      ticker = 1.0;
-      this.curveIndex = this.maxCurves;
-    }
-
-    vectorMath.Vector2 oldValues = vectorMath.Vector2(this.position.x, this.position.y);
-    if (this.curveIndex == this.maxCurves) {
-      point = getCurvePoint(0.99);
-      this.position = Point(point.x, point.y);
-    } else {
-      point = getCurvePoint(this.ticker);
-      this.position = Point(point.x, point.y);
-    }
-
-    double _angle = Utils.shared.angleBetween(oldValues.x, oldValues.y, position.x, position.y);
-    this.angle = _angle + pi / 2; //vectorMath.radians(_angle + (360 / 3) * 1);
-
     if (this.imageState == "done") {
-      drawEnemy(canvas);
+      ticker += this.speed;
+      vectorMath.Vector2 point = vectorMath.Vector2(0, 0);
+      if (ticker >= 1.0 && this.curveIndex < this.maxCurves) {
+        ticker = 0.0;
+        this.curveIndex += 1;
+        //offset = offset == 0 ? 1 : 0;
+      }
+      if (this.curveIndex >= this.maxCurves) {
+        ticker = 1.0;
+        this.curveIndex = this.maxCurves;
+      }
+
+      vectorMath.Vector2 oldValues = vectorMath.Vector2(this.position.x, this.position.y);
+      if (this.curveIndex == this.maxCurves) {
+        point = getCurvePoint(0.99);
+        this.position = Point(point.x, point.y);
+      } else {
+        point = getCurvePoint(this.ticker);
+        this.position = Point(point.x, point.y);
+      }
+
+      double _angle = Utils.shared.angleBetween(oldValues.x, oldValues.y, position.x, position.y);
+      this.angle = _angle + pi / 2; //vectorMath.radians(_angle + (360 / 3) * 1);
+
+      if (this.imageState == "done") {
+        drawEnemy(canvas);
+      }
     }
   }
 
@@ -122,6 +131,14 @@ class TDEnemy {
 
   Size getEnemySize() {
     return size;
+  }
+
+  String get id {
+    return this._id;
+  }
+
+  set id(String value) {
+    this._id = value;
   }
 
   void setEnemySize(ui.Image img) {

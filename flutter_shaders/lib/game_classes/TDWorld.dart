@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 
 import '../helpers/utils.dart';
@@ -8,7 +10,18 @@ class TDWorld {
   //List<Map<String, dynamic>> colliders = [];
   Map<String, List<dynamic>> groups = {};
   Map<String, int> dictionary = {};
-  TDWorld() {}
+  Canvas? _canvas = null;
+  TDWorld() {
+    print("world init");
+  }
+
+  Canvas? get canvas {
+    return this._canvas;
+  }
+
+  void set canvas(Canvas? value) {
+    this._canvas = value;
+  }
 
   List<dynamic> get displayList {
     return _displayList;
@@ -18,16 +31,32 @@ class TDWorld {
     _displayList = list;
   }
 
-  void add(dynamic item, String? group) {
+  String add(dynamic item, String? group) {
     _displayList.add(item);
-    dictionary[item.name] = _displayList.length - 1;
+    print("added ${item}");
     if (group != null) {
       groups[group]?.add(item);
     }
+
+    return _displayList.length.toString();
   }
 
-  void update(canvas, List<Map<String, dynamic>> colliders) {
-    checkCollisions(colliders);
+  void remove(dynamic item, String? group) {
+    _displayList.removeWhere((element) => element.id == item.id);
+    if (group != null) {
+      groups[group]?.removeWhere((element) => element.id == item.id);
+    }
+  }
+
+  /// Update all items in the display list
+  void update() {
+    //checkCollisions(colliders);
+    int length = _displayList.length;
+    for (var i = 0; i < length; i++) {
+      if (_displayList[i].alive == true) {
+        _displayList[i].update(this.canvas);
+      }
+    }
   }
 
   /** 
@@ -52,7 +81,8 @@ class TDWorld {
   }
 
   void checkCollisions(List<Map<String, dynamic>> colliders) {
-    for (var i = 0; i < colliders.length; i++) {
+    int length = colliders.length;
+    for (var i = 0; i < length; i++) {
       if (colliders[i]['a'].type == "solo" && colliders[i]['b'].type == "solo") {
         var objA = this.displayList[this.dictionary[colliders[i]['a'].name]!];
         var objB = this.displayList[this.dictionary[colliders[i]['b'].name]!];

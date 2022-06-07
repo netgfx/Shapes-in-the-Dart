@@ -68,7 +68,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
   bool isStopped = true; //global
   List<CubicBezier> quadBeziers = [];
   List<TDTower> towers = [];
-  TDWorld mainWorld = TDWorld();
+
   @override
   void initState() {
     super.initState();
@@ -83,7 +83,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
       _controller.repeat();
 
       /// add tower
-      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1, world: mainWorld));
+      towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1));
     });
   }
 
@@ -228,16 +228,6 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                         width: viewportConstraints.maxWidth,
                         height: viewportConstraints.maxHeight,
                         update: updateFn,
-                        enemies: [
-                          TDEnemy(
-                              type: "larva",
-                              maxCurves: getCurves().length,
-                              life: 100,
-                              speed: 0.0025,
-                              quadBeziers: quadBeziers,
-                              scale: 0.25,
-                              position: Point<double>(getCurves()[0][0].x, getCurves()[0][0].y))
-                        ],
                         towers: towers,
                         fps: 60,
                         curve: getCurves(),

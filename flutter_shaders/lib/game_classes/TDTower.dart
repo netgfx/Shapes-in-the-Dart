@@ -7,6 +7,7 @@ import 'package:flutter_shaders/game_classes/TDEnemy.dart';
 import 'package:flutter_shaders/game_classes/TDSpriteAnimator.dart';
 import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'package:flutter_shaders/helpers/Circle.dart';
+import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
@@ -44,7 +45,7 @@ class TDTower {
   List<TDEnemy> enemies = [];
   List<TDBullet> bullets = [];
   Rectangle radar = Rectangle(x: 0, y: 0, width: 0, height: 0); //Circle(x: 0, y: 0, radius: 40);
-  TDWorld world;
+
   List<TDSpriteAnimator> collisionEffects = [];
   TDTower({
     required this.position,
@@ -52,7 +53,6 @@ class TDTower {
     required this.turretType,
     required this.rof,
     required this.scale,
-    required this.world,
   }) {
     this.position = position ?? Point(0, 0);
     loadBaseImage();
@@ -120,14 +120,19 @@ class TDTower {
   }
 
   void performCollisionChecks() {
-    for (var i = 0; i < this.enemies.length; i++) {
+    TDWorld? _world = GameObject.shared.getWorld();
+    int _enemiesLength = this.enemies.length;
+    int _bulletsLength = this.bullets.length;
+    for (var i = 0; i < _enemiesLength; i++) {
       Map<String, dynamic> objA = {"type": "solo", "object": this.enemies[i]};
-      for (var j = 0; j < this.bullets.length; j++) {
+      for (var j = 0; j < _bulletsLength; j++) {
         Map<String, dynamic> objB = {"type": "solo", "object": this.bullets[j]};
-        bool result = world.checkCollision({"a": objA, "b": objB});
-        if (result == true) {
-          this.bullets[j].alive = false;
-          showCollisionEffect(this.enemies[i].enemyPosition);
+        if (_world != null) {
+          bool result = _world.checkCollision({"a": objA, "b": objB});
+          if (result == true) {
+            this.bullets[j].alive = false;
+            showCollisionEffect(this.enemies[i].enemyPosition);
+          }
         }
       }
     }

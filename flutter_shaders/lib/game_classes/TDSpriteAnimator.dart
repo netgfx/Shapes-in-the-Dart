@@ -31,6 +31,7 @@ class TDSpriteAnimator {
   double scale = 1.0;
   Point<double> position = Point(0, 0);
   bool _alive = false;
+  Paint _paint = new Paint();
   TDSpriteAnimator({
     required this.position,
     required this.texturePath,
@@ -58,29 +59,29 @@ class TDSpriteAnimator {
       /// this component needs its own tick
       if (DateTime.now().millisecondsSinceEpoch - this.currentTime >= this.timeDecay) {
         this.currentTime = DateTime.now().millisecondsSinceEpoch;
-        rotate(canvas, pos.x, pos.y, scale, () {
+        updateCanvas(canvas, pos.x, pos.y, scale, () {
           canvas.drawImageRect(
             this.texture!,
             Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
             Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
-            new Paint(),
+            _paint,
           );
         }, translate: false);
 
         currentIndex++;
-        print("${pos}");
+
         if (currentIndex >= spriteData[currentFrame]!.length) {
           this.alive = false;
           currentIndex = 0;
         }
       } else {
         // do nothing?
-        rotate(canvas, pos.x, pos.y, scale, () {
+        updateCanvas(canvas, pos.x, pos.y, scale, () {
           canvas.drawImageRect(
             this.texture!,
             Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
             Rect.fromLTWH(0, 0, img["width"].toDouble(), img["height"].toDouble()),
-            new Paint(),
+            _paint,
           );
         }, translate: false);
       }
@@ -91,7 +92,7 @@ class TDSpriteAnimator {
     textureLoadState = "loading";
     final ByteData data = await rootBundle.load(texturePath);
     this.texture = await Utils.shared.imageFromBytes(data);
-    print("loading");
+
     if (jsonPath != "") {
       var data = loadJsonData(jsonPath);
       data.then((value) => {spriteData = parseJSON(value), print("${spriteData}, ${spriteData[currentFrame]!.length}")});
@@ -140,7 +141,7 @@ class TDSpriteAnimator {
     this.position = value;
   }
 
-  void rotate(Canvas canvas, double? x, double? y, double? scale, VoidCallback callback, {bool translate = false}) {
+  void updateCanvas(Canvas canvas, double? x, double? y, double? scale, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas.save();

@@ -700,14 +700,6 @@ class Utils {
 
   extendLine(double distance, Point a, Point b) {
     // Find Slope of the line
-    // var slope = (b.y - a.y) / (b.x - a.x);
-
-    // // Find angle of line
-    // var theta = atan(slope);
-
-    // // the coordinates of the A3 Point
-    // Point<double> result = Point(b.x + distance * cos(theta), b.y + distance * sin(theta));
-
     double lenAB = sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0));
     Point<double> result = Point(b.x + (b.x - a.x) / lenAB * distance, b.y + (b.y - a.y) / lenAB * distance);
 
