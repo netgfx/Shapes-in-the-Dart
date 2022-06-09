@@ -154,7 +154,7 @@ class TDEnemy {
       ..filterQuality = FilterQuality.high
       ..isAntiAlias = false;
 
-    rotate(canvas, position.x, position.y, angle, () {
+    updateCanvas(canvas, position.x, position.y, angle, () {
       canvas.drawImageRect(
         this.enemyTexture!,
         Rect.fromLTWH(0, 0, textureWidth.toDouble(), textureHeight.toDouble()),
@@ -173,13 +173,13 @@ class TDEnemy {
       ..isAntiAlias = true
       ..color = Colors.blue.withOpacity(0.5)
       ..style = PaintingStyle.fill;
-    rotate(canvas, x, y, null, () {
+    updateCanvas(canvas, x, y, null, () {
       canvas.drawRect(Rect.fromLTWH(-w / 2, -h / 2, w, h), _paint);
       //canvas.drawCircle(Offset(0, 0), radius, _paint);
     }, translate: true);
   }
 
-  void rotate(Canvas canvas, double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
+  void updateCanvas(Canvas canvas, double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas.save();

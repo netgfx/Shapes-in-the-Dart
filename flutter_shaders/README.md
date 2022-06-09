@@ -11,3 +11,5 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - port Arcade physics
 - create master Sprite class for all game objects to inherit basic properties via extend
 - more math!
+- cache
+- loader class for all assets
