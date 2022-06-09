@@ -69,13 +69,27 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
   List<CubicBezier> quadBeziers = [];
   List<TDTower> towers = [];
 
+  ///
+  Duration _elapsed = Duration.zero;
+  // 2. declare Ticker
+  late final Ticker _ticker;
+
   @override
   void initState() {
     super.initState();
 
+    // 3. initialize Ticker
+    _ticker = this.createTicker((elapsed) {
+      // 4. update state
+      setState(() {
+        _elapsed = elapsed;
+      });
+    });
+    // 5. start ticker
+    //_ticker.start();
     // Curves.easeOutBack // explode
 
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
     _bgController = AnimationController(vsync: this, duration: Duration(seconds: 1));
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
