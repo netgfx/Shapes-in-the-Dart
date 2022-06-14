@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:bezier/bezier.dart';
 import 'package:csv/csv.dart';
 import 'package:csv/csv_settings_autodetection.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +14,7 @@ import 'package:flutter_shaders/game_classes/pathfinding/BFS.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/Grid.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
+import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -181,7 +181,7 @@ class TileMapPainter extends CustomPainter {
       ];
 
       cubicPoints.add(currentPoint);
-      quadBeziers.add(CubicBezier(currentPoint));
+      quadBeziers.add(CubicBezier(p0: currentPoint[0], p1: currentPoint[1], p2: currentPoint[2], p3: currentPoint[3]));
     }
 
     GameObject.shared.setCubicBeziers(quadBeziers);
@@ -294,10 +294,10 @@ class TileMapPainter extends CustomPainter {
   void drawCurve(CubicBezier curve, Path path) {
     //rotate(0, 0, () {
 
-    vectorMath.Vector2 point0 = curve.startPoint;
-    vectorMath.Vector2 point1 = curve.points[1];
-    vectorMath.Vector2 point2 = curve.points[2];
-    vectorMath.Vector2 point3 = curve.endPoint;
+    vectorMath.Vector2 point0 = curve.getStartPoint();
+    vectorMath.Vector2 point1 = curve.points()[1];
+    vectorMath.Vector2 point2 = curve.points()[2];
+    vectorMath.Vector2 point3 = curve.points()[3];
     path.moveTo(point0.x, point0.y);
 
     path.cubicTo(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);

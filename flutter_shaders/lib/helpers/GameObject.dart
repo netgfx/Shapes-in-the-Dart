@@ -1,6 +1,7 @@
-import 'package:bezier/bezier.dart';
 import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'dart:ui' as ui;
+
+import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
 
 class GameObject {
   static GameObject shared = GameObject._();

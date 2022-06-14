@@ -10,6 +10,7 @@ import "../helpers//utils.dart";
 import "../helpers/Rectangle.dart";
 import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
+import '../helpers/math/CubicBezierInterpolation.dart' as CubicBezierCurve;
 
 class TDEnemy {
   /// TODO: Define types in ENUM
@@ -80,7 +81,7 @@ class TDEnemy {
       }
 
       double _angle = Utils.shared.angleBetween(oldValues.x, oldValues.y, position.x, position.y);
-      this.angle = _angle; //vectorMath.radians(_angle + (360 / 3) * 1);
+      this.angle = _angle + pi / 2; //vectorMath.radians(_angle + (360 / 3) * 1);
 
       if (this.imageState == "done") {
         drawEnemy(canvas);
@@ -112,7 +113,14 @@ class TDEnemy {
         _perc = perc.clamp(0, 1);
       }
 
-      return GameObject.shared.cubicBeziers[_index].pointAt(_perc);
+      vectorMath.Vector2 p0 = GameObject.shared.cubicBeziers[_index].points()[0];
+      vectorMath.Vector2 p1 = GameObject.shared.cubicBeziers[_index].points()[1];
+      vectorMath.Vector2 p2 = GameObject.shared.cubicBeziers[_index].points()[2];
+      vectorMath.Vector2 p3 = GameObject.shared.cubicBeziers[_index].points()[3];
+      double curveX = CubicBezierCurve.CubicBezierInterpolation(_perc, p0.x, p1.x, p2.x, p3.x);
+      double curveY = CubicBezierCurve.CubicBezierInterpolation(_perc, p0.y, p1.y, p2.y, p3.y);
+      return vectorMath.Vector2(curveX, curveY);
+      //GameObject.shared.cubicBeziers[_index].pointAt(_perc);
     } else {
       return vectorMath.Vector2(0, 0);
     }
