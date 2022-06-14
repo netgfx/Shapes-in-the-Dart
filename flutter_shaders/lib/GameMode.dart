@@ -20,7 +20,7 @@ import 'package:flutter_shaders/SpriteAnimator.dart';
 import 'package:flutter_shaders/Starfield.dart';
 import 'package:flutter_shaders/game_classes/flip_image.dart';
 import 'package:flutter_shaders/game_classes/thunder_painter.dart';
-import 'package:flutter_shaders/game_classes/tilemap.dart';
+import 'package:flutter_shaders/game_classes/Tilemap.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 
 import 'package:path_provider/path_provider.dart';

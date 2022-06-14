@@ -99,7 +99,7 @@ class EnemyDriverCanvas extends CustomPainter {
           type: "larva",
           maxCurves: this.curve.length,
           life: 100,
-          speed: 0.0025,
+          speed: 0.005,
           quadBeziers: quadBeziers,
           scale: 0.25,
           position: Point<double>(this.curve[0][0].x, this.curve[0][0].y))
@@ -122,9 +122,10 @@ class EnemyDriverCanvas extends CustomPainter {
     }
     paintImage(canvas, size);
 
-    for (var i = 0; i < this.curve.length; i++) {
-      drawCurve(this.curve[i], width, height, this._paint);
-    }
+    // curve draw (old?)
+    // for (var i = 0; i < this.curve.length; i++) {
+    //   drawCurve(this.curve[i], width, height, this._paint);
+    // }
 
     for (var j = 0; j < this.towers.length; j++) {
       this.towers[j].update(canvas, enemies, worldBounds);

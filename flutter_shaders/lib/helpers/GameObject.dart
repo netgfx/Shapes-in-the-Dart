@@ -1,3 +1,4 @@
+import 'package:bezier/bezier.dart';
 import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'dart:ui' as ui;
 
@@ -9,6 +10,7 @@ class GameObject {
 
   ///
   TDWorld? world = null;
+  List<CubicBezier> cubicBeziers = [];
   Map<String, ui.Image> imageCache = {};
 
   ///
@@ -19,6 +21,14 @@ class GameObject {
 
   TDWorld? getWorld() {
     return this.world;
+  }
+
+  void setCubicBeziers(List<CubicBezier> value) {
+    this.cubicBeziers = value;
+  }
+
+  List<CubicBezier> getCubicBeziers() {
+    return this.cubicBeziers;
   }
 
   setCacheValue(String key, ui.Image value) {

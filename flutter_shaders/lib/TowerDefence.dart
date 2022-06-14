@@ -26,7 +26,8 @@ import 'package:flutter_shaders/game_classes/TDTower.dart';
 import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'package:flutter_shaders/game_classes/enemy_driver.dart';
 import 'package:flutter_shaders/game_classes/path_follower.dart';
-import 'package:flutter_shaders/game_classes/tilemap.dart';
+import 'package:flutter_shaders/game_classes/Tilemap.dart';
+import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
@@ -64,7 +65,34 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
   final ValueNotifier<int> counter = ValueNotifier<int>(0);
   Uint8List? testImage;
   ui.Image? bgImage;
-
+  List<String> walls = [
+    "towerDefense_tile072",
+    "towerDefense_tile116",
+    "towerDefense_tile073",
+    "towerDefense_tile094",
+    "towerDefense_tile040",
+    "towerDefense_tile070",
+    "towerDefense_tile096",
+    "towerDefense_tile095",
+    "towerDefense_tile071",
+    "towerDefense_tile024",
+    "towerDefense_tile072",
+    "towerDefense_tile116",
+    "towerDefense_tile117",
+    "towerDefense_tile025",
+  ];
+  List<String> paths = [
+    "towerDefense_tile047",
+    "towerDefense_tile004",
+    "towerDefense_tile158",
+    "towerDefense_tile023",
+    "towerDefense_tile093",
+    "towerDefense_tile023",
+    "towerDefense_tile001",
+    "towerDefense_tile027",
+    "towerDefense_tile002",
+    "towerDefense_tile048",
+  ];
   bool isStopped = true; //global
   List<CubicBezier> quadBeziers = [];
   List<TDTower> towers = [];
@@ -95,6 +123,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
     SchedulerBinding.instance.addPostFrameCallback((_) {
       //_letterController.repeat();
       _controller.repeat();
+      _bgController.forward();
 
       /// add tower
       towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1));
@@ -155,6 +184,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
         quadBeziers.add(CubicBezier(cubicPoints[i]));
       }
 
+      //GameObject.shared.setCubicBeziers(quadBeziers);
       return cubicPoints;
     } else {
       return [];
@@ -221,10 +251,10 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                     child: CustomPaint(
                       key: UniqueKey(),
                       painter: TileMapPainter(
-                        tilesFile: "",
-                        csvFile: "",
+                        pathItems: {"walls": walls, "paths": paths},
+                        baseURL: "assets/td/",
                         tileSize: Size((viewportConstraints.maxWidth / 7).roundToDouble(), (viewportConstraints.maxWidth / 7).roundToDouble()),
-                        controller: _controller,
+                        controller: _bgController,
                         width: viewportConstraints.maxWidth,
                         height: viewportConstraints.maxHeight,
                         fps: 60,
@@ -242,7 +272,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                         width: viewportConstraints.maxWidth,
                         height: viewportConstraints.maxHeight,
                         update: updateFn,
-                        towers: towers,
+                        towers: [],
                         fps: 60,
                         curve: getCurves(),
                         quadBeziers: quadBeziers,

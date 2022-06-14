@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:bezier/bezier.dart';
 import 'package:csv/csv.dart';
 import 'package:csv/csv_settings_autodetection.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/BFS.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/Grid.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart';
+import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -37,7 +42,6 @@ class TileMapPainter extends CustomPainter {
   Paint? paintStroke;
   //List<List<String>> map = [];
   String csvFile = "";
-  String tilesFile = "";
   Size? tileSize = Size(54, 54);
   Size size = Size(0, 0);
   List<String> tilesList = tiles;
@@ -46,6 +50,11 @@ class TileMapPainter extends CustomPainter {
   bool tilemapCreated = false;
   String baseURL = "assets/td/";
   String extensionStr = ".png";
+  Map<String, dynamic> pathItems = {};
+  List<Point<double>> gridPoints = [];
+  List<List<vectorMath.Vector2>> cubicPoints = [];
+  List<MazeLocation> path = [];
+  Paint _paint = new Paint();
 
   /// Constructor
   TileMapPainter({
@@ -54,20 +63,18 @@ class TileMapPainter extends CustomPainter {
 
     /// <-- Desired FPS
     required this.fps,
-
-    /// <-- The particles blend mode (default: BlendMode.src)
-    this.blendMode,
-
-    /// <-- The tiles to use for the map
-    required this.tilesFile,
+    required this.pathItems,
 
     /// <-- The map data
-    required this.csvFile,
+    required this.baseURL,
     required width,
     required height,
 
     /// <-- The tile size
-    tileSize,
+    required Size tileSize,
+
+    /// <-- The particles blend mode (default: BlendMode.src)
+    this.blendMode,
 
     /// <-- Custom callback to call after Delay has passed
     this.animate,
@@ -88,10 +95,96 @@ class TileMapPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
+    this._paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true
+      ..color = color
+      ..strokeWidth = 2.0
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+
     //loadMapData();
-    for (var i = 0; i < this.tilesList.length; i++) {
-      loadTileImages(this.tilesList[i]);
+    List<List<int>> grid = [];
+
+    /// make it dynamic
+    Point<int> target = Point(3, 3);
+
+    for (var i = 0; i < this.tilesList.length; i += 7) {
+      grid.add([]);
+      for (var j = i; j < i + 7; j++) {
+        if (this.pathItems["paths"].indexOf(tilesList[j]) != -1) {
+          grid[grid.length - 1].add(1);
+        } else {
+          grid[grid.length - 1].add(0);
+        }
+      }
     }
+
+    grid[target.y][target.x] = 2;
+
+    var flat = grid.expand((i) => i).toList();
+    int counter = 0;
+
+    /// get path with BFS
+
+    getPath(Grid(grid.length, grid[0].length, grid));
+
+    print("GRID IS: $tileSize $grid $gridPoints");
+    for (var k = 0; k < this.tilesList.length; k++) {
+      loadTileImages(this.tilesList[k]);
+    }
+  }
+
+  void getPath(Grid grid) {
+    gridPoints.clear();
+    path = BFS(grid: grid).findPath(MazeLocation(row: 12, col: 1), MazeLocation(row: 3, col: 3));
+    //pathTiles = path;
+    print("SOLUTION IS: $path");
+    List<CubicBezier> quadBeziers = [];
+
+    int pathLength = (path.length + ((path.length / 4))).round();
+    for (var k = 0; k <= pathLength; k += 4) {
+      if (k == 0) {
+        path.insert(k, MazeLocation(row: path[0].row, col: path[0].col));
+      } else {
+        path.insert(k, MazeLocation(row: path[k - 1].row, col: path[k - 1].col));
+      }
+    }
+
+    for (var i = 0; i < path.length; i += 4) {
+      List<vectorMath.Vector2> currentPoint = [];
+      int index = i;
+      int index1 = i + 1;
+      int index2 = i + 2;
+      int index3 = i + 3;
+      if (index1 >= path.length) {
+        index1 = i;
+        index2 = i;
+        index3 = i;
+      } else if (index2 >= path.length) {
+        index2 = index1;
+        index3 = index1;
+      } else if (index3 >= path.length) {
+        index3 = index2;
+      }
+
+      Point p0 = getPointFromCoordinates(path[index].getCol().toDouble(), path[index].getRow().toDouble());
+      Point p1 = getPointFromCoordinates(path[index1].getCol().toDouble(), path[index1].getRow().toDouble());
+      Point p2 = getPointFromCoordinates(path[index2].getCol().toDouble(), path[index2].getRow().toDouble());
+      Point p3 = getPointFromCoordinates(path[index3].getCol().toDouble(), path[index3].getRow().toDouble());
+
+      currentPoint = [
+        vectorMath.Vector2(p0.x.toDouble(), p0.y.toDouble()),
+        vectorMath.Vector2(p1.x.toDouble(), p1.y.toDouble()),
+        vectorMath.Vector2(p2.x.toDouble(), p2.y.toDouble()),
+        vectorMath.Vector2(p3.x.toDouble(), p3.y.toDouble()),
+      ];
+
+      cubicPoints.add(currentPoint);
+      quadBeziers.add(CubicBezier(currentPoint));
+    }
+
+    GameObject.shared.setCubicBeziers(quadBeziers);
   }
 
   /// uncomment to read CSV (preferable?)
@@ -132,9 +225,17 @@ class TileMapPainter extends CustomPainter {
     return false;
   }
 
+  Point<double> getPointFromCoordinates(double x, double y) {
+    double finalX = (((x + 1) * tileSize!.width) - tileSize!.width / 2).roundToDouble();
+    double finalY = (((y + 1) * tileSize!.height) - tileSize!.height / 2).roundToDouble();
+
+    return Point(finalX, finalY);
+  }
+
   void draw(Canvas canvas, Size size) {
     double cx = this.sceneSize.maxWidth / 2;
     double cy = this.sceneSize.maxHeight / 2;
+    this.canvas = canvas;
 
     /// check if the controller is running
     if (this.controller != null) {
@@ -150,10 +251,18 @@ class TileMapPainter extends CustomPainter {
       print("re-rendering points with no changes");
     }
     // TODO: add offset to show unit movement on the map
-    createTilemap(canvas);
+    createTilemap();
+    drawCircle();
+    var cubic = GameObject.shared.cubicBeziers;
+    final Path path = Path();
+    for (var i = 0; i < cubic.length; i++) {
+      drawCurve(cubic[i], path);
+    }
+    path.close();
+    canvas.drawPath(path, _paint);
   }
 
-  void createTilemap(Canvas canvas) {
+  void createTilemap() {
     if (this.textureImages.isNotEmpty) {
       var positionCounter = 0;
       var paint = new Paint()
@@ -167,17 +276,80 @@ class TileMapPainter extends CustomPainter {
             continue;
           }
 
-          canvas.drawImageRect(
-            this.textureImages[pos]!,
-            Rect.fromLTWH(0, 0, this.tileSize!.width, this.tileSize!.height),
-            Rect.fromLTWH(j * this.tileSize!.width, positionCounter * this.tileSize!.height, this.tileSize!.width, this.tileSize!.height),
-            paint,
-          );
+          this.canvas!.drawImageRect(
+                this.textureImages[pos]!,
+                Rect.fromLTWH(0, 0, this.tileSize!.width, this.tileSize!.height),
+                Rect.fromLTWH(j * this.tileSize!.width, positionCounter * this.tileSize!.height, this.tileSize!.width, this.tileSize!.height),
+                paint,
+              );
           //print("$tileSize $j $i");
         }
 
         positionCounter += 1;
         this.tilemapCreated = true;
+      }
+    }
+  }
+
+  void drawCurve(CubicBezier curve, Path path) {
+    //rotate(0, 0, () {
+
+    vectorMath.Vector2 point0 = curve.startPoint;
+    vectorMath.Vector2 point1 = curve.points[1];
+    vectorMath.Vector2 point2 = curve.points[2];
+    vectorMath.Vector2 point3 = curve.endPoint;
+    path.moveTo(point0.x, point0.y);
+
+    path.cubicTo(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
+
+    //});
+  }
+
+  void drawPath() {
+    final Paint fill = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.butt
+      ..strokeWidth = 4;
+
+    Path linepath = Path();
+
+    for (var i = 0; i < gridPoints.length; i += 2) {
+      double x = gridPoints[i].x;
+      double y = gridPoints[i].y;
+      if (i + 1 < gridPoints.length) {
+        double x2 = gridPoints[i + 1].x;
+        double y2 = gridPoints[i + 1].y;
+        linepath.moveTo(x, y);
+        linepath.lineTo(x2, y2);
+        linepath.close();
+      } else {
+        continue;
+      }
+    }
+
+    //linepath.close();
+    this.canvas!.drawPath(linepath, fill);
+  }
+
+  void drawCircle() {
+    if (path.length > 0) {
+      var _paint = Paint()
+        ..strokeCap = StrokeCap.round
+        ..isAntiAlias = true
+        ..color = Colors.red.withOpacity(1)
+        ..style = PaintingStyle.fill;
+
+      for (var i = 0; i < path.length; i++) {
+        int x = path[i].getCol();
+        int y = path[i].getRow();
+        double finalX = ((x + 1) * tileSize!.width) - tileSize!.width / 2;
+        double finalY = ((y + 1) * tileSize!.height) - tileSize!.height / 2;
+        //print("$x, $y");
+        rotate(0, 0, () {
+          canvas!.drawRect(Rect.fromLTWH(finalX.toDouble(), finalY.toDouble(), 5, 5), _paint);
+          //canvas.drawCircle(Offset(0, 0), radius, _paint);
+        });
       }
     }
   }

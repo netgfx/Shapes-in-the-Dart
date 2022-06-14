@@ -19,7 +19,7 @@ class TDEnemy {
   ui.Image? textureImage;
   Point<double> position = Point(0, 0);
   double life = 100;
-  double speed = 0.0001;
+  double speed = 0.001;
   String imageState = "none";
   Size size = Size(0, 0);
   double scale = 1.0;
@@ -55,28 +55,32 @@ class TDEnemy {
   void update(Canvas canvas) {
     if (this.imageState == "done") {
       ticker += this.speed;
+      this.maxCurves = GameObject.shared.cubicBeziers.length > 0 ? GameObject.shared.cubicBeziers.length : 0;
       vectorMath.Vector2 point = vectorMath.Vector2(0, 0);
       if (ticker >= 1.0 && this.curveIndex < this.maxCurves) {
         ticker = 0.0;
         this.curveIndex += 1;
         //offset = offset == 0 ? 1 : 0;
       }
-      if (this.curveIndex >= this.maxCurves) {
+      if (this.curveIndex > this.maxCurves) {
         ticker = 1.0;
         this.curveIndex = this.maxCurves;
       }
 
-      vectorMath.Vector2 oldValues = vectorMath.Vector2(this.position.x, this.position.y);
+      vectorMath.Vector2 oldValues;
       if (this.curveIndex == this.maxCurves) {
-        point = getCurvePoint(0.99);
+        point = getCurvePoint(0.98);
+        var oldPoint = getCurvePoint(0.95);
+        oldValues = vectorMath.Vector2(oldPoint.x, oldPoint.y);
         this.position = Point(point.x, point.y);
       } else {
         point = getCurvePoint(this.ticker);
+        oldValues = vectorMath.Vector2(this.position.x, this.position.y);
         this.position = Point(point.x, point.y);
       }
 
       double _angle = Utils.shared.angleBetween(oldValues.x, oldValues.y, position.x, position.y);
-      this.angle = _angle + pi / 2; //vectorMath.radians(_angle + (360 / 3) * 1);
+      this.angle = _angle; //vectorMath.radians(_angle + (360 / 3) * 1);
 
       if (this.imageState == "done") {
         drawEnemy(canvas);
@@ -84,29 +88,34 @@ class TDEnemy {
     }
   }
 
-  vectorMath.Vector2 getNextPoint(double perc) {
-    vectorMath.Vector2 nextPoint = vectorMath.Vector2(0, 0);
-    if (perc + 0.05 > 1) {
-      nextPoint = this.quadBeziers[(this.curveIndex + 1).clamp(0, this.maxCurves - 1)].pointAt(0);
-    } else {
-      nextPoint = this.quadBeziers[(this.curveIndex + 1).clamp(0, this.maxCurves - 1)].pointAt(perc + 0.1);
-    }
+  // vectorMath.Vector2 getNextPoint(double perc) {
+  //   vectorMath.Vector2 nextPoint = vectorMath.Vector2(0, 0);
+  //   if (perc + 0.05 > 1) {
+  //     nextPoint = this.quadBeziers[(this.curveIndex + 1).clamp(0, this.maxCurves - 1)].pointAt(0);
+  //   } else {
+  //     nextPoint = this.quadBeziers[(this.curveIndex + 1).clamp(0, this.maxCurves - 1)].pointAt(perc + 0.1);
+  //   }
 
-    return nextPoint;
-  }
+  //   return nextPoint;
+  // }
 
   vectorMath.Vector2 getCurvePoint(double perc, {int? index: null}) {
-    int _index = index ?? this.curveIndex.clamp(0, this.maxCurves - 1);
-    //delayedPrint('>>> ${(perc.clamp(0, 1)).toString()} ${curveIndex}');
-    var _perc = perc;
-    if (perc < 0) {
-      _perc = 0;
-    } else if (perc > 1) {
-      _perc = 1;
+    if (GameObject.shared.cubicBeziers.length > 0) {
+      int _index = index ?? this.curveIndex.clamp(0, this.maxCurves - 1);
+      //delayedPrint('>>> ${(perc.clamp(0, 1)).toString()} ${curveIndex}');
+      var _perc = perc;
+      if (perc < 0) {
+        _perc = 0;
+      } else if (perc > 1) {
+        _perc = 1;
+      } else {
+        _perc = perc.clamp(0, 1);
+      }
+
+      return GameObject.shared.cubicBeziers[_index].pointAt(_perc);
     } else {
-      _perc = perc.clamp(0, 1);
+      return vectorMath.Vector2(0, 0);
     }
-    return quadBeziers[_index].pointAt(_perc);
   }
 
   Future<ui.Image?> loadImage() async {
@@ -153,18 +162,57 @@ class TDEnemy {
     var paint = new Paint()
       ..filterQuality = FilterQuality.high
       ..isAntiAlias = false;
+    Point<double> center = enemyCenterRotated;
+    double t = this.angle;
+
+    double _sin = sin(t);
+    double _cos = cos(t);
+    // (w,0) rotation
+    var x1 = _cos * size.width;
+    var y1 = _sin * size.width;
+
+// (0,h) rotation
+    var x2 = -_sin * size.height;
+    var y2 = _cos * size.height;
+    var x3 = x1 + x2; //_cos * size.width - _sin * size.height;
+    var y3 = y1 + y2; //_sin * size.width + _cos * size.height;
+
+    var minX = [0, x1, x2, x3].reduce(min);
+    var maxX = [0, x1, x2, x3].reduce(max);
+    var minY = [0, y1, y2, y3].reduce(min);
+    var maxY = [0, y1, y2, y3].reduce(max);
+
+    var rotatedWidth = maxX - minX;
+    var rotatedHeight = maxY - minY;
 
     updateCanvas(canvas, position.x, position.y, angle, () {
       canvas.drawImageRect(
         this.enemyTexture!,
         Rect.fromLTWH(0, 0, textureWidth.toDouble(), textureHeight.toDouble()),
-        Rect.fromLTWH(-size.width / 2, -size.height / 2, size.width, size.height),
+        Rect.fromLTWH(-rotatedWidth / 2, -rotatedHeight / 2, size.width, size.height),
         paint,
       );
-    });
+    }, translate: false);
 
-    Rectangle rect = getEnemyRect();
-    drawRect(canvas, rect.x, rect.y, rect.width, rect.height);
+    // Rectangle rect = getEnemyRect();
+
+    drawCircle(canvas, position.x, position.y);
+
+    //drawRect(canvas, position.x, position.y, rotatedWidth.toDouble(), rotatedHeight.toDouble());
+  }
+
+  void drawCircle(Canvas canvas, double x, double y) {
+    var _paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true
+      ..color = Color.fromARGB(255, 246, 24, 231).withOpacity(1)
+      ..style = PaintingStyle.fill;
+
+    //print("$x, $y");
+    updateCanvas(canvas, x, y, null, () {
+      //canvas.drawRect(Rect.fromLTWH(0, 0, 6, 6), _paint);
+      canvas.drawCircle(Offset(0, 0), 6, _paint);
+    }, translate: true);
   }
 
   void drawRect(Canvas canvas, double x, double y, double w, double h) {
@@ -221,6 +269,32 @@ class TDEnemy {
   Point<double> get enemyCenter {
     Size size = this.getEnemySize();
 
-    return Point(this.position.x + size.width * 0.5, this.position.y + size.height * 0.5);
+    return Point(this.position.x + (size.width / 2), this.position.y + (size.height / 2));
+  }
+
+  Point<double> get enemyCenterRotated {
+    double t = this.angle;
+
+    double _sin = sin(t);
+    double _cos = cos(t);
+    // (w,0) rotation
+    var x1 = _cos * size.width;
+    var y1 = _sin * size.width;
+
+// (0,h) rotation
+    var x2 = -_sin * size.height;
+    var y2 = _cos * size.height;
+    var x3 = x1 + x2; //_cos * size.width - _sin * size.height;
+    var y3 = y1 + y2; //_sin * size.width + _cos * size.height;
+
+    var minX = [0, x1, x2, x3].reduce(min);
+    var maxX = [0, x1, x2, x3].reduce(max);
+    var minY = [0, y1, y2, y3].reduce(min);
+    var maxY = [0, y1, y2, y3].reduce(max);
+
+    var rotatedWidth = maxX - minX;
+    var rotatedHeight = maxY - minY;
+
+    return Point(this.position.x + (rotatedWidth / 2), this.position.y + (rotatedHeight / 2));
   }
 }
