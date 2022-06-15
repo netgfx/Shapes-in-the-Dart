@@ -5,7 +5,6 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:bezier/bezier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +27,7 @@ import 'package:flutter_shaders/game_classes/enemy_driver.dart';
 import 'package:flutter_shaders/game_classes/path_follower.dart';
 import 'package:flutter_shaders/game_classes/Tilemap.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
+import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
@@ -181,7 +181,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
       ];
 
       for (var i = 0; i < cubicPoints.length; i++) {
-        quadBeziers.add(CubicBezier(cubicPoints[i]));
+        quadBeziers.add(CubicBezier(p0: cubicPoints[i][0], p1: cubicPoints[i][1], p2: cubicPoints[i][2], p3: cubicPoints[i][3]));
       }
 
       //GameObject.shared.setCubicBeziers(quadBeziers);
@@ -264,7 +264,7 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                       child: Container(),
                     )),
                 Transform.translate(
-                    offset: Offset(0, 40),
+                    offset: Offset(0, 60),
                     child: CustomPaint(
                       key: UniqueKey(),
                       painter: EnemyDriverCanvas(
@@ -275,7 +275,6 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
                         towers: [],
                         fps: 60,
                         curve: getCurves(),
-                        quadBeziers: quadBeziers,
                       ),
                       isComplex: true,
                       willChange: false,

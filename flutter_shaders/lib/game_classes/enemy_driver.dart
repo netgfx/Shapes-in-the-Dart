@@ -13,9 +13,9 @@ import 'package:flutter_shaders/game_classes/TDTower.dart';
 import 'package:flutter_shaders/game_classes/TDWorld.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
+import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
-import "package:bezier/bezier.dart";
 import "package:flutter/painting.dart" as painter;
 import "../helpers//utils.dart";
 
@@ -61,7 +61,6 @@ class EnemyDriverCanvas extends CustomPainter {
     required this.fps,
     required this.towers,
     required this.curve,
-    required this.quadBeziers,
 
     /// <--- Update Fn
     required this.update,
@@ -81,7 +80,7 @@ class EnemyDriverCanvas extends CustomPainter {
     this._paint = Paint()
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true
-      ..color = color
+      ..color = Colors.yellow
       ..strokeWidth = 2.0
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
@@ -100,7 +99,7 @@ class EnemyDriverCanvas extends CustomPainter {
           maxCurves: this.curve.length,
           life: 100,
           speed: 0.005,
-          quadBeziers: quadBeziers,
+          quadBeziers: [],
           scale: 0.25,
           position: Point<double>(this.curve[0][0].x, this.curve[0][0].y))
     ];
@@ -123,8 +122,9 @@ class EnemyDriverCanvas extends CustomPainter {
     paintImage(canvas, size);
 
     // curve draw (old?)
-    // for (var i = 0; i < this.curve.length; i++) {
-    //   drawCurve(this.curve[i], width, height, this._paint);
+    // List<CubicBezier> pathLines = GameObject.shared.getCubicBeziers();
+    // for (var i = 0; i < pathLines.length; i++) {
+    //   drawCurve(pathLines[i], this._paint);
     // }
 
     for (var j = 0; j < this.towers.length; j++) {
@@ -172,25 +172,25 @@ class EnemyDriverCanvas extends CustomPainter {
       ..isAntiAlias = true
       ..color = Colors.red.withOpacity(0.5)
       ..style = PaintingStyle.fill;
-    rotate(x, y, null, () {
+    updateCanvas(x, y, null, () {
       canvas!.drawCircle(Offset(0, 0), 5, _paint);
     }, translate: true);
   }
 
-  void drawCurve(List<vectorMath.Vector2> curve, double width, double height, Paint paint) {
-    rotate(curve[0].x, curve[0].y, null, () {
+  void drawCurve(CubicBezier curve, Paint paint) {
+    updateCanvas(curve.getStartPoint().x, curve.getStartPoint().y, null, () {
       final Path path = Path();
 
-      path.moveTo(curve[0].x, curve[0].y);
+      path.moveTo(curve.getStartPoint().x, curve.getStartPoint().y);
 
       //path.relativeCubicTo(x1, y1, x2, y2)
-      path.cubicTo(curve[1].x, curve[1].y, curve[2].x, curve[2].y, curve[3].x, curve[3].y);
+      path.cubicTo(curve.p1.x, curve.p1.y, curve.p2.x, curve.p2.y, curve.p3.x, curve.p3.y);
 
       canvas!.drawPath(path, paint);
     });
   }
 
-  void rotate(double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
+  void updateCanvas(double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();

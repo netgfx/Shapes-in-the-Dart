@@ -170,43 +170,19 @@ class TDEnemy {
     var paint = new Paint()
       ..filterQuality = FilterQuality.high
       ..isAntiAlias = false;
-    Point<double> center = enemyCenterRotated;
-    double t = this.angle;
-
-    double _sin = sin(t);
-    double _cos = cos(t);
-    // (w,0) rotation
-    var x1 = _cos * size.width;
-    var y1 = _sin * size.width;
-
-// (0,h) rotation
-    var x2 = -_sin * size.height;
-    var y2 = _cos * size.height;
-    var x3 = x1 + x2; //_cos * size.width - _sin * size.height;
-    var y3 = y1 + y2; //_sin * size.width + _cos * size.height;
-
-    var minX = [0, x1, x2, x3].reduce(min);
-    var maxX = [0, x1, x2, x3].reduce(max);
-    var minY = [0, y1, y2, y3].reduce(min);
-    var maxY = [0, y1, y2, y3].reduce(max);
-
-    var rotatedWidth = maxX - minX;
-    var rotatedHeight = maxY - minY;
 
     updateCanvas(canvas, position.x, position.y, angle, () {
       canvas.drawImageRect(
         this.enemyTexture!,
         Rect.fromLTWH(0, 0, textureWidth.toDouble(), textureHeight.toDouble()),
-        Rect.fromLTWH(-rotatedWidth / 2, -rotatedHeight / 2, size.width, size.height),
+        Rect.fromLTWH(-size.width / 2, -size.height / 2, size.width, size.height),
         paint,
       );
-    }, translate: false);
+    });
 
     // Rectangle rect = getEnemyRect();
-
+    // drawRect(canvas, rect.x, rect.y, rect.width, rect.height);
     drawCircle(canvas, position.x, position.y);
-
-    //drawRect(canvas, position.x, position.y, rotatedWidth.toDouble(), rotatedHeight.toDouble());
   }
 
   void drawCircle(Canvas canvas, double x, double y) {

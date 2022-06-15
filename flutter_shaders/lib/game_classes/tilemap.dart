@@ -174,10 +174,10 @@ class TileMapPainter extends CustomPainter {
       Point p3 = getPointFromCoordinates(path[index3].getCol().toDouble(), path[index3].getRow().toDouble());
 
       currentPoint = [
-        vectorMath.Vector2(p0.x.toDouble(), p0.y.toDouble()),
-        vectorMath.Vector2(p1.x.toDouble(), p1.y.toDouble()),
-        vectorMath.Vector2(p2.x.toDouble(), p2.y.toDouble()),
-        vectorMath.Vector2(p3.x.toDouble(), p3.y.toDouble()),
+        vectorMath.Vector2(p0.x.toDouble(), p0.y.toDouble() + 10),
+        vectorMath.Vector2(p1.x.toDouble(), p1.y.toDouble() + 10),
+        vectorMath.Vector2(p2.x.toDouble(), p2.y.toDouble() + 10),
+        vectorMath.Vector2(p3.x.toDouble(), p3.y.toDouble() + 10),
       ];
 
       cubicPoints.add(currentPoint);
@@ -226,8 +226,8 @@ class TileMapPainter extends CustomPainter {
   }
 
   Point<double> getPointFromCoordinates(double x, double y) {
-    double finalX = (((x + 1) * tileSize!.width) - tileSize!.width / 2).roundToDouble();
-    double finalY = (((y + 1) * tileSize!.height) - tileSize!.height / 2).roundToDouble();
+    double finalX = (((x + 1) * tileSize!.width) - (tileSize!.width / 2)).roundToDouble();
+    double finalY = (((y + 1) * tileSize!.height) - (tileSize!.height / 2)).roundToDouble();
 
     return Point(finalX, finalY);
   }
@@ -253,7 +253,8 @@ class TileMapPainter extends CustomPainter {
     // TODO: add offset to show unit movement on the map
     createTilemap();
     drawCircle();
-    var cubic = GameObject.shared.cubicBeziers;
+    drawRect();
+    var cubic = GameObject.shared.getCubicBeziers();
     final Path path = Path();
     for (var i = 0; i < cubic.length; i++) {
       drawCurve(cubic[i], path);
@@ -292,17 +293,16 @@ class TileMapPainter extends CustomPainter {
   }
 
   void drawCurve(CubicBezier curve, Path path) {
-    //rotate(0, 0, () {
+    updateCanvas(curve.getStartPoint().x, curve.getStartPoint().y, null, () {
+      final Path path = Path();
 
-    vectorMath.Vector2 point0 = curve.getStartPoint();
-    vectorMath.Vector2 point1 = curve.points()[1];
-    vectorMath.Vector2 point2 = curve.points()[2];
-    vectorMath.Vector2 point3 = curve.points()[3];
-    path.moveTo(point0.x, point0.y);
+      path.moveTo(curve.getStartPoint().x, curve.getStartPoint().y);
 
-    path.cubicTo(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
+      //path.relativeCubicTo(x1, y1, x2, y2)
+      path.cubicTo(curve.p1.x, curve.p1.y, curve.p2.x, curve.p2.y, curve.p3.x, curve.p3.y);
 
-    //});
+      canvas!.drawPath(path, _paint);
+    });
   }
 
   void drawPath() {
@@ -332,6 +332,26 @@ class TileMapPainter extends CustomPainter {
     this.canvas!.drawPath(linepath, fill);
   }
 
+  void drawRect() {
+    if (path.length > 0) {
+      var _paint = Paint()
+        ..strokeCap = StrokeCap.round
+        ..isAntiAlias = true
+        ..color = Colors.blue.withOpacity(0.5)
+        ..style = PaintingStyle.fill;
+      for (var i = 0; i < path.length; i++) {
+        updateCanvas(0, 0, null, () {
+          double finalX = path[i].getCol() * tileSize!.width; //((x + 1) * tileSize!.width) - tileSize!.width / 2;
+          double finalY = path[i].getRow() * tileSize!.height; //((y + 1) * tileSize!.height) - tileSize!.height / 2;
+          Point point = Point(finalX, finalY);
+
+          canvas!.drawRect(Rect.fromLTWH(point.x.toDouble(), point.y.toDouble(), tileSize!.width, tileSize!.height), _paint);
+          //canvas.drawCircle(Offset(0, 0), radius, _paint);
+        });
+      }
+    }
+  }
+
   void drawCircle() {
     if (path.length > 0) {
       var _paint = Paint()
@@ -345,8 +365,9 @@ class TileMapPainter extends CustomPainter {
         int y = path[i].getRow();
         double finalX = ((x + 1) * tileSize!.width) - tileSize!.width / 2;
         double finalY = ((y + 1) * tileSize!.height) - tileSize!.height / 2;
+        Point point = getPointFromCoordinates(path[i].getCol().toDouble(), path[i].getRow().toDouble());
         //print("$x, $y");
-        rotate(0, 0, () {
+        updateCanvas(0, 0, null, () {
           canvas!.drawRect(Rect.fromLTWH(finalX.toDouble(), finalY.toDouble(), 5, 5), _paint);
           //canvas.drawCircle(Offset(0, 0), radius, _paint);
         });
@@ -354,12 +375,24 @@ class TileMapPainter extends CustomPainter {
     }
   }
 
-  void rotate(double? x, double? y, VoidCallback callback) {
+  void updateCanvas(double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();
-    canvas!.translate(_x, _y);
 
+    if (translate) {
+      canvas!.translate(_x, _y);
+    }
+
+    if (angle != null) {
+      // double x1 = (_x * cos(angle)) - (_y * sin(angle));
+      // double y1 = (_x * sin(angle)) + (_y * cos(angle));
+
+      canvas!.translate(_x, _y);
+      canvas?.rotate(angle);
+    } else {
+      //canvas?.rotate(0);
+    }
     //canvas!.translate(0, 0);
     callback();
     canvas!.restore();
