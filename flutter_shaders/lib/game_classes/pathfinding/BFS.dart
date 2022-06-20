@@ -5,7 +5,9 @@
 //  Created by Mixalis Dobekidis on 6/5/21.
 //
 
+import 'package:flutter_shaders/game_classes/pathfinding/MazeGrid.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/MazeNode.dart';
 import './MazeLocation.dart';
 import './Grid.dart';
 
@@ -13,17 +15,19 @@ import 'Grid.dart';
 import 'GridNode.dart';
 
 class BFS {
-  Grid grid = Grid(8, 8, []);
+  MazeGrid grid; // = MazeGrid(width: 8, height: 8, matrix: [], maze: []);
+  int width = 0;
+  int height = 0;
 
-  BFS({required this.grid}) {}
+  BFS({required this.width, required this.height, required this.grid}) {}
 
   List<MazeLocation> findPath(MazeLocation start, MazeLocation end) {
-    List<GridNode> openList = [];
-    GridNode startNode = grid.getNodeAt(start.getRow(), start.getCol());
-    GridNode endNode = grid.getNodeAt(end.getRow(), end.getCol());
-    List<GridNode> neighbors = [];
-    GridNode neighbor;
-    GridNode node;
+    List<Node> openList = [];
+    Node startNode = grid.getNodeAt(start.getRow(), start.getCol());
+    Node endNode = grid.getNodeAt(end.getRow(), end.getCol());
+    List<Node> neighbors = [];
+    Node neighbor;
+    Node node;
     int i = 0;
     int l = 0;
 
@@ -60,7 +64,7 @@ class BFS {
     return [];
   }
 
-  List<MazeLocation> backtrace(GridNode node) {
+  List<MazeLocation> backtrace(Node node) {
     var _node = node;
     List<MazeLocation> path = [MazeLocation(row: _node.x, col: _node.y)];
     while (_node.getParent() != null) {

@@ -1,0 +1,228 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_shaders/AnimatedBackground.dart';
+import 'package:flutter_shaders/BGAnimator.dart';
+import 'package:flutter_shaders/LetterParticles.dart';
+import 'package:flutter_shaders/MazeGenerator.dart';
+import 'package:flutter_shaders/MazePainter.dart';
+import 'package:flutter_shaders/ParticleEmitter.dart';
+import 'package:flutter_shaders/PhysicsEngine.dart';
+import 'package:flutter_shaders/Shadows.dart';
+import 'package:flutter_shaders/ShapeMaster.dart';
+import 'package:flutter_shaders/SpriteAnimator.dart';
+import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:flutter_shaders/Starfield.dart';
+import 'package:flutter_shaders/game_classes/TDEnemy.dart';
+import 'package:flutter_shaders/game_classes/TDTower.dart';
+import 'package:flutter_shaders/game_classes/TDWorld.dart';
+import 'package:flutter_shaders/game_classes/enemy_driver.dart';
+import 'package:flutter_shaders/game_classes/maze/maze_draw.dart';
+import 'package:flutter_shaders/game_classes/path_follower.dart';
+import 'package:flutter_shaders/game_classes/Tilemap.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/BFS.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart' as ML;
+import 'package:flutter_shaders/helpers/GameObject.dart';
+import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
+import 'package:flutter_shaders/helpers/utils.dart';
+import 'package:vector_math/vector_math.dart' as vectorMath;
+
+/// test
+import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
+
+import 'package:path_provider/path_provider.dart';
+import 'package:performance/performance.dart';
+import 'package:dotted_border/dotted_border.dart';
+
+import 'game_classes/pathfinding/MazeGrid.dart';
+import 'game_classes/pathfinding/MazeNode.dart';
+
+class MazeMaker extends StatefulWidget {
+  MazeMaker({required Key key}) : super(key: key);
+
+  @override
+  _MazeMakerState createState() => _MazeMakerState();
+}
+
+class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
+  Color selectedColor = Colors.black;
+  Color pickerColor = Colors.black;
+  double strokeWidth = 50.0;
+  bool showBottomList = false;
+  double opacity = 1.0;
+  List<ui.Image> spriteImages = [];
+  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
+  List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
+  Map<String, dynamic>? mazeData;
+  late AnimationController _controller;
+  late AnimationController _starfieldController;
+  final ValueNotifier<Offset> particlePoint = ValueNotifier<Offset>(Offset(0, 0));
+  final ValueNotifier<Offset> particlePoint2 = ValueNotifier<Offset>(Offset(0, 0));
+  Color _color = Colors.green;
+  final _random = new Random();
+  int _counter = 0;
+  BoxConstraints? viewportConstraints;
+  final ValueNotifier<int> counter = ValueNotifier<int>(0);
+  List<List<Cell>> finalMaze = [];
+  List<ML.MazeLocation> mazeSolution = [];
+  bool isStopped = true; //global
+
+  ///
+  Duration _elapsed = Duration.zero;
+  // 2. declare Ticker
+  late final Ticker _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 3. initialize Ticker
+    _ticker = this.createTicker((elapsed) {
+      // 4. update state
+      setState(() {
+        _elapsed = elapsed;
+      });
+    });
+    // 5. start ticker
+    //_ticker.start();
+    // Curves.easeOutBack // explode
+
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      //_letterController.repeat();
+      //_controller.forward();
+
+      /// generate maze
+      generateMaze();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+
+    super.dispose();
+  }
+
+  void generateMaze() {
+    int size = 24;
+    Random rand = Random();
+    List<List<Cell>> maze = generate(width: size, height: size, closed: true, seed: rand.nextInt(100000000));
+
+    for (var i = 0; i < maze.length; i++) {
+      List<Cell> blocks = maze[i].toList();
+    }
+
+    List<List<Node>> matrix = getMatrix(size, size, maze);
+    MazeGrid grid = MazeGrid(width: size, height: size, matrix: matrix, maze: maze);
+    List<ML.MazeLocation> solution =
+        BFS(width: size, height: size, grid: grid).findPath(ML.MazeLocation(row: 0, col: 0), ML.MazeLocation(row: maze.length - 1, col: maze.length - 1));
+
+    setState(() {
+      finalMaze = maze;
+      mazeSolution = solution;
+    });
+  }
+
+  List<List<Node>> getMatrix(int rows, int columns, List<List<Cell>> maze) {
+    List<List<Node>> matrix = [];
+    for (var i = 0; i < rows; i++) {
+      matrix.add([]);
+      for (var j = 0; j < columns; j++) {
+        matrix[i].add(Node(x: maze[i][j].x.round(), y: maze[i][j].y.round(), walkable: true));
+      }
+    }
+
+    return matrix;
+  }
+
+  void updateFn(double point) {
+    //Utils.shared.delayedPrint("update received:  $point");
+  }
+
+  Widget roundedRectBorderWidget() {
+    return DottedBorder(
+      strokeWidth: 2,
+      color: Colors.green,
+      borderType: BorderType.RRect,
+      radius: Radius.circular(12),
+      padding: EdgeInsets.all(6),
+      dashPattern: [12, 2],
+      child: RotationTransition(
+        turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
+        child: Container(
+          height: 200,
+          width: 200,
+          color: ui.Color.fromARGB(255, 146, 30, 255),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPerformanceOverlay(
+      child: Scaffold(
+          backgroundColor: ui.Color.fromARGB(255, 255, 255, 255),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: ui.Color.fromARGB(255, 255, 255, 255)),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[],
+                      ),
+                    ],
+                  ),
+                )),
+          ),
+          body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
+            this.viewportConstraints = viewportConstraints;
+            return GestureDetector(
+              onTapDown: (details) {
+                print("POINT OF CONTACT: ${details.globalPosition}");
+                // _controller.repeat();
+              },
+              //   onTapCancel: () {
+              //     setState(() {
+              //       points.add(null);
+              //     });
+              //   },
+              child: Stack(children: [
+                Transform.translate(
+                  offset: Offset(50, 100),
+                  child: RepaintBoundary(
+                      child: CustomPaint(
+                    key: UniqueKey(),
+                    isComplex: true,
+                    painter: MazeDrawCanvas(
+                      maze: finalMaze,
+                      blockSize: 16,
+                      solution: this.mazeSolution,
+                      color: Colors.red,
+                    ),
+                    child: Container(),
+                  )),
+                ),
+              ]),
+            );
+
+            //);
+          })),
+    );
+  }
+}

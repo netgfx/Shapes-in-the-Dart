@@ -13,6 +13,7 @@ class Grid {
   int width = 0;
   int height = 0;
   List<List<GridNode>> matrix = [];
+  bool usesBlocks = true;
   var map2D = [
     [1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 1],
@@ -40,10 +41,11 @@ class Grid {
     [1, 1, 1, 1, 1, 1, 1, 2]
   ];*/
 
-  Grid(int _width, int _height, List<List<int>> map2D) {
+  Grid(int _width, int _height, List<List<int>> map2D, {bool usesBlocks = true}) {
     this.width = _width;
     this.height = _height;
     this.map2D = map2D;
+    this.usesBlocks = usesBlocks;
     matrix = createMatrix();
     print("> $_width, $_height");
   }

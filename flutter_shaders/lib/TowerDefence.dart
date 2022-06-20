@@ -31,6 +31,9 @@ import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
+/// test
+import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:performance/performance.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -127,6 +130,9 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
 
       /// add tower
       towers.add(TDTower(position: Point(120, 500), baseType: "base1", turretType: "cannon1", rof: 800.0, scale: 1));
+
+      /// generate maze
+      generateMaze();
     });
   }
 
@@ -135,6 +141,24 @@ class _TowerDefenceState extends State<TowerDefence> with TickerProviderStateMix
     _controller.dispose();
     _bgController.dispose();
     super.dispose();
+  }
+
+  void generateMaze() {
+    List<dynamic> maze = generate(width: 4, height: 4, closed: true, seed: 10);
+
+    print("MAZE IS: $maze, ${maze.length}");
+    for (var i = 0; i < maze.length; i++) {
+      List<Cell> blocks = maze[i].toList();
+      print("${blocks[0].x} ${blocks[0].y}");
+      print("${blocks[0].top} ${blocks[0].bottom} ${blocks[0].left} ${blocks[0].right}");
+      print("${blocks[1].x} ${blocks[1].y}");
+      print("${blocks[1].top} ${blocks[1].bottom} ${blocks[1].left} ${blocks[1].right}");
+      print("${blocks[2].x} ${blocks[2].y}");
+      print("${blocks[2].top} ${blocks[2].bottom} ${blocks[2].left} ${blocks[2].right}");
+      print("${blocks[3].x} ${blocks[3].y}");
+      print("${blocks[3].top} ${blocks[3].bottom} ${blocks[3].left} ${blocks[3].right}");
+      print(" --------- end of block ------------\n");
+    }
   }
 
   void updateFn(double point) {

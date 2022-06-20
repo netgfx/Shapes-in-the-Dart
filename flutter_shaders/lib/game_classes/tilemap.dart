@@ -137,7 +137,9 @@ class TileMapPainter extends CustomPainter {
 
   void getPath(Grid grid) {
     gridPoints.clear();
-    path = BFS(grid: grid).findPath(MazeLocation(row: 12, col: 1), MazeLocation(row: 3, col: 3));
+
+    /// TODO: Needs fix
+    //path = BFS(grid: grid).findPath(MazeLocation(row: 12, col: 1), MazeLocation(row: 3, col: 3));
     //pathTiles = path;
     print("SOLUTION IS: $path");
     List<CubicBezier> quadBeziers = [];
