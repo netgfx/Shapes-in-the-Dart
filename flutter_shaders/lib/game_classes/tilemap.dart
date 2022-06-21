@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/BFS.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/BFSSimple.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/Grid.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
@@ -138,8 +139,7 @@ class TileMapPainter extends CustomPainter {
   void getPath(Grid grid) {
     gridPoints.clear();
 
-    /// TODO: Needs fix
-    //path = BFS(grid: grid).findPath(MazeLocation(row: 12, col: 1), MazeLocation(row: 3, col: 3));
+    path = BFSSimple(grid: grid).findPath(MazeLocation(row: 12, col: 1), MazeLocation(row: 3, col: 3));
     //pathTiles = path;
     print("SOLUTION IS: $path");
     List<CubicBezier> quadBeziers = [];
