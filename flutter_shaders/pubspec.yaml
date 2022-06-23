@@ -34,8 +34,6 @@ dependencies:
   flutter_cache_manager: ^3.1.2
   delaunay: ^1.0.0
   args: ^2.1.0
-  spring: ^2.0.2
-  simple_animations: ^3.1.1
   supercharged: ^2.0.0
   performance: ^0.1.0+1
   tiled: ^0.7.2
@@ -43,6 +41,7 @@ dependencies:
   dotted_border: ^2.0.0+2
   bezier: ^1.2.0 
   collection: ^1.16.0
+  simple_animations: ^4.1.0
 
   # flutter_native_image:
   #   git:
