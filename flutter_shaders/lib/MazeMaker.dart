@@ -7,37 +7,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_shaders/AnimatedBackground.dart';
-import 'package:flutter_shaders/BGAnimator.dart';
-import 'package:flutter_shaders/LetterParticles.dart';
-import 'package:flutter_shaders/MazeGenerator.dart';
-import 'package:flutter_shaders/MazePainter.dart';
-import 'package:flutter_shaders/ParticleEmitter.dart';
-import 'package:flutter_shaders/PhysicsEngine.dart';
-import 'package:flutter_shaders/Shadows.dart';
-import 'package:flutter_shaders/ShapeMaster.dart';
-import 'package:flutter_shaders/SpriteAnimator.dart';
-import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
-import 'package:flutter_shaders/Starfield.dart';
-import 'package:flutter_shaders/game_classes/TDEnemy.dart';
-import 'package:flutter_shaders/game_classes/TDTower.dart';
-import 'package:flutter_shaders/game_classes/TDWorld.dart';
-import 'package:flutter_shaders/game_classes/enemy_driver.dart';
+
 import 'package:flutter_shaders/game_classes/maze/maze_draw.dart';
-import 'package:flutter_shaders/game_classes/path_follower.dart';
-import 'package:flutter_shaders/game_classes/Tilemap.dart';
+
 import 'package:flutter_shaders/game_classes/pathfinding/BFS.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart' as ML;
-import 'package:flutter_shaders/helpers/GameObject.dart';
-import 'package:flutter_shaders/helpers/math/CubicBezier.dart';
-import 'package:flutter_shaders/helpers/utils.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 /// test
 import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:performance/performance.dart';
 import 'package:dotted_border/dotted_border.dart';
 
@@ -62,7 +41,6 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
-  late AnimationController _starfieldController;
   final ValueNotifier<Offset> particlePoint = ValueNotifier<Offset>(Offset(0, 0));
   final ValueNotifier<Offset> particlePoint2 = ValueNotifier<Offset>(Offset(0, 0));
   Color _color = Colors.green;
@@ -90,15 +68,11 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
         _elapsed = elapsed;
       });
     });
-    // 5. start ticker
-    //_ticker.start();
-    // Curves.easeOutBack // explode
 
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      //_letterController.repeat();
-      //_controller.forward();
+      _controller.repeat();
 
       /// generate maze
       generateMaze();
@@ -112,23 +86,27 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  /**
+   * Generate the maze
+   */
   void generateMaze() {
     int size = 24;
     Random rand = Random();
-    List<List<Cell>> maze = generate(width: size, height: size, closed: true, seed: rand.nextInt(100000000));
+    List<List<Cell>> maze = generate(width: size, height: size, closed: true, seed: 100);
+    // rand.nextInt(100000000)
 
-    for (var i = 0; i < maze.length; i++) {
-      List<Cell> blocks = maze[i].toList();
-    }
+    // for (var i = 0; i < maze.length; i++) {
+    //   List<Cell> blocks = maze[i].toList();
+    // }
 
-    List<List<Node>> matrix = getMatrix(size, size, maze);
-    MazeGrid grid = MazeGrid(width: size, height: size, matrix: matrix, maze: maze);
-    List<ML.MazeLocation> solution =
-        BFS(width: size, height: size, grid: grid).findPath(ML.MazeLocation(row: 0, col: 0), ML.MazeLocation(row: maze.length - 1, col: maze.length - 1));
+    // List<List<Node>> matrix = getMatrix(size, size, maze);
+    // MazeGrid grid = MazeGrid(width: size, height: size, matrix: matrix, maze: maze);
+    // List<ML.MazeLocation> solution =
+    //     BFS(width: size, height: size, grid: grid).findPath(ML.MazeLocation(row: 0, col: 0), ML.MazeLocation(row: maze.length - 1, col: maze.length - 1));
 
     setState(() {
       finalMaze = maze;
-      mazeSolution = solution;
+      //mazeSolution = solution;
     });
   }
 
@@ -207,15 +185,19 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
                   offset: Offset(50, 100),
                   child: RepaintBoundary(
                       child: CustomPaint(
+                    size: ui.Size(200, 400),
                     key: UniqueKey(),
                     isComplex: true,
                     painter: MazeDrawCanvas(
+                      controller: _controller,
                       maze: finalMaze,
                       blockSize: 16,
                       solution: this.mazeSolution,
+                      maxSize: Size(viewportConstraints.maxWidth, viewportConstraints.maxHeight),
                       color: Colors.red,
                     ),
-                    child: Container(),
+                    // child:
+                    //     Container(constraints: BoxConstraints(maxWidth: viewportConstraints.maxWidth * 0.8, maxHeight: viewportConstraints.maxHeight * 0.25)),
                   )),
                 ),
               ]),

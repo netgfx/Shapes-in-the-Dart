@@ -3,7 +3,7 @@ import 'package:flutter_shaders/AnimatedBorder.dart';
 import 'package:flutter_shaders/BlendModeView.dart';
 import 'package:flutter_shaders/GameMode.dart';
 import 'package:flutter_shaders/MazeMaker.dart';
-import 'package:flutter_shaders/MazeMode.dart';
+import 'package:flutter_shaders/EffectsMode.dart';
 import 'package:flutter_shaders/TowerDefence.dart';
 import 'package:flutter_shaders/Triangulator.dart';
 import 'Menu.dart';
@@ -15,7 +15,7 @@ Map<String, Widget Function(BuildContext)> routes = {
         key: UniqueKey(),
       ),
   // When navigating to the "/second" route, build the SecondScreen widget.
-  'MazeMode': (context) => MazeMode(
+  'MazeMode': (context) => EffectsMode(
         key: UniqueKey(),
       ),
   'GameMode': (context) => GameMode(

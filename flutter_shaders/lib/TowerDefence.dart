@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_shaders/AnimatedBackground.dart';
 import 'package:flutter_shaders/BGAnimator.dart';
 import 'package:flutter_shaders/LetterParticles.dart';
-import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/PhysicsEngine.dart';

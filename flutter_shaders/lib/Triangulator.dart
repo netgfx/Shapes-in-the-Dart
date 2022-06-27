@@ -13,7 +13,7 @@ import 'dart:ui' as ui;
 import 'package:args/args.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:spring/spring.dart';
+//import 'package:spring/spring.dart';
 import 'package:supercharged/supercharged.dart';
 
 enum AniProps { rotateX, rotateY, opacity, scale }
@@ -32,9 +32,9 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
   late AnimationController _controller;
   List<AnimationController> controllers = [];
   ui.Image? sourceImage;
-  final SpringController springController = SpringController(
-    initialAnim: Motion.pause,
-  );
+  // final SpringController springController = SpringController(
+  //   initialAnim: Motion.pause,
+  // );
   @override
   void initState() {
     super.initState();
@@ -311,26 +311,26 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
         counter++;
       }
 
-      list.add(Spring.opacity(
-        startOpacity: 1.0,
-        endOpacity: 0.0,
-        springController: springController,
-        animDuration: Duration(milliseconds: 10), //def=1s
-        animStatus: (AnimStatus status) {
-          print(status);
-        },
-        curve: Curves.easeOutSine, //def=Curves.easInOut
-        delay: Duration(milliseconds: (100).round()), //def=0
-        child: Padding(
-          padding: EdgeInsets.only(top: 0, left: 0),
-          child: Image.asset(
-            "assets/bg.jpg",
-            height: 518,
-            fit: BoxFit.fill,
-            alignment: Alignment.bottomCenter,
-          ),
-        ),
-      ));
+      // list.add(Spring.opacity(
+      //   startOpacity: 1.0,
+      //   endOpacity: 0.0,
+      //   springController: springController,
+      //   animDuration: Duration(milliseconds: 10), //def=1s
+      //   animStatus: (AnimStatus status) {
+      //     print(status);
+      //   },
+      //   curve: Curves.easeOutSine, //def=Curves.easInOut
+      //   delay: Duration(milliseconds: (100).round()), //def=0
+      //   child: Padding(
+      //     padding: EdgeInsets.only(top: 0, left: 0),
+      //     child: Image.asset(
+      //       "assets/bg.jpg",
+      //       height: 518,
+      //       fit: BoxFit.fill,
+      //       alignment: Alignment.bottomCenter,
+      //     ),
+      //   ),
+      // ));
     }
 
     return list;
@@ -446,7 +446,7 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
           return GestureDetector(
               onTapDown: (details) {
                 _controller.repeat();
-                springController.play();
+                //springController.play();
                 var counter = 0;
                 Future.delayed(Duration(milliseconds: 12000), () {
                   _controller.reset();

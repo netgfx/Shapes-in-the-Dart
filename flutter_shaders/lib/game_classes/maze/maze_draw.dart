@@ -9,6 +9,8 @@ import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart' as ML;
+import 'package:flutter_shaders/helpers/Camera.dart';
+import 'package:flutter_shaders/helpers/MazePlayer.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
@@ -29,7 +31,7 @@ class MazeDrawCanvas extends CustomPainter {
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
   int timeDecay = 0;
-  double? rate = 0.001;
+  double rate = 1.0;
   double endT = 0.0;
   final _random = new Random();
   int timeAlive = 0;
@@ -40,9 +42,17 @@ class MazeDrawCanvas extends CustomPainter {
   Function? animate;
   bool isMazeDrawn = false;
   List<ML.MazeLocation> solution = [];
+  //temp
+  Size maxSize = Size(0, 0);
+  Camera? _camera;
+  MazePlayer player = MazePlayer(height: 4, width: 4);
+  bool maxRightReached = false;
 
   /// Constructor
   MazeDrawCanvas({
+    /// <-- The animation controller
+    required this.controller,
+
     /// <-- Color of the particles
     required this.color,
     required this.maze,
@@ -53,32 +63,16 @@ class MazeDrawCanvas extends CustomPainter {
 
     /// <-- The particles blend mode (default: BlendMode.src)
     this.blendMode,
+    required this.maxSize,
 
     /// <-- Custom callback to call after Delay has passed
     this.animate,
-  }) {
+  }) : super(repaint: controller) {
     /// the delay in ms based on desired fps
     this.timeDecay = (1 / this.fps * 1000).round();
 
     /// default painter
 
-    var painter = Paint()
-      ..color = this.color.withAlpha(1)
-      //..blendMode = this.blendMode ?? ui.BlendMode.src
-      ..style = PaintingStyle.fill;
-
-    if (solution != null) {
-      this.solution = solution;
-    }
-
-    /// fire the animate after a delay
-    if (this.delay > 0 && this.animate != null) {
-      Future.delayed(Duration(milliseconds: this.delay), () => {this.animate!()});
-    }
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
     _paint = Paint()
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true
@@ -86,12 +80,31 @@ class MazeDrawCanvas extends CustomPainter {
       ..strokeWidth = 2.0
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.fill;
+
+    //..blendMode = this.blendMode ?? ui.BlendMode.src
+
+    if (solution != null) {
+      this.solution = solution;
+    }
+
+    this._camera =
+        Camera(x: 0, y: 0, canvasSize: Size(maxSize.width * 0.6, (this.blockSize * 24) * 0.8), mapSize: Size(this.blockSize * 24, this.blockSize * 24));
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
     this.canvas = canvas;
-    //paintImage(canvas, size);
-    //if (isMazeDrawn == false) {
+
+    if (_camera != null) {
+      canvas.clipRect(Rect.fromLTWH(0, 0, _camera!.getCameraBounds().width, _camera!.getCameraBounds().height));
+      Rect bounds = _camera!.getCameraBounds();
+      //moveCanvas(bounds.left * -1, bounds.top, () {});
+      print("$bounds, ${this.player.x}");
+    }
+
     makeBlocks();
     drawPath();
-    //}
+    draw(canvas, size);
   }
 
   void paintImage(Canvas canvas, Size size) async {
@@ -100,11 +113,42 @@ class MazeDrawCanvas extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
+    return false;
   }
 
   void draw(Canvas canvas, Size size) {
-    /// nothing to do
+    /// check if the controller is running
+    if (this.controller != null) {
+      if (this.controller!.lastElapsedDuration != null) {
+        /// in order to run in our required frames per second
+        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
+          /// reset the time
+
+          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
+
+          /// move the camera
+
+          if (this.player.x >= this.maxSize.width / 2) {
+            maxRightReached = true;
+          }
+
+          if (this.player.x == 0) {
+            maxRightReached = false;
+          }
+
+          if (maxRightReached == true) {
+            this.player.x -= this.rate;
+          } else {
+            this.player.x += this.rate;
+          }
+          this._camera?.focus(this.player);
+        } else {
+          //print("no elapsed duration");
+        }
+      } else {
+        print("no controller running");
+      }
+    }
   }
 
   makeBlocks() {
@@ -165,118 +209,24 @@ class MazeDrawCanvas extends CustomPainter {
     }
   }
 
-  /// Draw the particle shape
-  void drawType(double x, double y, ShapeType type, Paint painter) {
-    switch (type) {
-      case ShapeType.Circle:
-        drawCircle(x, y, painter);
-        break;
-      case ShapeType.Rect:
-        drawRect(x, y, painter);
-        break;
-      case ShapeType.RoundedRect:
-        drawRRect(x, y, painter);
-        break;
-      case ShapeType.Triangle:
-        drawPolygon(x, y, 3, painter, initialAngle: 30);
-        break;
-      case ShapeType.Diamond:
-        drawPolygon(x, y, 4, painter, initialAngle: 0);
-        break;
-      case ShapeType.Pentagon:
-        drawPolygon(x, y, 5, painter, initialAngle: -18);
-        break;
-      case ShapeType.Hexagon:
-        drawPolygon(x, y, 6, painter, initialAngle: 0);
-        break;
-      case ShapeType.Octagon:
-        drawPolygon(x, y, 8, painter, initialAngle: 0);
-        break;
-      case ShapeType.Decagon:
-        drawPolygon(x, y, 10, painter, initialAngle: 0);
-        break;
-      case ShapeType.Dodecagon:
-        drawPolygon(x, y, 12, painter, initialAngle: 0);
-        break;
-      case ShapeType.Heart:
-        drawHeart(x, y, painter);
-        break;
-    }
-  }
-
   void drawCircle(double x, double y, Paint paint) {
-    rotate(0, 0, () {
+    updateCanvas(0, 0, () {
       canvas!.drawCircle(Offset(x, y), this.radius, paint);
-    });
-  }
-
-  void drawRect(double x, double y, Paint paint) {
-    rotate(x, y, () {
-      canvas!.drawRect(rect(), paint);
-    });
-  }
-
-  void drawRRect(double x, double y, Paint paint, {double? cornerRadius}) {
-    rotate(x, y, () {
-      canvas!.drawRRect(RRect.fromRectAndRadius(rect(), Radius.circular(cornerRadius ?? radius * 0.2)), paint);
     });
   }
 
   // DRAW LINE ///////////////////////////////
   void drawLine(double x, double y, double targetX, double targetY, Paint paint) {
-    rotate(0, 0, () {
+    Rect bounds = _camera!.getCameraBounds();
+
+    updateCanvas(bounds.left * -1, bounds.top, () {
       //print("$x, $y, $signX, $signY");
       canvas!.drawLine(
         Offset(x, y),
         Offset(targetX, targetY),
         paint,
       );
-    });
-  }
-
-  void drawPolygon(double x, double y, int num, Paint paint, {double initialAngle = 0}) {
-    rotate(x, y, () {
-      final Path path = Path();
-      for (int i = 0; i < num; i++) {
-        final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
-        final double x = radius * cos(radian);
-        final double y = radius * sin(radian);
-        //delayedPrint("$x, $y, $radian");
-        if (i == 0) {
-          path.moveTo(x, y);
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-      path.close();
-      canvas!.drawPath(path, paint);
     }, translate: true);
-  }
-
-  void drawCurve(List<vectorMath.Vector2> curve, double width, double height, Paint paint) {
-    rotate(curve[0].x, curve[0].y, () {
-      final Path path = Path();
-
-      path.moveTo(curve[0].x, curve[0].y);
-
-      //path.relativeCubicTo(x1, y1, x2, y2)
-      path.cubicTo(curve[1].x, curve[1].y, curve[2].x, curve[2].y, curve[3].x, curve[3].y);
-
-      canvas!.drawPath(path, paint);
-    });
-  }
-
-  void drawHeart(double x, double y, Paint paint) {
-    rotate(x, y, () {
-      final Path path = Path();
-
-      path.moveTo(0, radius);
-
-      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0, -radius * 0.5);
-      path.cubicTo(radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
-
-      canvas!.drawPath(path, paint);
-    });
   }
 
   Rect rect() => Rect.fromCircle(center: Offset.zero, radius: radius);
@@ -300,19 +250,30 @@ class MazeDrawCanvas extends CustomPainter {
   void delayedPrint(String str) {
     if (DateTime.now().millisecondsSinceEpoch - this.printTime > 10) {
       this.printTime = DateTime.now().millisecondsSinceEpoch;
-      print(str);
+      //print(str);
     }
   }
 
-  void rotate(double? x, double? y, VoidCallback callback, {bool translate = false}) {
+  void updateCanvas(double? x, double? y, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();
     if (translate) {
       canvas!.translate(_x, _y);
     }
-    canvas!.translate(0, 0);
+    //canvas!.translate(0, 0);
     callback();
     canvas!.restore();
+  }
+
+  void moveCanvas(double? x, double? y, VoidCallback callback) {
+    double _x = x ?? 0;
+    double _y = y ?? 0;
+    //canvas!.save();
+
+    canvas!.translate(237, _y);
+
+    callback();
+    // canvas!.restore();
   }
 }
