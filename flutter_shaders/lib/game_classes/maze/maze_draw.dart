@@ -16,45 +16,25 @@ import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
 import "../../helpers/utils.dart";
 
-class MazeDrawCanvas extends CustomPainter {
-  List<Map<String, dynamic>> points = [];
-
+class MazeDrawer {
   Color color = Colors.black;
-  var index = 0;
-  var offset = 0;
-  AnimationController? controller;
   Canvas? canvas;
   Paint _paint = Paint();
   double radius = 10.0;
-  int delay = 500;
-  int currentTime = 0;
   int fps = 24;
   int printTime = DateTime.now().millisecondsSinceEpoch;
-  int timeDecay = 0;
-  double rate = 1.0;
-  double endT = 0.0;
   final _random = new Random();
-  int timeAlive = 0;
-  int timeToLive = 24;
   int blockSize = 8;
   List<List<Cell>> maze = [];
   ui.BlendMode? blendMode = ui.BlendMode.src;
-  Function? animate;
   bool isMazeDrawn = false;
   List<ML.MazeLocation> solution = [];
-  //temp
-  Size maxSize = Size(0, 0);
-  Camera? _camera;
-  MazePlayer player = MazePlayer(height: 4, width: 4);
+  Rect _bounds = Rect.fromLTWH(0, 0, 0, 0);
+
   bool maxRightReached = false;
 
   /// Constructor
-  MazeDrawCanvas({
-    /// <-- The animation controller
-    required this.controller,
-
-    /// <-- Color of the particles
-    required this.color,
+  MazeDrawer({
     required this.maze,
 
     /// <-- The delay until the animation starts
@@ -63,14 +43,7 @@ class MazeDrawCanvas extends CustomPainter {
 
     /// <-- The particles blend mode (default: BlendMode.src)
     this.blendMode,
-    required this.maxSize,
-
-    /// <-- Custom callback to call after Delay has passed
-    this.animate,
-  }) : super(repaint: controller) {
-    /// the delay in ms based on desired fps
-    this.timeDecay = (1 / this.fps * 1000).round();
-
+  }) {
     /// default painter
 
     _paint = Paint()
@@ -81,74 +54,16 @@ class MazeDrawCanvas extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.fill;
 
-    //..blendMode = this.blendMode ?? ui.BlendMode.src
-
     if (solution != null) {
       this.solution = solution;
     }
-
-    this._camera =
-        Camera(x: 0, y: 0, canvasSize: Size(maxSize.width * 0.6, (this.blockSize * 24) * 0.8), mapSize: Size(this.blockSize * 24, this.blockSize * 24));
   }
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  void update(Canvas canvas, Rect bounds) {
     this.canvas = canvas;
-
-    if (_camera != null) {
-      canvas.clipRect(Rect.fromLTWH(0, 0, _camera!.getCameraBounds().width, _camera!.getCameraBounds().height));
-      Rect bounds = _camera!.getCameraBounds();
-      //moveCanvas(bounds.left * -1, bounds.top, () {});
-      print("$bounds, ${this.player.x}");
-    }
-
+    this._bounds = bounds;
     makeBlocks();
     drawPath();
-    draw(canvas, size);
-  }
-
-  void paintImage(Canvas canvas, Size size) async {
-    draw(canvas, size);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
-
-  void draw(Canvas canvas, Size size) {
-    /// check if the controller is running
-    if (this.controller != null) {
-      if (this.controller!.lastElapsedDuration != null) {
-        /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
-          /// reset the time
-
-          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
-
-          /// move the camera
-
-          if (this.player.x >= this.maxSize.width / 2) {
-            maxRightReached = true;
-          }
-
-          if (this.player.x == 0) {
-            maxRightReached = false;
-          }
-
-          if (maxRightReached == true) {
-            this.player.x -= this.rate;
-          } else {
-            this.player.x += this.rate;
-          }
-          this._camera?.focus(this.player);
-        } else {
-          //print("no elapsed duration");
-        }
-      } else {
-        print("no controller running");
-      }
-    }
   }
 
   makeBlocks() {
@@ -217,9 +132,9 @@ class MazeDrawCanvas extends CustomPainter {
 
   // DRAW LINE ///////////////////////////////
   void drawLine(double x, double y, double targetX, double targetY, Paint paint) {
-    Rect bounds = _camera!.getCameraBounds();
+    //Rect bounds = _camera!.getCameraBounds();
 
-    updateCanvas(bounds.left * -1, bounds.top, () {
+    updateCanvas(this._bounds.left * -1, this._bounds.top, () {
       //print("$x, $y, $signX, $signY");
       canvas!.drawLine(
         Offset(x, y),
@@ -264,16 +179,5 @@ class MazeDrawCanvas extends CustomPainter {
     //canvas!.translate(0, 0);
     callback();
     canvas!.restore();
-  }
-
-  void moveCanvas(double? x, double? y, VoidCallback callback) {
-    double _x = x ?? 0;
-    double _y = y ?? 0;
-    //canvas!.save();
-
-    canvas!.translate(237, _y);
-
-    callback();
-    // canvas!.restore();
   }
 }

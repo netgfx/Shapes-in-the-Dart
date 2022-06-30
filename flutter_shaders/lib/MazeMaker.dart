@@ -9,9 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'package:flutter_shaders/game_classes/maze/maze_draw.dart';
+import 'package:flutter_shaders/game_classes/maze_driver.dart';
 
 import 'package:flutter_shaders/game_classes/pathfinding/BFS.dart';
 import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart' as ML;
+import 'package:flutter_shaders/helpers/action_manager.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
 /// test
@@ -51,6 +53,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   List<List<Cell>> finalMaze = [];
   List<ML.MazeLocation> mazeSolution = [];
   bool isStopped = true; //global
+  ActionManager actions = ActionManager();
 
   ///
   Duration _elapsed = Duration.zero;
@@ -82,7 +85,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
-
+    actions.actionController.close();
     super.dispose();
   }
 
@@ -92,6 +95,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   void generateMaze() {
     int size = 24;
     Random rand = Random();
+    final stopwatch = Stopwatch()..start();
     List<List<Cell>> maze = generate(width: size, height: size, closed: true, seed: 100);
     // rand.nextInt(100000000)
 
@@ -108,6 +112,8 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
       finalMaze = maze;
       //mazeSolution = solution;
     });
+
+    print('generate maze executed in ${stopwatch.elapsed}');
   }
 
   List<List<Node>> getMatrix(int rows, int columns, List<List<Cell>> maze) {
@@ -171,8 +177,10 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
           body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
             this.viewportConstraints = viewportConstraints;
             return GestureDetector(
+              behavior: HitTestBehavior.translucent,
               onTapDown: (details) {
                 print("POINT OF CONTACT: ${details.globalPosition}");
+                actions.sendLeft();
                 // _controller.repeat();
               },
               //   onTapCancel: () {
@@ -180,27 +188,30 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
               //       points.add(null);
               //     });
               //   },
-              child: Stack(children: [
-                Transform.translate(
-                  offset: Offset(50, 100),
-                  child: RepaintBoundary(
-                      child: CustomPaint(
-                    size: ui.Size(200, 400),
-                    key: UniqueKey(),
-                    isComplex: true,
-                    painter: MazeDrawCanvas(
-                      controller: _controller,
-                      maze: finalMaze,
-                      blockSize: 16,
-                      solution: this.mazeSolution,
-                      maxSize: Size(viewportConstraints.maxWidth, viewportConstraints.maxHeight),
-                      color: Colors.red,
+              child: AbsorbPointer(
+                  absorbing: true,
+                  child: Stack(children: [
+                    Transform.translate(
+                      offset: Offset(50, 100),
+                      child: RepaintBoundary(
+                          child: CustomPaint(
+                        size: ui.Size(200, 400),
+                        key: UniqueKey(),
+                        isComplex: true,
+                        painter: MazeDriverCanvas(
+                          controller: _controller,
+                          maze: finalMaze,
+                          blockSize: 16,
+                          fps: 24,
+                          actions: actions,
+                          //solution: this.mazeSolution,
+                          width: viewportConstraints.maxWidth,
+                          height: viewportConstraints.maxHeight,
+                        ),
+                        child: Container(constraints: BoxConstraints(maxWidth: viewportConstraints.maxWidth, maxHeight: viewportConstraints.maxHeight)),
+                      )),
                     ),
-                    // child:
-                    //     Container(constraints: BoxConstraints(maxWidth: viewportConstraints.maxWidth * 0.8, maxHeight: viewportConstraints.maxHeight * 0.25)),
-                  )),
-                ),
-              ]),
+                  ])),
             );
 
             //);
