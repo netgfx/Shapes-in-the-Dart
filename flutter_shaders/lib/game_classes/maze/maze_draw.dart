@@ -17,7 +17,7 @@ import "package:bezier/bezier.dart";
 import "../../helpers/utils.dart";
 
 class MazeDrawer {
-  Color color = Colors.black;
+  Color color = Color.fromARGB(255, 254, 238, 13);
   Canvas? canvas;
   Paint _paint = Paint();
   double radius = 10.0;

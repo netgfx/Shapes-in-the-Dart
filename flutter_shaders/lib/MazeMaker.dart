@@ -155,12 +155,12 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return CustomPerformanceOverlay(
       child: Scaffold(
-          backgroundColor: ui.Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: ui.Color.fromARGB(255, 0, 0, 0),
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
                 padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: ui.Color.fromARGB(255, 255, 255, 255)),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(50.0), color: ui.Color.fromARGB(255, 0, 0, 0)),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -176,43 +176,92 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
           ),
           body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
             this.viewportConstraints = viewportConstraints;
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTapDown: (details) {
-                print("POINT OF CONTACT: ${details.globalPosition}");
-                actions.sendLeft();
-                // _controller.repeat();
-              },
-              //   onTapCancel: () {
-              //     setState(() {
-              //       points.add(null);
-              //     });
-              //   },
-              child: AbsorbPointer(
-                  absorbing: true,
-                  child: Stack(children: [
-                    Transform.translate(
-                      offset: Offset(50, 100),
-                      child: RepaintBoundary(
-                          child: CustomPaint(
-                        size: ui.Size(200, 400),
-                        key: UniqueKey(),
-                        isComplex: true,
-                        painter: MazeDriverCanvas(
-                          controller: _controller,
-                          maze: finalMaze,
-                          blockSize: 16,
-                          fps: 24,
-                          actions: actions,
-                          //solution: this.mazeSolution,
-                          width: viewportConstraints.maxWidth,
-                          height: viewportConstraints.maxHeight,
-                        ),
-                        child: Container(constraints: BoxConstraints(maxWidth: viewportConstraints.maxWidth, maxHeight: viewportConstraints.maxHeight)),
-                      )),
-                    ),
-                  ])),
-            );
+            return Stack(children: [
+              Transform.translate(
+                offset: Offset(50, 100),
+                child: RepaintBoundary(
+                    child: CustomPaint(
+                  size: ui.Size(200, 400),
+                  key: UniqueKey(),
+                  isComplex: true,
+                  painter: MazeDriverCanvas(
+                    controller: _controller,
+                    maze: finalMaze,
+                    blockSize: 16,
+                    fps: 24,
+                    actions: actions,
+                    //solution: this.mazeSolution,
+                    width: viewportConstraints.maxWidth,
+                    height: viewportConstraints.maxHeight,
+                  ),
+                  child: Container(constraints: BoxConstraints(maxWidth: viewportConstraints.maxWidth, maxHeight: viewportConstraints.maxHeight)),
+                )),
+              ),
+
+              /// Down
+              Positioned(
+                  key: UniqueKey(),
+                  child: GestureDetector(
+                    key: UniqueKey(),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      //print("POINT OF CONTACT: ${details.globalPosition}");
+                      actions.sendDown();
+                      // _controller.repeat();
+                    },
+                    child: AbsorbPointer(absorbing: true, child: Image(image: AssetImage('assets/maze/arrowDown.png'))),
+                  ),
+                  bottom: 50,
+                  left: viewportConstraints.maxWidth / 2 - 50),
+
+              /// Up
+              Positioned(
+                  key: UniqueKey(),
+                  child: GestureDetector(
+                    key: UniqueKey(),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      //print("POINT OF CONTACT: ${details.globalPosition}");
+                      actions.sendUp();
+                      // _controller.repeat();
+                    },
+                    child: Image(image: AssetImage('assets/maze/arrowUp.png')),
+                  ),
+                  bottom: 200,
+                  left: viewportConstraints.maxWidth / 2 - 50),
+
+              /// Left
+              Positioned(
+                  key: UniqueKey(),
+                  child: GestureDetector(
+                    key: UniqueKey(),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      //print("POINT OF CONTACT: ${details.globalPosition}");
+                      actions.sendLeft();
+                      // _controller.repeat();
+                    },
+                    child: Image(image: AssetImage('assets/maze/arrowLeft.png')),
+                  ),
+                  bottom: 100,
+                  left: viewportConstraints.maxWidth / 2 - 100),
+
+              /// Right
+              Positioned(
+                  key: UniqueKey(),
+                  child: GestureDetector(
+                    key: UniqueKey(),
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      //print("POINT OF CONTACT: ${details.globalPosition}");
+                      actions.sendRight();
+                      // _controller.repeat();
+                    },
+                    child: Image(image: AssetImage('assets/maze/arrowRight.png')),
+                  ),
+                  bottom: 200,
+                  left: viewportConstraints.maxWidth / 2 + 100)
+            ]);
 
             //);
           })),

@@ -48,7 +48,7 @@ class MazeDriverCanvas extends CustomPainter {
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
   Camera? _camera;
-  MazePlayer player = MazePlayer(height: 4, width: 4);
+  MazePlayer player = MazePlayer(height: 4, width: 4, blocksize: 8);
   bool maxRightReached = false;
   List<List<Cell>> maze = [];
   MazeDrawer? mazeMap;
@@ -106,6 +106,27 @@ class MazeDriverCanvas extends CustomPainter {
     } else {
       listenable = actions.actionDone.listen((event) {
         print(event.toString());
+        switch (event.toString()) {
+          case "left":
+            {
+              this.player.goLeft();
+            }
+            break;
+          case "right":
+            {
+              this.player.goRight();
+            }
+            break;
+          case "up":
+            {
+              this.player.goUp();
+            }
+            break;
+          case "down":
+            {
+              this.player.goDown();
+            }
+        }
       });
     }
 
