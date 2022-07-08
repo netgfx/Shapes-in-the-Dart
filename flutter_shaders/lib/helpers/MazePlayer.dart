@@ -36,19 +36,19 @@ class MazePlayer {
 
   void goRight() {
     var current = this._x;
-    current = this._x + 1;
+    current = this._x - 1;
     this._x = current;
   }
 
   void goUp() {
     var current = this._y;
-    current = this._y - 1;
+    current = this._y + 1;
     this._y = current;
   }
 
   void goDown() {
     var current = this._y;
-    current = this._y + 1;
+    current = this._y - 1;
     this._y = current;
   }
 }

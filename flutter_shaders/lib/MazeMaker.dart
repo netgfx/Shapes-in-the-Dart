@@ -20,7 +20,7 @@ import 'package:vector_math/vector_math.dart' as vectorMath;
 import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
 
 import 'package:performance/performance.dart';
-import 'package:dotted_border/dotted_border.dart';
+//import 'package:dotted_border/dotted_border.dart';
 
 import 'game_classes/pathfinding/MazeGrid.dart';
 import 'game_classes/pathfinding/MazeNode.dart';
@@ -39,7 +39,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   bool showBottomList = false;
   double opacity = 1.0;
   List<ui.Image> spriteImages = [];
-  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
+  StrokeCap strokeCap = StrokeCap.round;
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
@@ -133,22 +133,23 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   }
 
   Widget roundedRectBorderWidget() {
-    return DottedBorder(
-      strokeWidth: 2,
-      color: Colors.green,
-      borderType: BorderType.RRect,
-      radius: Radius.circular(12),
-      padding: EdgeInsets.all(6),
-      dashPattern: [12, 2],
-      child: RotationTransition(
-        turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
-        child: Container(
-          height: 200,
-          width: 200,
-          color: ui.Color.fromARGB(255, 146, 30, 255),
-        ),
-      ),
-    );
+    // return DottedBorder(
+    //   strokeWidth: 2,
+    //   color: Colors.green,
+    //   borderType: BorderType.RRect,
+    //   radius: Radius.circular(12),
+    //   padding: EdgeInsets.all(6),
+    //   dashPattern: [12, 2],
+    //   child: RotationTransition(
+    //     turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
+    //     child: Container(
+    //       height: 200,
+    //       width: 200,
+    //       color: ui.Color.fromARGB(255, 146, 30, 255),
+    //     ),
+    //   ),
+    // );
+    return Container();
   }
 
   @override
@@ -227,7 +228,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
                     },
                     child: Image(image: AssetImage('assets/maze/arrowUp.png')),
                   ),
-                  bottom: 200,
+                  bottom: 150,
                   left: viewportConstraints.maxWidth / 2 - 50),
 
               /// Left
@@ -259,8 +260,8 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
                     },
                     child: Image(image: AssetImage('assets/maze/arrowRight.png')),
                   ),
-                  bottom: 200,
-                  left: viewportConstraints.maxWidth / 2 + 100)
+                  bottom: 100,
+                  left: viewportConstraints.maxWidth / 2)
             ]);
 
             //);
