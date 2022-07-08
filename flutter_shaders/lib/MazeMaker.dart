@@ -58,7 +58,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
   bool showBottomList = false;
   double opacity = 1.0;
   List<ui.Image> spriteImages = [];
-  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
+  StrokeCap strokeCap = StrokeCap.round;
   List<Color> colors = [Colors.red, Colors.green, Colors.blue, Colors.amber, Colors.black];
   Map<String, dynamic>? mazeData;
   late AnimationController _controller;
