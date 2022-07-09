@@ -86,7 +86,7 @@ Map<int, List<dynamic>> oldgroupBy(List<Cell> list, String key) {
   Map<int, List<dynamic>> dict = _dict;
 
   list.forEach((item) => dict[item.getPropertyByKey(key)]?.add(item));
-  print(dict);
+  //print(dict);
   return dict;
 }
 
@@ -172,7 +172,7 @@ List<Cell> populateMissingSets(List<Cell> row, Function random) {
   List<dynamic> diff = difference(allSets, setsInUse);
   List<double> availableSets = diff.cast<double>();
   availableSets.sort((a, b) => (0.5 - random()).sign.toInt());
-  print("$availableSets, $setsInUse, $allSets");
+  // print("$availableSets, $setsInUse, $allSets");
   row.where((box) => box.set == 0).toList().asMap().forEach((i, box) {
     box.set = availableSets[i];
   });
@@ -191,7 +191,7 @@ List<Cell> mergeRandomSetsIn(List<Cell> row, Function random, {probability = 0.5
     var shouldMerge = rand <= probability;
 
     if (current.x == 0 && current.y == 0) {
-      print(">>>> $rand  $differentSets $shouldMerge ${current.set}, ${next.set}");
+      //print(">>>> $rand  $differentSets $shouldMerge ${current.set}, ${next.set}");
     }
     if (differentSets && shouldMerge) {
       row = mergeSetWith(row, next.set!, current.set);

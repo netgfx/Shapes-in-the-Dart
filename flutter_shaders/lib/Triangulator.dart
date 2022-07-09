@@ -13,6 +13,7 @@ import 'dart:ui' as ui;
 import 'package:args/args.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_animations/simple_animations.dart';
+//import 'package:spring/spring.dart';
 import 'package:supercharged/supercharged.dart';
 
 enum AniProps { rotateX, rotateY, opacity, scale }
@@ -31,7 +32,9 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
   late AnimationController _controller;
   List<AnimationController> controllers = [];
   ui.Image? sourceImage;
-
+  // final SpringController springController = SpringController(
+  //   initialAnim: Motion.pause,
+  // );
   @override
   void initState() {
     super.initState();
@@ -308,8 +311,6 @@ class _TriangulatorState extends State<Triangulator> with AnimationMixin {
         counter++;
       }
 
-      /// TODO: Redo with easy animation
-      ///
       // list.add(Spring.opacity(
       //   startOpacity: 1.0,
       //   endOpacity: 0.0,

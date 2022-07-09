@@ -47,7 +47,7 @@ class Grid {
     this.map2D = map2D;
     this.usesBlocks = usesBlocks;
     matrix = createMatrix();
-    print("> $_width, $_height");
+    //print("> $_width, $_height");
   }
 
   List<List<GridNode>> createMatrix() {

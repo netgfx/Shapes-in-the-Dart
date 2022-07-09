@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_shaders/AnimatedBackground.dart';
 import 'package:flutter_shaders/BGAnimator.dart';
 import 'package:flutter_shaders/LetterParticles.dart';
-import 'package:flutter_shaders/MazeGenerator.dart';
 import 'package:flutter_shaders/MazePainter.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_shaders/PhysicsEngine.dart';
@@ -26,14 +25,14 @@ import 'package:performance/performance.dart';
 import 'ShapeMaster.dart';
 import 'SpriteWidget.dart';
 
-class MazeMode extends StatefulWidget {
-  MazeMode({required Key key}) : super(key: key);
+class EffectsMode extends StatefulWidget {
+  EffectsMode({required Key key}) : super(key: key);
 
   @override
-  _MazeModeState createState() => _MazeModeState();
+  _EffectsModeState createState() => _EffectsModeState();
 }
 
-class _MazeModeState extends State<MazeMode> with TickerProviderStateMixin {
+class _EffectsModeState extends State<EffectsMode> with TickerProviderStateMixin {
   Color selectedColor = Colors.black;
   Color pickerColor = Colors.black;
   double strokeWidth = 50.0;
