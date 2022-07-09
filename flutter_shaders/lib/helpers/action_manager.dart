@@ -8,12 +8,12 @@ class ActionManager {
     actionController.onCancel = () => {actionController.close()};
   }
 
-  sendUp() {
-    actionController.add("up"); // send an arbitrary event
+  sendTop() {
+    actionController.add("top"); // send an arbitrary event
   }
 
-  sendDown() {
-    actionController.add("down"); // send an arbitrary event
+  sendBottom() {
+    actionController.add("bottom"); // send an arbitrary event
   }
 
   sendLeft() {

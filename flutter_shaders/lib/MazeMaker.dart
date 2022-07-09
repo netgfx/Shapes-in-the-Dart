@@ -207,7 +207,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       //print("POINT OF CONTACT: ${details.globalPosition}");
-                      actions.sendDown();
+                      actions.sendBottom();
                       // _controller.repeat();
                     },
                     child: AbsorbPointer(absorbing: true, child: Image(image: AssetImage('assets/maze/arrowDown.png'))),
@@ -223,7 +223,7 @@ class _MazeMakerState extends State<MazeMaker> with TickerProviderStateMixin {
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       //print("POINT OF CONTACT: ${details.globalPosition}");
-                      actions.sendUp();
+                      actions.sendTop();
                       // _controller.repeat();
                     },
                     child: Image(image: AssetImage('assets/maze/arrowUp.png')),

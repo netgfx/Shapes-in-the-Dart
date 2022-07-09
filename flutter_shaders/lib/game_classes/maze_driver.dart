@@ -109,22 +109,34 @@ class MazeDriverCanvas extends CustomPainter {
         switch (event.toString()) {
           case "left":
             {
-              this.player.goLeft();
+              bool result = getWalkableAt("left");
+              if (result == true) {
+                this.player.goLeft();
+              }
             }
             break;
           case "right":
             {
-              this.player.goRight();
+              bool result = getWalkableAt("right");
+              if (result == true) {
+                this.player.goRight();
+              }
             }
             break;
-          case "up":
+          case "top":
             {
-              this.player.goUp();
+              bool result = getWalkableAt("top");
+              if (result == true) {
+                this.player.goTop();
+              }
             }
             break;
-          case "down":
+          case "bottom":
             {
-              this.player.goDown();
+              bool result = getWalkableAt("bottom");
+              if (result == true) {
+                this.player.goBottom();
+              }
             }
         }
       });
@@ -189,9 +201,9 @@ class MazeDriverCanvas extends CustomPainter {
     }
   }
 
-  getWalkableAt(int x, int y, String direction) {
-    var realX = x;
-    var realY = y;
+  bool getWalkableAt(String direction) {
+    var realX = this.player.x;
+    var realY = this.player.y;
     //console.log("checking ", x, y, realX, realY)
     Cell? result;
     int length = this.maze.length;

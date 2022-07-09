@@ -4,6 +4,8 @@ class MazePlayer {
   int blocksize = 0;
   double width;
   double height;
+  int pureX = 0;
+  int pureY = 0;
 
   bool topKey = false;
   bool rightKey = false;
@@ -31,24 +33,28 @@ class MazePlayer {
   void goLeft() {
     var current = this._x;
     current = this._x + 1;
-    this._x = current;
+    this._x = current * this.blocksize;
+    this.pureX = current.round();
   }
 
   void goRight() {
     var current = this._x;
     current = this._x - 1;
-    this._x = current;
+    this._x = current * this.blocksize;
+    this.pureX = current.round();
   }
 
-  void goUp() {
+  void goTop() {
     var current = this._y;
     current = this._y + 1;
-    this._y = current;
+    this._y = current * this.blocksize;
+    this.pureY = current.round();
   }
 
-  void goDown() {
+  void goBottom() {
     var current = this._y;
     current = this._y - 1;
-    this._y = current;
+    this._y = current * this.blocksize;
+    this.pureY = current.round();
   }
 }
