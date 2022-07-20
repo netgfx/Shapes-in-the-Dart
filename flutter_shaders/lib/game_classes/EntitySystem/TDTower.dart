@@ -2,16 +2,16 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_shaders/game_classes/TDBullet.dart';
-import 'package:flutter_shaders/game_classes/TDEnemy.dart';
-import 'package:flutter_shaders/game_classes/TDSpriteAnimator.dart';
-import 'package:flutter_shaders/game_classes/TDWorld.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/TDBullet.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/TDEnemy.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/TDSpriteAnimator.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/TDWorld.dart';
 import 'package:flutter_shaders/helpers/Circle.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
-import "../helpers//utils.dart";
+import "../../helpers/utils.dart";
 import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 
@@ -57,17 +57,17 @@ class TDTower {
     this.position = position ?? Point(0, 0);
     loadBaseImage();
     loadTurretImage(makeBullets);
-    collisionEffects.add(TDSpriteAnimator(
-        position: Point(0, 0),
-        texturePath: "assets/bug_explode.png",
-        currentFrame: "Bat__Booger_FX",
-        jsonPath: "assets/bug_explode.json",
-        delimiters: [
-          "Bat__Booger_FX",
-        ],
-        fps: 1,
-        loop: LoopMode.Single,
-        scale: 0.25));
+    // collisionEffects.add(TDSpriteAnimator(
+    //     position: Point(0, 0),
+    //     texturePath: "assets/bug_explode.png",
+    //     currentFrame: "Bat__Booger_FX",
+    //     jsonPath: "assets/bug_explode.json",
+    //     delimiters: [
+    //       "Bat__Booger_FX",
+    //     ],
+    //     fps: 1,
+    //     loop: LoopMode.Single,
+    //     scale: 0.25));
   }
 
   void update(Canvas canvas, List<TDEnemy> enemies, Rectangle? worldBounds) {
@@ -146,20 +146,22 @@ class TDTower {
     } else {
       Size _size = getSize(turretImage!);
 
-      TDSpriteAnimator _effect = TDSpriteAnimator(
-          position: target,
-          texturePath: "assets/bug_explode.png",
-          currentFrame: "Bat__Booger_FX",
-          jsonPath: "assets/bug_explode.json",
-          delimiters: [
-            "Bat__Booger_FX",
-          ],
-          fps: 1,
-          loop: LoopMode.Single,
-          scale: 0.25);
-      _effect.alive = true;
+      // TODO: rework these to function with Cache
 
-      this.collisionEffects.add(_effect);
+      // TDSpriteAnimator _effect = TDSpriteAnimator(
+      //     position: target,
+      //     texturePath: "assets/bug_explode.png",
+      //     currentFrame: "Bat__Booger_FX",
+      //     jsonPath: "assets/bug_explode.json",
+      //     delimiters: [
+      //       "Bat__Booger_FX",
+      //     ],
+      //     fps: 1,
+      //     loop: LoopMode.Single,
+      //     scale: 0.25);
+      // _effect.alive = true;
+
+      // this.collisionEffects.add(_effect);
     }
   }
 

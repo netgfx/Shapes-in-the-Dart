@@ -206,7 +206,9 @@ class TileMapPainter extends CustomPainter {
     if (this.tileSize == null) {
       //this.tileSize = Size(textureImage.width.toDouble(), textureImage.height.toDouble());
     }
-    textureImages[imageURL] = textureImage;
+    if (textureImage != null) {
+      textureImages[imageURL] = textureImage;
+    }
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -137,12 +138,17 @@ class Utils {
     return chance > 0 && (_random.nextDouble() * 100 <= chance);
   }
 
-  Future<ui.Image> imageFromBytes(
+  Future<ui.Image?> imageFromBytes(
     ByteData data,
   ) async {
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-    ui.FrameInfo frameInfo = await codec.getNextFrame();
-    return frameInfo.image;
+    try {
+      ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      ui.FrameInfo frameInfo = await codec.getNextFrame();
+      return frameInfo.image;
+    } catch (error) {
+      print(error);
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>?> loadSprite(

@@ -43,6 +43,7 @@ dependencies:
   dotted_border: ^2.0.0+2
   bezier: ^1.2.0 
   collection: ^1.16.0
+  async: ^2.9.0
 
   # flutter_native_image:
   #   git:
@@ -56,8 +57,7 @@ dependencies:
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,4 +1,4 @@
-import 'package:flutter_shaders/game_classes/TDWorld.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/TDWorld.dart';
 import 'dart:ui' as ui;
 
 import 'package:flutter_shaders/helpers/math/CubicBezier.dart';

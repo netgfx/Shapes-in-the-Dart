@@ -15,7 +15,7 @@ Map<String, Widget Function(BuildContext)> routes = {
         key: UniqueKey(),
       ),
   // When navigating to the "/second" route, build the SecondScreen widget.
-  'MazeMode': (context) => EffectsMode(
+  'EffectsMode': (context) => EffectsMode(
         key: UniqueKey(),
       ),
   'GameMode': (context) => GameMode(

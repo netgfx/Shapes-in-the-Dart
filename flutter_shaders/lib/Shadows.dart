@@ -1,8 +1,10 @@
 import 'dart:math';
-
+import 'dart:typed_data';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
@@ -43,7 +45,7 @@ class Shadows extends CustomPainter {
   int timeAlive = 0;
   int timeToLive = 24;
   int zDecay = 1000;
-  List<Point> walls = [];
+  List<Map<String, dynamic>> walls = [];
   BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Function? animate;
@@ -52,6 +54,8 @@ class Shadows extends CustomPainter {
   Paint? paintStroke;
   List<Point> stageCorners = [];
   Point light = Point(0, 0);
+  ui.Image? bgImage;
+  String bgPath = "";
 
   /// Constructor
   Shadows({
@@ -70,6 +74,8 @@ class Shadows extends CustomPainter {
     /// <-- The rate at which the ticker runs
     this.rate,
     required this.light,
+    required this.walls,
+    required this.bgPath,
 
     /// <-- The particles blend mode (default: BlendMode.src)
     this.blendMode,
@@ -93,23 +99,16 @@ class Shadows extends CustomPainter {
     paintStroke = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
+      //..blendMode = ui.BlendMode.multiply
       ..strokeWidth = 2.0;
 
     var NUMBER_OF_WALLS = 4;
-    this.walls = [];
+    //this.walls = [];
     var i, x, y;
     wallPaint = Paint()
       ..color = Colors.white
       //..blendMode = ui.BlendMode.multiply
-      ..style = PaintingStyle.fill;
-    for (i = 0; i < NUMBER_OF_WALLS; i++) {
-      x = i * this.sceneSize.maxWidth / NUMBER_OF_WALLS + 40;
-      y = 100 + i * 50;
-      y = y < 40 ? 40 : y;
-
-      this.walls.add(Point(x, y));
-      //
-    }
+      ..style = PaintingStyle.stroke;
 
     stageCorners = [
       Point(0, 0),
@@ -117,17 +116,25 @@ class Shadows extends CustomPainter {
       Point(this.sceneSize.maxWidth, this.sceneSize.maxHeight),
       Point(0, this.sceneSize.maxHeight)
     ];
+
+    getImage(this.bgPath).then((value) => this.bgImage = value);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     this.canvas = canvas;
+
+    // if (this.bgImage != null) {
+    //   this.drawImage();
+    // }
+
     var paint = Paint()
-      ..color = Colors.black54
+      ..color = Colors.black.withAlpha(126)
       ..blendMode = ui.BlendMode.multiply
       ..style = PaintingStyle.fill;
-    drawRect(0, -50, null, null, paint);
+    drawRect(0, -50, sceneSize.maxWidth, sceneSize.maxHeight, paint);
     //canvas.drawColor(Colors.black54, BlendMode.multiply);
+
     paintImage(canvas, size);
 
     drawCircle(this.light.x.toDouble(), this.light.y.toDouble(), this.wallPaint!);
@@ -170,6 +177,24 @@ class Shadows extends CustomPainter {
     }
   }
 
+  Future<ui.Image> getImage(String path) async {
+    final ByteData data = await rootBundle.load(path);
+    ui.Image image = await loadImage(new Uint8List.view(data.buffer));
+
+    return image;
+  }
+
+  /// load an image from byte list
+  Future<ui.Image> loadImage(Uint8List img) async {
+    final Completer<ui.Image> completer = new Completer();
+
+    /// create a ui.Image object
+    ui.decodeImageFromList(img, (ui.Image img) {
+      return completer.complete(img);
+    });
+    return completer.future;
+  }
+
   int getSign() {
     return _random.nextBool() == false ? 1 : -1;
   }
@@ -184,7 +209,9 @@ class Shadows extends CustomPainter {
     Point? intersect;
     List<Point> corners = [];
     for (var i = 0; i < this.walls.length; i++) {
-      wall = this.walls[i];
+      wall = this.walls[i]["points"];
+      wallWidth = this.walls[i]["size"];
+      wallHeight = this.walls[i]["size"];
 
       corners = [
         Point(wall.x + 0.1, wall.y + 0.1),
@@ -338,19 +365,21 @@ class Shadows extends CustomPainter {
     // For each of the walls...
 
     this.walls.forEach((wall) {
+      wallWidth = wall["size"];
+      wallHeight = wall["size"];
+      Point<double> _wall = wall["points"];
       // Create an array of lines that represent the four edges of each wall
       List<Line> lines = [
-        Line(Point(wall.x, wall.y), Point(wall.x + wallWidth, wall.y)),
-        Line(Point(wall.x, wall.y), Point(wall.x, wall.y + wallHeight)),
-        Line(Point(wall.x + wallWidth, wall.y), Point(wall.x + wallWidth, wall.y + wallHeight)),
-        Line(Point(wall.x, wall.y + wallHeight), Point(wall.x + wallWidth, wall.y + wallHeight))
+        Line(Point(_wall.x, _wall.y), Point(_wall.x + wallWidth, _wall.y)),
+        Line(Point(_wall.x, _wall.y), Point(_wall.x, _wall.y + wallHeight)),
+        Line(Point(_wall.x + wallWidth, _wall.y), Point(_wall.x + wallWidth, _wall.y + wallHeight)),
+        Line(Point(_wall.x, _wall.y + wallHeight), Point(_wall.x + wallWidth, _wall.y + wallHeight))
       ];
 
       // Test each of the edges in this wall against the ray.
       // If the ray intersects any of the edges then the wall must be in the way.
       for (var i = 0; i < lines.length; i++) {
         var intersect = intersectsPoints(ray.getStart(), ray.getEnd(), lines[i].getStart(), lines[i].getEnd());
-        // delayedPrint(intersect.toString());
         if (intersect != null) {
           // Find the closest intersection
           var distance = this.distance(ray.start.x, ray.start.y, intersect.x, intersect.y);
@@ -402,7 +431,8 @@ class Shadows extends CustomPainter {
 
   void drawWalls() {
     for (var i = 0; i < this.walls.length; i++) {
-      drawRect(this.walls[i].x.toDouble(), this.walls[i].y.toDouble(), 40, 40, this.wallPaint!);
+      drawRect(this.walls[i]["points"].x.toDouble(), this.walls[i]["points"].y.toDouble(), this.walls[i]["size"].toDouble(), this.walls[i]["size"].toDouble(),
+          this.wallPaint!);
     }
   }
 
@@ -427,66 +457,31 @@ class Shadows extends CustomPainter {
     }
   }
 
-  /// Draw the particle shape
-  void drawType(double x, double y, ShapeType type, Paint painter) {
-    switch (type) {
-      case ShapeType.Circle:
-        print("not supported");
-        break;
-      case ShapeType.Rect:
-        drawRect(x, y, null, null, painter);
-        break;
-      case ShapeType.RoundedRect:
-        drawRRect(x, y, painter);
-        break;
-      case ShapeType.Triangle:
-        drawPolygon(x, y, 3, painter, initialAngle: 30);
-        break;
-      case ShapeType.Diamond:
-        drawPolygon(x, y, 4, painter, initialAngle: 0);
-        break;
-      case ShapeType.Pentagon:
-        drawPolygon(x, y, 5, painter, initialAngle: -18);
-        break;
-      case ShapeType.Hexagon:
-        drawPolygon(x, y, 6, painter, initialAngle: 0);
-        break;
-      case ShapeType.Octagon:
-        drawPolygon(x, y, 8, painter, initialAngle: 0);
-        break;
-      case ShapeType.Decagon:
-        drawPolygon(x, y, 10, painter, initialAngle: 0);
-        break;
-      case ShapeType.Dodecagon:
-        drawPolygon(x, y, 12, painter, initialAngle: 0);
-        break;
-      case ShapeType.Heart:
-        print("not supported");
-        break;
-      case ShapeType.Star5:
-        print("not supported");
-        break;
-      case ShapeType.Star6:
-        print("not supported");
-        break;
-      case ShapeType.Star7:
-        print("not supported");
-        break;
-      case ShapeType.Star8:
-        print("not supported");
-        break;
-    }
+  void drawCircle(double x, double y, Paint paint) {
+    updateCanvas(0, 0, () {
+      canvas!.drawCircle(Offset(x, y), 10, paint);
+    });
   }
 
-  void drawCircle(double x, double y, Paint paint) {
-    rotate(0, 0, () {
-      canvas!.drawCircle(Offset(x, y), 10, paint);
+  void drawImage() {
+    var paint = new Paint()
+      ..filterQuality = FilterQuality.high
+      //..blendMode = ui.BlendMode.dst
+      ..isAntiAlias = false;
+
+    updateCanvas(0, 0, () {
+      canvas!.drawImageRect(
+        this.bgImage!,
+        Rect.fromLTWH(0, 0, 840, 360),
+        Rect.fromLTWH(-200, 50, 840, 360),
+        paint,
+      );
     });
   }
 
   void drawRect(double x, double y, double? width, double? height, Paint paint) {
     if (this.canvas != null) {
-      rotate(x, y, () {
+      updateCanvas(x, y, () {
         double _w = width ?? this.sceneSize.maxWidth;
         double _h = height ?? this.sceneSize.maxHeight + 100;
         Rect rect = Rect.fromLTWH(0, 0, _w, _h);
@@ -495,40 +490,9 @@ class Shadows extends CustomPainter {
     }
   }
 
-  void drawRRect(double x, double y, Paint paint, {double? cornerRadius}) {
-    rotate(x, y, () {
-      canvas!.drawRRect(RRect.fromRectAndRadius(rect(), Radius.circular(cornerRadius ?? radius * 0.2)), paint);
-    });
-  }
-
-  void drawPolygon(double x, double y, int num, Paint paint, {double initialAngle = 0}) {
-    rotate(x, y, () {
-      final Path path = Path();
-      for (int i = 0; i < num; i++) {
-        final double radian = vectorMath.radians(initialAngle + 360 / num * i.toDouble());
-        final double x = radius * cos(radian);
-        final double y = radius * sin(radian);
-        if (i == 0) {
-          path.moveTo(x, y);
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-      path.close();
-      canvas!.drawPath(path, paint);
-    });
-  }
-
   Rect rect() => Rect.fromCircle(center: Offset.zero, radius: radius);
 
-  void delayedPrint(String str) {
-    if (DateTime.now().millisecondsSinceEpoch - this.printTime > 100) {
-      this.printTime = DateTime.now().millisecondsSinceEpoch;
-      print(str);
-    }
-  }
-
-  void rotate(double? x, double? y, VoidCallback callback) {
+  void updateCanvas(double? x, double? y, VoidCallback callback) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();

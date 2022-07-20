@@ -2,15 +2,15 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_shaders/game_classes/TDWorld.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/TDWorld.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 import "package:bezier/bezier.dart";
-import "../helpers//utils.dart";
-import "../helpers/Rectangle.dart";
+import "../../helpers//utils.dart";
+import "../../helpers/Rectangle.dart";
 import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
-import '../helpers/math/CubicBezierInterpolation.dart' as CubicBezierCurve;
+import '../../helpers/math/CubicBezierInterpolation.dart' as CubicBezierCurve;
 
 class TDEnemy {
   /// TODO: Define types in ENUM

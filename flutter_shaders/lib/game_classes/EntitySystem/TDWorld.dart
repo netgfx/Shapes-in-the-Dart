@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 
-import '../helpers/utils.dart';
+import '../../helpers/utils.dart';
 
 class TDWorld {
   List<dynamic> _displayList = [];
@@ -11,6 +11,7 @@ class TDWorld {
   Map<String, List<dynamic>> groups = {};
   Map<String, int> dictionary = {};
   Canvas? _canvas = null;
+  Size _worldBounds = Size(0, 0);
   TDWorld() {
     print("world init");
   }
@@ -21,6 +22,14 @@ class TDWorld {
 
   void set canvas(Canvas? value) {
     this._canvas = value;
+  }
+
+  void set worldBounds(Size bounds) {
+    this._worldBounds = bounds;
+  }
+
+  Size get worldBounds {
+    return this._worldBounds;
   }
 
   List<dynamic> get displayList {
