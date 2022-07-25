@@ -1,5 +1,6 @@
 import 'dart:core';
 import 'dart:math';
+import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
@@ -54,6 +55,8 @@ class SpriteDriverCanvas extends CustomPainter {
   Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
   TDWorld? _world = null;
   List<dynamic> sprites = [];
+  bool shouldCheckEvent = false;
+  Point<double> eventPoint = Point(0, 0);
   //
 
   /// Constructor
@@ -115,13 +118,39 @@ class SpriteDriverCanvas extends CustomPainter {
 
           for (var sprite in this.sprites) {
             if (sprite.alive == true) {
-              sprite.update(canvas);
+              //depth sort
+              this.depthSort();
+              // update
+              sprite.update(canvas, elapsedTime: this.currentTime.toDouble());
+              // check for events
+              if (this.shouldCheckEvent == true) {
+                if (sprite.interactive == true) {
+                  bool result = Utils.shared.containsRaw(
+                    sprite.position.x,
+                    sprite.position.y,
+                    sprite.size.width,
+                    sprite.size.height,
+                    this.eventPoint.x,
+                    this.eventPoint.y,
+                  );
+
+                  if (result == true) {
+                    sprite.onEvent();
+                  }
+                  // reset
+                  this.shouldCheckEvent = false;
+                  this.eventPoint = Point<double>(0, 0);
+                }
+              }
             }
           }
         } else {
           for (var sprite in this.sprites) {
             if (sprite.alive == true) {
-              sprite.update(canvas, shouldUpdate: false);
+              //depth sort
+              this.depthSort();
+              // update
+              sprite.update(canvas, elapsedTime: this.currentTime.toDouble(), shouldUpdate: false);
             }
           }
         }
@@ -132,6 +161,12 @@ class SpriteDriverCanvas extends CustomPainter {
       print("no controller running");
     }
   }
+
+  void depthSort() {
+    //if (this.sortChildrenFlag) {
+    mergeSort(this.sprites, compare: Utils.shared.sortByDepth);
+  }
+  //}
 
   void addEventListener() async {
     actions!.addListener((event) => onAction(event));
@@ -157,6 +192,10 @@ class SpriteDriverCanvas extends CustomPainter {
       } else {
         addSpriteByType("TDSpriteAnimator", coords, spriteName, frame);
       }
+    } else if (event["type"] == "click") {
+      // do a check on all elements that have interactive enabled and are alive
+      this.shouldCheckEvent = true;
+      this.eventPoint = Point(event["data"].x, event["data"].y);
     }
   }
 

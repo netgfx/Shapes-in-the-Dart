@@ -35,9 +35,13 @@ class TDSprite with SpriteArchetype {
     required this.position,
     required this.textureName,
     required this.cache,
+    interactive,
+    onEvent,
     scale,
     this.startAlive,
   }) {
+    this.interactive = interactive ?? false;
+    this.onEvent = onEvent ?? null;
     this.scale = scale ?? 1.0;
     if (this.startAlive == true) {
       this.alive = true;
@@ -76,7 +80,7 @@ class TDSprite with SpriteArchetype {
   }
 
   @override
-  void update(Canvas canvas, {bool shouldUpdate = true}) {
+  void update(Canvas canvas, {double elapsedTime = 0, bool shouldUpdate = true}) {
     if (this.texture != null) {
       drawSprite(canvas);
     }

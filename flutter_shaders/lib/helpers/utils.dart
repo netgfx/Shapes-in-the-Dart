@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:flutter_shaders/game_classes/EntitySystem/sprite_archetype.dart';
 import 'package:flutter_shaders/helpers/Circle.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 
@@ -662,7 +663,7 @@ class Utils {
 * @param {number} y - The y coordinate of the point to test.
 * @return {boolean} A value of true if the Rectangle object contains the specified point; otherwise false.
 */
-  containsRaw(double rx, double ry, double rw, double rh, double x, double y) {
+  bool containsRaw(double rx, double ry, double rw, double rh, double x, double y) {
     return (x >= rx && x < (rx + rw) && y >= ry && y < (ry + rh));
   }
 
@@ -710,5 +711,12 @@ class Utils {
     Point<double> result = Point(b.x + (b.x - a.x) / lenAB * distance, b.y + (b.y - a.y) / lenAB * distance);
 
     return result;
+  }
+
+  /**
+   * Sort sprites by zIndex
+   */
+  int sortByDepth(dynamic childA, dynamic childB) {
+    return childA.zIndex - childB.zIndex;
   }
 }

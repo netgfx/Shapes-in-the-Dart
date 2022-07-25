@@ -169,7 +169,9 @@ class TDTower {
     if (this.collisionEffects.length > 0) {
       for (var i = 0; i < this.collisionEffects.length; i++) {
         if (this.collisionEffects[i].alive == true) {
-          this.collisionEffects[i].update(canvas);
+          this.collisionEffects[i].update(
+                canvas,
+              );
         }
       }
     }

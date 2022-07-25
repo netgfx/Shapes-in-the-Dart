@@ -21,6 +21,10 @@ mixin SpriteArchetype {
   String _id = "";
   String textureName = "";
   Point<double> position = Point(0, 0);
+  Size _size = Size(0, 0);
+  bool _interactive = false;
+  Function? _onEvent;
+  int _zIndex = 0;
 
   // SpriteArchetype({
   //   required this.position,
@@ -29,7 +33,7 @@ mixin SpriteArchetype {
   //   scale,
   // }) {}
 
-  void update(Canvas canvas, {bool shouldUpdate = true}) {}
+  void update(Canvas canvas, {double elapsedTime = 0.0, bool shouldUpdate = true}) {}
 
   String get id {
     return this._id;
@@ -45,6 +49,38 @@ mixin SpriteArchetype {
 
   set alive(bool value) {
     _alive = value;
+  }
+
+  bool get interactive {
+    return _interactive;
+  }
+
+  void set interactive(bool value) {
+    this._interactive = value;
+  }
+
+  void set onEvent(Function? value) {
+    this._onEvent = value;
+  }
+
+  Function? get onEvent {
+    return this._onEvent;
+  }
+
+  void set size(Size value) {
+    this._size = value;
+  }
+
+  Size get size {
+    return this._size;
+  }
+
+  void set zIndex(int value) {
+    this._zIndex = value;
+  }
+
+  int get zIndex {
+    return this._zIndex;
   }
 
   void updateCanvas(Canvas canvas, double? x, double? y, double? scale, VoidCallback callback, {bool translate = false}) {

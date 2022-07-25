@@ -24,6 +24,11 @@ class ActionManager {
     actionController.add({"type": 'animation', "name": spriteName, "frame": frame, "data": Point(x, y)});
   }
 
+  sendClick(double x, double y) {
+    //actionController.sink.add({x, y});
+    actionController.add({"type": 'click', "data": Point<double>(x, y)});
+  }
+
   sendTop() {
     actionController.add("top"); // send an arbitrary event
   }

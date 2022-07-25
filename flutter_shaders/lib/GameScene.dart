@@ -90,20 +90,23 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   void init() {
     var sprites = [
       TDSprite(
-        position: Point(0, 0),
+        position: Point<double>(0.0, 0.0),
         textureName: "bg",
         cache: this.cache,
         startAlive: true,
         scale: 1.0,
       ),
       TDSpriteAnimator(
-        position: Point(200, 180),
+        position: Point<double>(200.0, 180.0),
         textureName: "bat",
         currentFrame: "fly/Fly2_Bats",
         cache: cache,
         loop: LoopMode.Repeat,
         scale: 0.5,
         startAlive: true,
+        fps: 24,
+        onEvent: () => {print("I'm tapped!!!")},
+        interactive: true,
       ),
     ];
 
@@ -131,7 +134,9 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
     // setState(() {
     //   lightSource = Point(details.localPosition.dx, details.localPosition.dy);
     // });
-    actions.sendAnimation(details.localPosition.dx, details.localPosition.dy, "boom", "Boom-1");
+    // early iteration, sprite should be responsible for sending events
+    //actions.sendAnimation(details.localPosition.dx, details.localPosition.dy, "boom", "Boom-1");
+    actions.sendClick(details.localPosition.dx, details.localPosition.dy);
   }
 
   @override
@@ -179,7 +184,7 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
                                 key: UniqueKey(),
                                 painter: SpriteDriverCanvas(
                                   controller: _controller,
-                                  fps: 40,
+                                  fps: 30,
                                   sprites: this.spritesArr,
                                   cache: this.cache,
                                   actions: this.cache.isEmpty() ? null : actions,
