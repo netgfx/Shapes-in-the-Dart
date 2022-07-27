@@ -52,14 +52,14 @@ class TDSprite with SpriteArchetype {
       this.textureWidth = cacheItem["textureWidth"];
       this.textureHeight = cacheItem["textureHeight"];
       if (this.texture != null) {
-        setEnemySize();
+        setSize();
       }
     }
   }
 
   ///
 
-  Size getEnemySize() {
+  Size getSize() {
     return size;
   }
 
@@ -71,7 +71,7 @@ class TDSprite with SpriteArchetype {
     this._id = value;
   }
 
-  void setEnemySize() {
+  void setSize() {
     ui.Image img = this.texture!;
     double aspectRatio = img.width / img.height;
     int height = (img.height * this.scale).round();
@@ -108,22 +108,16 @@ class TDSprite with SpriteArchetype {
       //   paint,
       // );
     });
-
-    //Rectangle rect = getEnemyRect();
   }
 
-  Rectangle getEnemyRect() {
-    Size _size = getEnemySize();
+  Rectangle getRect() {
+    Size _size = getSize();
     return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
   }
 
   Rectangle getBounds() {
-    Size _size = getEnemySize();
+    Size _size = getSize();
     return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
-  }
-
-  Point<double> get enemyPosition {
-    return this.position;
   }
 
   ui.Image? get textureImage {
@@ -146,8 +140,8 @@ class TDSprite with SpriteArchetype {
     _alive = value;
   }
 
-  Point<double> get enemyCenter {
-    Size size = this.getEnemySize();
+  Point<double> get center {
+    Size size = this.getSize();
 
     return Point(this.position.x + size.width * 0.5, this.position.y + size.height * 0.5);
   }

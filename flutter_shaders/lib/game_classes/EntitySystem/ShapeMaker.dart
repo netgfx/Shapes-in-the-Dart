@@ -28,26 +28,45 @@ class ShapeMaker {
   Size size = Size(20, 20);
   double radius = 0.0;
   double? angle = 0;
-  material.Color color = material.Colors.black;
+  material.Color _color = material.Colors.black;
   Paint paint = Paint();
+  bool _alive = false;
+  bool? startAlive = false;
   Point<double> position = Point(0, 0);
+  int _zIndex = 0;
 
-  ShapeMaster({type, size, radius, position, angle, color}) {
-    this.type = type;
+  ShapeMaker({
+    required this.type,
+    size,
+    radius,
+    position,
+    angle,
+    paintOptions,
+    startAlive,
+  }) {
     this.size = size ?? Size(20, 20);
-    this.color = color ?? material.Colors.black;
-    this.radius = radius ?? 50.0;
+    this._color = material.Colors.black;
+    this.radius = radius.toDouble() ?? 50.0;
     this.position = position;
     this.angle = angle ?? 0.0;
 
-    this.paint = Paint()
-      ..color = this.color
-      ..style = PaintingStyle.fill;
+    if (startAlive == true) {
+      this.alive = true;
+    }
+
+    if (paintOptions != null) {
+      this.paint = Paint()
+        ..color = paintOptions["color"] ?? this._color
+        ..style = paintOptions["paintingStyle"] ?? PaintingStyle.fill;
+    } else {
+      this.paint = Paint()
+        ..color = this._color
+        ..style = PaintingStyle.fill;
+    }
   }
 
-  void update(Canvas canvas, {shouldUpdate: false}) {
-    //print("making a $type");
-    drawType(canvas, type);
+  void update(Canvas canvas, {double elapsedTime = 0, bool shouldUpdate = true}) {
+    drawType(canvas, this.type);
   }
 
   void drawType(Canvas canvas, ShapeType type) {
@@ -82,9 +101,9 @@ class ShapeMaker {
       case ShapeType.Dodecagon:
         drawPolygon(canvas, 12, initialAngle: 0);
         break;
-      // case ShapeType.Heart:
-      //   drawHeart(painter);
-      //   break;
+      case ShapeType.Heart:
+        drawHeart(canvas);
+        break;
       case ShapeType.Star5:
         drawStar(canvas, 10, initialAngle: 15);
         break;
@@ -101,8 +120,8 @@ class ShapeMaker {
   }
 
   void drawCircle(Canvas canvas) {
-    updateCanvas(canvas, 0, 0, 0, () {
-      canvas!.drawCircle(Offset.zero, radius, paint);
+    updateCanvas(canvas, this.position.x, this.position.y, 0, () {
+      canvas.drawCircle(Offset.zero, radius, paint);
     });
   }
 
@@ -127,22 +146,22 @@ class ShapeMaker {
         }
       }
       path.close();
-      canvas!.drawPath(path, this.paint);
+      canvas.drawPath(path, this.paint);
     });
   }
 
-  // void drawHeart(Paint paint) {
-  //   rotate(() {
-  //     final Path path = Path();
+  void drawHeart(Canvas canvas) {
+    updateCanvas(canvas, 0, 0, 0, () {
+      final Path path = Path();
 
-  //     path.moveTo(0, radius);
+      path.moveTo(0, radius);
 
-  //     path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0, -radius * 0.5);
-  //     path.cubicTo(radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
+      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0, -radius * 0.5);
+      path.cubicTo(radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
 
-  //     canvas!.drawPath(path, paint);
-  //   });
-  // }
+      canvas.drawPath(path, paint);
+    });
+  }
 
   void drawStar(Canvas canvas, int num, {double initialAngle = 0}) {
     updateCanvas(canvas, 0, 0, 0, () {
@@ -158,14 +177,30 @@ class ShapeMaker {
         }
       }
       path.close();
-      canvas!.drawPath(path, this.paint);
+      canvas.drawPath(path, this.paint);
     });
   }
 
   void drawRect(Canvas canvas) {
     updateCanvas(canvas, this.position.x, this.position.y, this.angle, () {
-      canvas!.drawRect(Rect.fromLTWH(0, 0, this.size.width, this.size.height), this.paint);
+      canvas.drawRect(Rect.fromLTWH(0, 0, this.size.width, this.size.height), this.paint);
     });
+  }
+
+  bool get alive {
+    return _alive;
+  }
+
+  set alive(bool value) {
+    _alive = value;
+  }
+
+  void set zIndex(int value) {
+    this._zIndex = value;
+  }
+
+  int get zIndex {
+    return this._zIndex;
   }
 
   void updateCanvas(Canvas canvas, double? x, double? y, double? rotate, VoidCallback callback, {bool translate = false}) {

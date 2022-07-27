@@ -40,6 +40,7 @@ class TDSpriteAnimator with SpriteArchetype {
     required this.cache,
     required this.loop,
     scale,
+    zIndex,
     interactive,
     onEvent,
     this.fps,
@@ -47,6 +48,7 @@ class TDSpriteAnimator with SpriteArchetype {
   }) {
     this.position = position;
     this.textureName = textureName;
+    this.zIndex = zIndex ?? 0;
     this.interactive = interactive;
     this.onEvent = onEvent;
     this.timeDecay = (1 / (this.fps ?? 60) * 1000).round();

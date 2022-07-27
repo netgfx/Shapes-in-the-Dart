@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_shaders/LetterParticles.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:flutter_shaders/game_classes/EntitySystem/ShapeMaker.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSprite.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSpriteAnimator.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/sprite_archetype.dart';
@@ -18,7 +19,7 @@ import 'package:flutter_shaders/helpers/action_manager.dart';
 import 'package:flutter_shaders/helpers/sprite_cache.dart';
 import 'package:flutter_shaders/helpers/tween_manager.dart';
 import 'package:performance/performance.dart';
-import 'ShapeMaster.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/ShapeMaker.dart';
 
 class GameScene extends StatefulWidget {
   GameScene({required Key key}) : super(key: key);
@@ -37,7 +38,7 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   ActionManager actions = ActionManager();
   SpriteCache cache = SpriteCache();
   bool cacheReady = false;
-  List<SpriteArchetype> spritesArr = [];
+  List<dynamic> spritesArr = [];
   late TweenManager _tween;
 
   ///
@@ -90,7 +91,7 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   }
 
   void init() {
-    List<SpriteArchetype> sprites = [];
+    List<dynamic> sprites = [];
 
     sprites = [
       TDSprite(
@@ -107,6 +108,7 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
         cache: cache,
         loop: LoopMode.Repeat,
         scale: 0.5,
+        zIndex: 1,
         startAlive: true,
         fps: 24,
         onEvent: (Point event, SpriteArchetype sprite) => {
@@ -128,6 +130,16 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
           )
         },
         interactive: true,
+      ),
+      ShapeMaker(
+        type: ShapeType.Circle,
+        position: Point<double>(200.0, 250.0),
+        radius: 40,
+        paintOptions: {
+          "color": Colors.red,
+          "paintingStyle": ui.PaintingStyle.fill,
+        },
+        startAlive: true,
       ),
     ];
 
