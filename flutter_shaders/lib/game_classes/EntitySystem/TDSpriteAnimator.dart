@@ -111,4 +111,50 @@ class TDSpriteAnimator with SpriteArchetype {
   setPosition(Point<double> value) {
     this.position = value;
   }
+
+  Point<double> getPosition() {
+    var img = spriteData[currentFrame]![currentIndex];
+    Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2, position.y - img["height"].toDouble() * scale / 2);
+    return pos;
+  }
+
+  dynamic getProperty(String type) {
+    switch (type) {
+      case "scale":
+        {
+          return this.scale;
+        }
+
+      case "x":
+        {
+          return this.position.x;
+        }
+
+      case "y":
+        {
+          return this.position.y;
+        }
+    }
+  }
+
+  void setProperty(String type, dynamic value) {
+    switch (type) {
+      case "scale":
+        {
+          this.scale = value;
+          break;
+        }
+      case "x":
+        {
+          this.position = Point(value, this.position.y);
+          break;
+        }
+
+      case "y":
+        {
+          this.position = Point(this.position.x, value);
+          break;
+        }
+    }
+  }
 }

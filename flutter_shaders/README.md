@@ -21,14 +21,16 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - Custom events on canvas elements 🏭
 - keyboard events
 - Depth sorting
-- Tweens
+- Tweens 🏭
+  - Add enumerable properties e.g (x, y) or make it read dot notation
 - Sprite rotation
 - Pooling 🚩
 - port Arcade physics ❗
 - create master Sprite class for all game objects to inherit basic properties via mixin ✔️
 - cache ✔️
 - loader class for all assets ✔️
-- audio
+- audio (https://pub.dev/packages/audioplayers)
+- Shapes 🏭
 - Proper tilemap and culling
 - Autoscroll tile-sprite
 - Camera

@@ -126,8 +126,8 @@ class SpriteDriverCanvas extends CustomPainter {
               if (this.shouldCheckEvent == true) {
                 if (sprite.interactive == true) {
                   bool result = Utils.shared.containsRaw(
-                    sprite.position.x,
-                    sprite.position.y,
+                    sprite.getPosition().x,
+                    sprite.getPosition().y,
                     sprite.size.width,
                     sprite.size.height,
                     this.eventPoint.x,
@@ -135,7 +135,7 @@ class SpriteDriverCanvas extends CustomPainter {
                   );
 
                   if (result == true) {
-                    sprite.onEvent();
+                    sprite.onEvent(this.eventPoint, sprite);
                   }
                   // reset
                   this.shouldCheckEvent = false;

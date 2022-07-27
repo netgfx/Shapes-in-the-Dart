@@ -16,6 +16,7 @@ import 'package:flutter_shaders/game_classes/EntitySystem/sprite_archetype.dart'
 import 'package:flutter_shaders/game_classes/sprite_driver.dart';
 import 'package:flutter_shaders/helpers/action_manager.dart';
 import 'package:flutter_shaders/helpers/sprite_cache.dart';
+import 'package:flutter_shaders/helpers/tween_manager.dart';
 import 'package:performance/performance.dart';
 import 'ShapeMaster.dart';
 
@@ -37,13 +38,14 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   SpriteCache cache = SpriteCache();
   bool cacheReady = false;
   List<SpriteArchetype> spritesArr = [];
+  late TweenManager _tween;
 
   ///
   CharacterParticleEffect lettersEffect = CharacterParticleEffect.SPREAD;
   @override
   void initState() {
     super.initState();
-
+    _tween = TweenManager(ticker: this);
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
@@ -88,7 +90,9 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   }
 
   void init() {
-    var sprites = [
+    List<SpriteArchetype> sprites = [];
+
+    sprites = [
       TDSprite(
         position: Point<double>(0.0, 0.0),
         textureName: "bg",
@@ -105,7 +109,24 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
         scale: 0.5,
         startAlive: true,
         fps: 24,
-        onEvent: () => {print("I'm tapped!!!")},
+        onEvent: (Point event, SpriteArchetype sprite) => {
+          print("I'm tapped!!!"),
+          _tween.addTween(
+            TweenOptions(
+              target: sprites[1],
+              property: "scale",
+              to: 0.8,
+              autostart: true,
+              animationProperties: AnimationProperties(
+                duration: 2000,
+                delay: 0,
+                ease: Curves.easeOutBack,
+              ),
+            ),
+            () => {print("tween complete!")},
+            null,
+          )
+        },
         interactive: true,
       ),
     ];

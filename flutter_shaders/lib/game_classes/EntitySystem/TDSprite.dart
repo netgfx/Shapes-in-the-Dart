@@ -151,4 +151,8 @@ class TDSprite with SpriteArchetype {
 
     return Point(this.position.x + size.width * 0.5, this.position.y + size.height * 0.5);
   }
+
+  Point<double> getPosition() {
+    return this.position;
+  }
 }
