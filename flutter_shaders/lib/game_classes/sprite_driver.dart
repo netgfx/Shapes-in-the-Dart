@@ -9,6 +9,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/Camera.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDEnemy.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSpriteAnimator.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDTower.dart';
@@ -47,7 +48,8 @@ class SpriteDriverCanvas extends CustomPainter {
   Function? update;
   Paint _paint = new Paint();
   List<TDEnemy> enemies = [];
-  BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
+  BoxConstraints sceneSize = BoxConstraints(
+      minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
 
   ActionManager? actions;
   SpriteCache cache;
@@ -57,6 +59,8 @@ class SpriteDriverCanvas extends CustomPainter {
   List<dynamic> sprites = [];
   bool shouldCheckEvent = false;
   Point<double> eventPoint = Point(0, 0);
+  Camera? _camera;
+  CameraProps? cameraProps;
   //
 
   /// Constructor
@@ -70,19 +74,39 @@ class SpriteDriverCanvas extends CustomPainter {
     required this.width,
     required this.height,
     required this.cache,
+    cameraProps,
     this.actions,
   }) : super(repaint: controller) {
     /// the delay in ms based on desired fps
     this.timeDecay = (1 / this.fps * 1000).round();
+    this.cameraProps = cameraProps;
 
     /// calculate world bounds
-    this.worldBounds = Rectangle(x: 0, y: 0, width: this.width, height: this.height);
+    this.worldBounds =
+        Rectangle(x: 0, y: 0, width: this.width, height: this.height);
 
     if (this._world == null) {
       this._world = TDWorld();
-      this._world!.worldBounds = Size(this.worldBounds.width, this.worldBounds.height);
+      this._world!.worldBounds =
+          Size(this.worldBounds.width, this.worldBounds.height);
       GameObject.shared.setWorld(this._world!);
     }
+
+    if (this.cameraProps != null) {
+      if (this.cameraProps!.enabled == true) {
+        this._camera = Camera(
+          x: 0,
+          y: 0,
+          cameraProps: CameraProps(
+            enabled: true,
+            canvasSize: this.cameraProps!.canvasSize,
+            mapSize: this.cameraProps!.mapSize,
+          ),
+        );
+      }
+    }
+
+    // end of constructor
   }
 
   @override
@@ -111,10 +135,13 @@ class SpriteDriverCanvas extends CustomPainter {
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds -
+                this.currentTime >=
+            timeDecay) {
           /// reset the time
 
-          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
+          this.currentTime =
+              this.controller!.lastElapsedDuration!.inMilliseconds;
 
           for (var sprite in this.sprites) {
             if (sprite.alive == true) {
@@ -150,7 +177,9 @@ class SpriteDriverCanvas extends CustomPainter {
               //depth sort
               this.depthSort();
               // update
-              sprite.update(canvas, elapsedTime: this.currentTime.toDouble(), shouldUpdate: false);
+              sprite.update(canvas,
+                  elapsedTime: this.currentTime.toDouble(),
+                  shouldUpdate: false);
             }
           }
         }
@@ -180,7 +209,8 @@ class SpriteDriverCanvas extends CustomPainter {
       String frame = event["frame"];
       //get a non alive sprite to re-use
       var sprite = this.sprites.cast<SpriteArchetype?>().firstWhere((element) {
-        bool result = (element!.alive == false) && (element.textureName == spriteName);
+        bool result =
+            (element!.alive == false) && (element.textureName == spriteName);
         return result;
       }, orElse: () => null);
       if (sprite != null) {
@@ -202,7 +232,8 @@ class SpriteDriverCanvas extends CustomPainter {
   /**
    *  Append a new sprite object
    */
-  void addSpriteByType(String type, Point<double> coords, String name, String frame) {
+  void addSpriteByType(
+      String type, Point<double> coords, String name, String frame) {
     if (type == "TDSpriteAnimator") {
       this.sprites.add(TDSpriteAnimator(
             position: coords,

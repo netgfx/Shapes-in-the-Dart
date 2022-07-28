@@ -8,8 +8,9 @@ import 'package:flutter_shaders/LetterParticle.dart';
 import 'package:flutter_shaders/ShapeMaster.dart';
 import 'package:flutter_shaders/Star.dart';
 import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
-import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart' as ML;
-import 'package:flutter_shaders/helpers/Camera.dart';
+import 'package:flutter_shaders/game_classes/pathfinding/MazeLocation.dart'
+    as ML;
+import 'package:flutter_shaders/game_classes/EntitySystem/Camera.dart';
 import 'package:flutter_shaders/helpers/MazePlayer.dart';
 import 'dart:ui' as ui;
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -118,8 +119,12 @@ class MazeDrawer {
     if (this.solution.length > 0) {
       this.radius = 4;
       for (var i = 0; i < this.solution.length; i++) {
-        drawCircle((this.solution[i].getRow() * this.blockSize + this.blockSize * 0.5).toDouble(),
-            (this.solution[i].getCol() * this.blockSize + this.blockSize * 0.5).toDouble(), _paint);
+        drawCircle(
+            (this.solution[i].getRow() * this.blockSize + this.blockSize * 0.5)
+                .toDouble(),
+            (this.solution[i].getCol() * this.blockSize + this.blockSize * 0.5)
+                .toDouble(),
+            _paint);
       }
     }
   }
@@ -131,7 +136,8 @@ class MazeDrawer {
   }
 
   // DRAW LINE ///////////////////////////////
-  void drawLine(double x, double y, double targetX, double targetY, Paint paint) {
+  void drawLine(
+      double x, double y, double targetX, double targetY, Paint paint) {
     //Rect bounds = _camera!.getCameraBounds();
 
     updateCanvas(this._bounds.left * -1, this._bounds.top, () {
@@ -169,7 +175,8 @@ class MazeDrawer {
     }
   }
 
-  void updateCanvas(double? x, double? y, VoidCallback callback, {bool translate = false}) {
+  void updateCanvas(double? x, double? y, VoidCallback callback,
+      {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();

@@ -7,7 +7,7 @@ import 'package:flutter_shaders/game_classes/maze/maze_builder.dart';
 import 'package:flutter_shaders/game_classes/maze/maze_draw.dart';
 import 'package:flutter_shaders/game_classes/mazeplayer_draw.dart';
 
-import 'package:flutter_shaders/helpers/Camera.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/Camera.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/MazePlayer.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
@@ -44,7 +44,8 @@ class MazeDriverCanvas extends CustomPainter {
   Function? update;
   Paint _paint = new Paint();
   int blockSize = 8;
-  BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
+  BoxConstraints sceneSize = BoxConstraints(
+      minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
   Camera? _camera;
@@ -86,9 +87,18 @@ class MazeDriverCanvas extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     /// calculate world bounds
-    this.worldBounds = Rectangle(x: 0, y: 0, width: this.width, height: this.height);
+    this.worldBounds =
+        Rectangle(x: 0, y: 0, width: this.width, height: this.height);
 
-    this._camera = Camera(x: 0, y: 0, canvasSize: Size(width * 0.6, (this.blockSize * 24) * 0.8), mapSize: Size(this.blockSize * 24, this.blockSize * 24));
+    this._camera = Camera(
+      x: 0,
+      y: 0,
+      cameraProps: CameraProps(
+        enabled: true,
+        canvasSize: Size(width * 0.6, (this.blockSize * 24) * 0.8),
+        mapSize: Size(this.blockSize * 24, this.blockSize * 24),
+      ),
+    );
 
     /// make maze
     mazeMap = MazeDrawer(maze: maze, blockSize: blockSize);
@@ -143,7 +153,8 @@ class MazeDriverCanvas extends CustomPainter {
     }
 
     if (_camera != null) {
-      canvas.clipRect(Rect.fromLTWH(0, 0, _camera!.getCameraBounds().width, _camera!.getCameraBounds().height));
+      canvas.clipRect(Rect.fromLTWH(0, 0, _camera!.getCameraBounds().width,
+          _camera!.getCameraBounds().height));
       Rect bounds = _camera!.getCameraBounds();
       //moveCanvas(bounds.left * -1, bounds.top, () {});
       // print("$bounds, ${this.player.x}");
@@ -174,10 +185,13 @@ class MazeDriverCanvas extends CustomPainter {
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds -
+                this.currentTime >=
+            timeDecay) {
           /// reset the time
 
-          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
+          this.currentTime =
+              this.controller!.lastElapsedDuration!.inMilliseconds;
           if (this.player.x >= this.width / 2) {
             maxRightReached = true;
           }
@@ -208,7 +222,8 @@ class MazeDriverCanvas extends CustomPainter {
     Cell? result;
     int length = this.maze.length;
     for (var i = 0; i < length; i++) {
-      result = this.maze[i].firstWhereOrNull((o) => o.x == realX && o.y == realY);
+      result =
+          this.maze[i].firstWhereOrNull((o) => o.x == realX && o.y == realY);
       if (result != null) {
         break;
       }
@@ -221,7 +236,8 @@ class MazeDriverCanvas extends CustomPainter {
     }
   }
 
-  void updateCanvas(double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
+  void updateCanvas(double? x, double? y, double? angle, VoidCallback callback,
+      {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();

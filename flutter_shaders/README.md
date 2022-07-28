@@ -6,12 +6,13 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 
 - To run the blend mode set `initialRoute: "BlendMode",` on `main.dart`
 
-## Todo 
+## Todo
+
 ✔️ (done)
-❗  (important) 
-❌ (problem) 
-🚩 (revisit) 
-🚀 (launch) 
+❗ (important)
+❌ (problem)
+🚩 (revisit)
+🚀 (launch)
 🔨 (fix)
 👾 (bug)
 🏭(in progress)
@@ -19,8 +20,8 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 ### Release v0.1
 
 - Custom events on canvas elements 🏭
-- keyboard events
-- Depth sorting
+- keyboard events (https://api.flutter.dev/flutter/widgets/KeyboardListener-class.html)
+- Depth sorting ✔️
 - Tweens 🏭
   - Add enumerable properties e.g (x, y) or make it read dot notation
 - Sprite rotation
@@ -30,7 +31,7 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - cache ✔️
 - loader class for all assets ✔️
 - audio (https://pub.dev/packages/audioplayers)
-- Shapes 🏭
+- Shapes ✔️
 - Proper tilemap and culling
 - Autoscroll tile-sprite
 - Camera
