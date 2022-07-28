@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_shaders/LetterParticles.dart';
 import 'package:flutter_shaders/ParticleEmitter.dart';
 import 'package:flutter_native_image/flutter_native_image.dart' as uiImage;
+import 'package:flutter_shaders/game_classes/EntitySystem/Camera.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/ShapeMaker.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSprite.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSpriteAnimator.dart';
@@ -214,16 +215,23 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
                           padding: EdgeInsets.only(top: 0, left: 0),
                           child: Stack(children: [
                             CustomPaint(
-                                key: UniqueKey(),
-                                painter: SpriteDriverCanvas(
-                                  controller: _controller,
-                                  fps: 30,
-                                  sprites: this.spritesArr,
-                                  cache: this.cache,
-                                  actions: this.cache.isEmpty() ? null : actions,
-                                  width: viewportConstraints.maxWidth,
-                                  height: viewportConstraints.maxHeight,
-                                ))
+                              key: UniqueKey(),
+                              painter: SpriteDriverCanvas(
+                                controller: _controller,
+                                fps: 30,
+                                sprites: this.spritesArr,
+                                cache: this.cache,
+                                actions: this.cache.isEmpty() ? null : actions,
+                                width: viewportConstraints.maxWidth,
+                                height: viewportConstraints.maxHeight,
+                                cameraProps: CameraProps(
+                                  enabled: true,
+                                  canvasSize: Size(viewportConstraints.maxWidth * 0.5, viewportConstraints.maxHeight * 0.5),
+                                  mapSize: Size(viewportConstraints.maxWidth, viewportConstraints.maxHeight),
+                                  followObject: Rect.fromLTWH(200.0, 180.0, 80, 80),
+                                ),
+                              ),
+                            ),
                           ]),
                         ),
                       ),

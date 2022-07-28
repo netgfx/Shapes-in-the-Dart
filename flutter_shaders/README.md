@@ -34,7 +34,9 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - Shapes ✔️
 - Proper tilemap and culling
 - Autoscroll tile-sprite
-- Camera
+- Camera 🏭
+  - need to test with scrolling sprite (WIP)
+  - need to test moving sprite
 - Get name for library...❗
   - Proto engine
   - Archengine
@@ -42,7 +44,7 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
   - Shadow
   - Shaderon
   - Skiastron
-  - Arcus
+  - Arcus ✔️
   - Arcturus
 
 ### Sample games for v0.1

@@ -13,6 +13,7 @@ class CameraProps {
     required this.mapSize,
     followObject,
   }) {
+    print("${followObject.left} ${followObject.top}");
     this.followObject = followObject;
   }
 }
@@ -24,21 +25,16 @@ class Camera {
 
   Camera({required this.x, required this.y, required this.cameraProps}) {}
 
-  focus(d) {
+  void update() {
+    this.focus();
+  }
+
+  focus() {
     // Account for half of player w/h to make their rectangle centered
-    this.x = this.clamp(
-        cameraProps.followObject.x -
-            cameraProps.canvasSize.width / 2 +
-            cameraProps.followObject.width / 2,
-        0,
+    this.x = this.clamp(cameraProps.followObject.left - cameraProps.canvasSize.width / 2 + cameraProps.followObject.width / 2, 0,
         cameraProps.mapSize.width - cameraProps.canvasSize.width);
-    this.y = this.clamp(
-        cameraProps.followObject.y -
-            cameraProps.canvasSize.height / 2 +
-            cameraProps.followObject.height / 2,
-        0,
+    this.y = this.clamp(cameraProps.followObject.top - cameraProps.canvasSize.height / 2 + cameraProps.followObject.height / 2, 0,
         cameraProps.mapSize.height - cameraProps.canvasSize.height);
-    //print("${this.x}, ${this.y}");
   }
 
   double clamp(double coord, double min, double max) {
@@ -52,7 +48,6 @@ class Camera {
   }
 
   Rect getCameraBounds() {
-    return Rect.fromLTWH(this.x, this.y, this.cameraProps.canvasSize.width,
-        this.cameraProps.canvasSize.height);
+    return Rect.fromLTWH(this.x, this.y, this.cameraProps.canvasSize.width, this.cameraProps.canvasSize.height);
   }
 }

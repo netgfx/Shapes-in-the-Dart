@@ -44,8 +44,7 @@ class MazeDriverCanvas extends CustomPainter {
   Function? update;
   Paint _paint = new Paint();
   int blockSize = 8;
-  BoxConstraints sceneSize = BoxConstraints(
-      minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
+  BoxConstraints sceneSize = BoxConstraints(minWidth: 800, maxWidth: 1600, minHeight: 450, maxHeight: 900);
   ui.BlendMode? blendMode = ui.BlendMode.src;
   Rectangle worldBounds = Rectangle(x: 0, y: 0, width: 0, height: 0);
   Camera? _camera;
@@ -87,8 +86,7 @@ class MazeDriverCanvas extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     /// calculate world bounds
-    this.worldBounds =
-        Rectangle(x: 0, y: 0, width: this.width, height: this.height);
+    this.worldBounds = Rectangle(x: 0, y: 0, width: this.width, height: this.height);
 
     this._camera = Camera(
       x: 0,
@@ -153,8 +151,7 @@ class MazeDriverCanvas extends CustomPainter {
     }
 
     if (_camera != null) {
-      canvas.clipRect(Rect.fromLTWH(0, 0, _camera!.getCameraBounds().width,
-          _camera!.getCameraBounds().height));
+      canvas.clipRect(Rect.fromLTWH(0, 0, _camera!.getCameraBounds().width, _camera!.getCameraBounds().height));
       Rect bounds = _camera!.getCameraBounds();
       //moveCanvas(bounds.left * -1, bounds.top, () {});
       // print("$bounds, ${this.player.x}");
@@ -185,13 +182,10 @@ class MazeDriverCanvas extends CustomPainter {
     if (this.controller != null) {
       if (this.controller!.lastElapsedDuration != null) {
         /// in order to run in our required frames per second
-        if (this.controller!.lastElapsedDuration!.inMilliseconds -
-                this.currentTime >=
-            timeDecay) {
+        if (this.controller!.lastElapsedDuration!.inMilliseconds - this.currentTime >= timeDecay) {
           /// reset the time
 
-          this.currentTime =
-              this.controller!.lastElapsedDuration!.inMilliseconds;
+          this.currentTime = this.controller!.lastElapsedDuration!.inMilliseconds;
           if (this.player.x >= this.width / 2) {
             maxRightReached = true;
           }
@@ -205,7 +199,7 @@ class MazeDriverCanvas extends CustomPainter {
           } else {
             //this.player.x += this.rate;
           }
-          this._camera?.focus(this.player);
+          this._camera?.update();
         } else {}
       } else {
         print("no elapsed duration");
@@ -222,8 +216,7 @@ class MazeDriverCanvas extends CustomPainter {
     Cell? result;
     int length = this.maze.length;
     for (var i = 0; i < length; i++) {
-      result =
-          this.maze[i].firstWhereOrNull((o) => o.x == realX && o.y == realY);
+      result = this.maze[i].firstWhereOrNull((o) => o.x == realX && o.y == realY);
       if (result != null) {
         break;
       }
@@ -236,8 +229,7 @@ class MazeDriverCanvas extends CustomPainter {
     }
   }
 
-  void updateCanvas(double? x, double? y, double? angle, VoidCallback callback,
-      {bool translate = false}) {
+  void updateCanvas(double? x, double? y, double? angle, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas!.save();
