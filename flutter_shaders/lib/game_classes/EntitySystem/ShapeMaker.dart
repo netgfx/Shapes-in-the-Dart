@@ -1,9 +1,11 @@
 import "dart:math";
 import "dart:ui";
 
-import 'package:flutter/material.dart' as material;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:vector_math/vector_math.dart';
+
+import 'package:vector_math/vector_math_64.dart';
 
 enum ShapeType {
   Circle,
@@ -28,12 +30,15 @@ class ShapeMaker {
   Size size = Size(20, 20);
   double radius = 0.0;
   double? angle = 0;
-  material.Color _color = material.Colors.black;
+  Color _color = Color.fromARGB(255, 0, 0, 0);
   Paint paint = Paint();
   bool _alive = false;
   bool? startAlive = false;
   Point<double> position = Point(0, 0);
   int _zIndex = 0;
+  bool _interactive = false;
+  Function? _onEvent;
+  String _id = "";
 
   ShapeMaker({
     required this.type,
@@ -43,12 +48,14 @@ class ShapeMaker {
     angle,
     paintOptions,
     startAlive,
+    id,
   }) {
     this.size = size ?? Size(20, 20);
-    this._color = material.Colors.black;
+    this._color = Color.fromARGB(255, 0, 0, 0);
     this.radius = radius.toDouble() ?? 50.0;
     this.position = position;
     this.angle = angle ?? 0.0;
+    this.id = id ?? UniqueKey().toString();
 
     if (startAlive == true) {
       this.alive = true;
@@ -65,7 +72,8 @@ class ShapeMaker {
     }
   }
 
-  void update(Canvas canvas, {double elapsedTime = 0, bool shouldUpdate = true}) {
+  void update(Canvas canvas,
+      {double elapsedTime = 0, bool shouldUpdate = true}) {
     drawType(canvas, this.type);
   }
 
@@ -128,7 +136,10 @@ class ShapeMaker {
   void drawRRect(Canvas canvas, {double? cornerRadius}) {
     updateCanvas(canvas, 0, 0, 0, () {
       Rect rect = Rect.fromLTWH(0, 0, this.size.width, this.size.height);
-      canvas.drawRRect(RRect.fromRectAndRadius(rect, Radius.circular(cornerRadius ?? radius * 0.2)), this.paint);
+      canvas.drawRRect(
+          RRect.fromRectAndRadius(
+              rect, Radius.circular(cornerRadius ?? radius * 0.2)),
+          this.paint);
     });
   }
 
@@ -156,8 +167,10 @@ class ShapeMaker {
 
       path.moveTo(0, radius);
 
-      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0, -radius * 0.5);
-      path.cubicTo(radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
+      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0,
+          -radius * 0.5);
+      path.cubicTo(
+          radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
 
       canvas.drawPath(path, paint);
     });
@@ -183,8 +196,25 @@ class ShapeMaker {
 
   void drawRect(Canvas canvas) {
     updateCanvas(canvas, this.position.x, this.position.y, this.angle, () {
-      canvas.drawRect(Rect.fromLTWH(0, 0, this.size.width, this.size.height), this.paint);
+      canvas.drawRect(
+          Rect.fromLTWH(0, 0, this.size.width, this.size.height), this.paint);
     });
+  }
+
+  bool get interactive {
+    return _interactive;
+  }
+
+  void set interactive(bool value) {
+    this._interactive = value;
+  }
+
+  void set onEvent(Function? value) {
+    this._onEvent = value;
+  }
+
+  Function? get onEvent {
+    return this._onEvent;
   }
 
   bool get alive {
@@ -203,7 +233,17 @@ class ShapeMaker {
     return this._zIndex;
   }
 
-  void updateCanvas(Canvas canvas, double? x, double? y, double? rotate, VoidCallback callback, {bool translate = false}) {
+  String get id {
+    return this._id;
+  }
+
+  set id(String value) {
+    this._id = value;
+  }
+
+  void updateCanvas(Canvas canvas, double? x, double? y, double? rotate,
+      VoidCallback callback,
+      {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas.save();

@@ -39,12 +39,13 @@ class TDSpriteAnimator with SpriteArchetype {
     required this.currentFrame,
     required this.cache,
     required this.loop,
+    this.fps,
+    this.startAlive,
     scale,
     zIndex,
     interactive,
     onEvent,
-    this.fps,
-    this.startAlive,
+    id,
   }) {
     this.position = position;
     this.textureName = textureName;
@@ -53,6 +54,7 @@ class TDSpriteAnimator with SpriteArchetype {
     this.onEvent = onEvent;
     this.timeDecay = (1 / (this.fps ?? 60) * 1000).round();
     this.scale = scale ?? 1.0;
+    this.id = id ?? UniqueKey().toString();
     if (this.startAlive == true) {
       this.alive = true;
     }
@@ -61,15 +63,19 @@ class TDSpriteAnimator with SpriteArchetype {
       this.texture = cacheItem["texture"];
       this.spriteData = cacheItem["spriteData"];
       var img = spriteData[currentFrame]![currentIndex];
-      this.size = Size(img["width"].toDouble() * this.scale, img["height"].toDouble() * this.scale);
+      this.size = Size(img["width"].toDouble() * this.scale,
+          img["height"].toDouble() * this.scale);
     }
   }
 
   @override
-  void update(Canvas canvas, {double elapsedTime = 0.0, bool shouldUpdate = true}) {
+  void update(Canvas canvas,
+      {double elapsedTime = 0.0, bool shouldUpdate = true}) {
     if (alive == true) {
       var img = spriteData[currentFrame]![currentIndex];
-      Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2, position.y - img["height"].toDouble() * scale / 2);
+      Point<double> pos = Point(
+          position.x - img["width"].toDouble() * scale / 2,
+          position.y - img["height"].toDouble() * scale / 2);
 
       /// this component needs its own tick
       if (elapsedTime - this.currentTime >= timeDecay) {
@@ -94,11 +100,13 @@ class TDSpriteAnimator with SpriteArchetype {
     }
   }
 
-  void renderSprite(Canvas canvas, Point<double> pos, Map<String, dynamic> img) {
+  void renderSprite(
+      Canvas canvas, Point<double> pos, Map<String, dynamic> img) {
     updateCanvas(canvas, pos.x, pos.y, scale, () {
       canvas.drawImageRect(
         this.texture!,
-        Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
+        Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(),
+            img["width"].toDouble(), img["height"].toDouble()),
         Rect.fromLTWH(
           0,
           0,
@@ -116,7 +124,8 @@ class TDSpriteAnimator with SpriteArchetype {
 
   Point<double> getPosition() {
     var img = spriteData[currentFrame]![currentIndex];
-    Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2, position.y - img["height"].toDouble() * scale / 2);
+    Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2,
+        position.y - img["height"].toDouble() * scale / 2);
     return pos;
   }
 

@@ -48,7 +48,8 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tween = TweenManager(ticker: this);
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
@@ -196,7 +197,8 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
           //         ),
           //       )),
           // ),
-          body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
+          body: LayoutBuilder(builder:
+              (BuildContext context, BoxConstraints viewportConstraints) {
             this.viewportConstraints = viewportConstraints;
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -226,9 +228,15 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
                                 height: viewportConstraints.maxHeight,
                                 cameraProps: CameraProps(
                                   enabled: true,
-                                  canvasSize: Size(viewportConstraints.maxWidth * 0.5, viewportConstraints.maxHeight * 0.5),
-                                  mapSize: Size(viewportConstraints.maxWidth, viewportConstraints.maxHeight),
-                                  followObject: Rect.fromLTWH(200.0, 180.0, 80, 80),
+                                  canvasSize: Size(
+                                    viewportConstraints.maxWidth,
+                                    viewportConstraints.maxHeight,
+                                  ),
+                                  mapSize: Size(viewportConstraints.maxWidth,
+                                      viewportConstraints.maxHeight),
+                                  followObject:
+                                      Rect.fromLTWH(200.0, 180.0, 80, 80),
+                                  offset: Point<double>(0.0, 0.0),
                                 ),
                               ),
                             ),

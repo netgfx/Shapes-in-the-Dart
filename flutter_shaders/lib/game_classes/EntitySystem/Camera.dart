@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart' as vectorMath;
 
@@ -6,24 +7,31 @@ class CameraProps {
   Size canvasSize = Size(0, 0);
   dynamic followObject;
   Size mapSize = Size(0, 0);
+  Point<double> offset = Point(0.0, 0.0);
 
   CameraProps({
     required this.enabled,
     required this.canvasSize,
     required this.mapSize,
+    offset,
     followObject,
   }) {
-    print("${followObject.left} ${followObject.top}");
+    //print("${followObject.left} ${followObject.top}");
     this.followObject = followObject;
+    this.offset = offset ?? Point(0.0, 0.0);
   }
 }
 
 class Camera {
   double x;
   double y;
+  Point<double> offset = Point<double>(0.0, 0.0);
   CameraProps cameraProps;
 
-  Camera({required this.x, required this.y, required this.cameraProps}) {}
+  Camera(
+      {required this.x, required this.y, required this.cameraProps, offset}) {
+    this.offset = offset ?? Point<double>(0.0, 0.0);
+  }
 
   void update() {
     this.focus();
@@ -31,9 +39,17 @@ class Camera {
 
   focus() {
     // Account for half of player w/h to make their rectangle centered
-    this.x = this.clamp(cameraProps.followObject.left - cameraProps.canvasSize.width / 2 + cameraProps.followObject.width / 2, 0,
+    this.x = this.clamp(
+        cameraProps.followObject.left -
+            cameraProps.canvasSize.width / 2 +
+            cameraProps.followObject.width / 2,
+        0,
         cameraProps.mapSize.width - cameraProps.canvasSize.width);
-    this.y = this.clamp(cameraProps.followObject.top - cameraProps.canvasSize.height / 2 + cameraProps.followObject.height / 2, 0,
+    this.y = this.clamp(
+        cameraProps.followObject.top -
+            cameraProps.canvasSize.height / 2 +
+            cameraProps.followObject.height / 2,
+        0,
         cameraProps.mapSize.height - cameraProps.canvasSize.height);
   }
 
@@ -48,6 +64,7 @@ class Camera {
   }
 
   Rect getCameraBounds() {
-    return Rect.fromLTWH(this.x, this.y, this.cameraProps.canvasSize.width, this.cameraProps.canvasSize.height);
+    return Rect.fromLTWH(this.offset.x + this.x, this.offset.y + this.y,
+        this.cameraProps.canvasSize.width, this.cameraProps.canvasSize.height);
   }
 }
