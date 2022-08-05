@@ -79,7 +79,7 @@ class LinePoint{
      * @return {Phaser.Point} This Point object. Useful for chaining method calls.
      */
     setTo(x, y){
-        return LinePoint.set(this, x, y);
+        return this.set(x, y);
     }
 
     /**
@@ -267,7 +267,7 @@ class LinePoint{
      * @return {number} The distance between this Point object and the destination Point object.
      */
     distance(dest, round){
-        return LinePoint.distance(this, dest, round);
+        return distancePoint(this,dest, round);
     }
 
     /**
@@ -294,11 +294,11 @@ class LinePoint{
     }
 
     fuzzyEquals(a, epsilon){
-        return LinePoint.fuzzyEquals(a, epsilon);
+        return fuzzyEquals(a, epsilon);
     }
 
     fuzzyEqualsXY(x, y, epsilon){
-        return LinePoint.fuzzyEqualsXY(x, y, epsilon);
+        return fuzzyEqualsXY(x, y, epsilon);
     }
 
     /**
@@ -364,7 +364,7 @@ class LinePoint{
      * @return {Phaser.Point} The modified point object.
      */
     rotate(x, y, angle, asDegrees, distance){
-        return LinePoint.rotate(x, y, angle, asDegrees, distance);
+        return rotatePoint(this, x, y, angle, asDegrees, distance);
     }
 
     /**
@@ -728,10 +728,6 @@ distancePoint(a, b, round){
     return round ? (distance).round() : distance;
 }
 
-}
-
-
-
 
 /**
  * Project two Points onto another Point.
@@ -742,19 +738,18 @@ distancePoint(a, b, round){
  * @param {Phaser.Point} [out] - Optional Point to store the value in, if not supplied a new Point object will be created.
  * @return {Phaser.Point} The new Point object.
  */
-Phaser.Point.project = function (a, b, out)
-{
-    if (out === undefined) { out = new Phaser.Point(); }
+project(a, b){
+  var amt = a.dot(b) / b.getMagnitudeSq();
 
-    var amt = a.dot(b) / b.getMagnitudeSq();
+     LinePoint out = LinePoint(0, 0);
 
-    if (amt !== 0)
-    {
-        out.setTo(amt * b.x, amt * b.y);
+    // =!
+    if (amt != 0){
+        out = LinePoint(amt * b.x, amt * b.y);
     }
 
     return out;
-};
+}
 
 /**
  * Project two Points onto a Point of unit length.
@@ -765,19 +760,68 @@ Phaser.Point.project = function (a, b, out)
  * @param {Phaser.Point} [out] - Optional Point to store the value in, if not supplied a new Point object will be created.
  * @return {Phaser.Point} The new Point object.
  */
-Phaser.Point.projectUnit = function (a, b, out)
-{
-    if (out === undefined) { out = new Phaser.Point(); }
+projectUnit(a, b){
+    LinePoint out = LinePoint(0,0);
 
     var amt = a.dot(b);
 
-    if (amt !== 0)
-    {
+    if (amt != 0){
+        //out = LinePoint(amt * b.x, amt * b.y);
         out.setTo(amt * b.x, amt * b.y);
     }
 
     return out;
-};
+}
+
+/**
+ * Rotates a Point object, or any object with exposed x/y properties, around the given coordinates by
+ * the angle specified. If the angle between the point and coordinates was 45 deg and the angle argument
+ * is 45 deg then the resulting angle will be 90 deg, as the angle argument is added to the current angle.
+ *
+ * The distance allows you to specify a distance constraint for the rotation between the point and the
+ * coordinates. If none is given the distance between the two is calculated and used.
+ *
+ * @method Phaser.Point.rotate
+ * @param {Phaser.Point} a - The Point object to rotate.
+ * @param {number} x - The x coordinate of the anchor point
+ * @param {number} y - The y coordinate of the anchor point
+ * @param {number} angle - The angle in radians (unless asDegrees is true) to rotate the Point by.
+ * @param {boolean} [asDegrees=false] - Is the given angle in radians (false) or degrees (true)?
+ * @param {number} [distance] - An optional distance constraint between the Point and the anchor.
+ * @return {Phaser.Point} The modified point object.
+ */
+rotatePoint(a, x, y, angle, asDegrees, distance){
+    if (asDegrees) { angle = Utils.shared.degreesToRadians(angle); }
+
+    if (distance == null){
+        a.subtract(x, y);
+
+        var s = sin(angle);
+        var c = cos(angle);
+
+        var tx = c * a.x - s * a.y;
+        var ty = s * a.x + c * a.y;
+
+        a.x = tx + x;
+        a.y = ty + y;
+    }
+    else{
+        var t = angle + atan2(a.y - y, a.x - x);
+        a.x = x + distance * cos(t);
+        a.y = y + distance * sin(t);
+    }
+
+    return a;
+}
+
+// end of class
+}
+
+
+
+
+
+
 
 /**
  * Right-hand normalize (make unit length) a Point.
@@ -816,49 +860,7 @@ Phaser.Point.normalize = function (a, out)
     return out;
 };
 
-/**
- * Rotates a Point object, or any object with exposed x/y properties, around the given coordinates by
- * the angle specified. If the angle between the point and coordinates was 45 deg and the angle argument
- * is 45 deg then the resulting angle will be 90 deg, as the angle argument is added to the current angle.
- *
- * The distance allows you to specify a distance constraint for the rotation between the point and the
- * coordinates. If none is given the distance between the two is calculated and used.
- *
- * @method Phaser.Point.rotate
- * @param {Phaser.Point} a - The Point object to rotate.
- * @param {number} x - The x coordinate of the anchor point
- * @param {number} y - The y coordinate of the anchor point
- * @param {number} angle - The angle in radians (unless asDegrees is true) to rotate the Point by.
- * @param {boolean} [asDegrees=false] - Is the given angle in radians (false) or degrees (true)?
- * @param {number} [distance] - An optional distance constraint between the Point and the anchor.
- * @return {Phaser.Point} The modified point object.
- */
-Phaser.Point.rotate = function (a, x, y, angle, asDegrees, distance)
-{
-    if (asDegrees) { angle = Phaser.Math.degToRad(angle); }
 
-    if (distance === undefined)
-    {
-        a.subtract(x, y);
-
-        var s = Math.sin(angle);
-        var c = Math.cos(angle);
-
-        var tx = c * a.x - s * a.y;
-        var ty = s * a.x + c * a.y;
-
-        a.x = tx + x;
-        a.y = ty + y;
-    }
-    else
-    {
-        var t = angle + Math.atan2(a.y - y, a.x - x);
-        a.x = x + distance * Math.cos(t);
-        a.y = y + distance * Math.sin(t);
-    }
-
-    return a;
-};
 
 /**
  * Calculates centroid (or midpoint) from an array of points. If only one point is provided, that point is returned.

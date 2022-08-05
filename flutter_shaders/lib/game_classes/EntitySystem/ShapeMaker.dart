@@ -49,6 +49,8 @@ class ShapeMaker {
     paintOptions,
     startAlive,
     id,
+    zIndex,
+    interactive,
   }) {
     this.size = size ?? Size(20, 20);
     this._color = Color.fromARGB(255, 0, 0, 0);
@@ -56,7 +58,9 @@ class ShapeMaker {
     this.position = position;
     this.angle = angle ?? 0.0;
     this.id = id ?? UniqueKey().toString();
-
+    this.zIndex = zIndex ?? 0;
+    this.interactive = interactive ?? false;
+    //
     if (startAlive == true) {
       this.alive = true;
     }
@@ -72,8 +76,7 @@ class ShapeMaker {
     }
   }
 
-  void update(Canvas canvas,
-      {double elapsedTime = 0, bool shouldUpdate = true}) {
+  void update(Canvas canvas, {double elapsedTime = 0, bool shouldUpdate = true}) {
     drawType(canvas, this.type);
   }
 
@@ -136,10 +139,7 @@ class ShapeMaker {
   void drawRRect(Canvas canvas, {double? cornerRadius}) {
     updateCanvas(canvas, 0, 0, 0, () {
       Rect rect = Rect.fromLTWH(0, 0, this.size.width, this.size.height);
-      canvas.drawRRect(
-          RRect.fromRectAndRadius(
-              rect, Radius.circular(cornerRadius ?? radius * 0.2)),
-          this.paint);
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, Radius.circular(cornerRadius ?? radius * 0.2)), this.paint);
     });
   }
 
@@ -167,10 +167,8 @@ class ShapeMaker {
 
       path.moveTo(0, radius);
 
-      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0,
-          -radius * 0.5);
-      path.cubicTo(
-          radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
+      path.cubicTo(-radius * 2, -radius * 0.5, -radius * 0.5, -radius * 1.5, 0, -radius * 0.5);
+      path.cubicTo(radius * 0.5, -radius * 1.5, radius * 2, -radius * 0.5, 0, radius);
 
       canvas.drawPath(path, paint);
     });
@@ -196,8 +194,7 @@ class ShapeMaker {
 
   void drawRect(Canvas canvas) {
     updateCanvas(canvas, this.position.x, this.position.y, this.angle, () {
-      canvas.drawRect(
-          Rect.fromLTWH(0, 0, this.size.width, this.size.height), this.paint);
+      canvas.drawRect(Rect.fromLTWH(0, 0, this.size.width, this.size.height), this.paint);
     });
   }
 
@@ -241,9 +238,12 @@ class ShapeMaker {
     this._id = value;
   }
 
-  void updateCanvas(Canvas canvas, double? x, double? y, double? rotate,
-      VoidCallback callback,
-      {bool translate = false}) {
+  Point<double> getPosition() {
+    Point<double> pos = Point(position.x - this.size.width / 2, position.y - this.size.height / 2);
+    return pos;
+  }
+
+  void updateCanvas(Canvas canvas, double? x, double? y, double? rotate, VoidCallback callback, {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas.save();

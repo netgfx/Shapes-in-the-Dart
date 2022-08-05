@@ -18,13 +18,14 @@ class TweenOptions {
   AnimationProperties? animationProperties;
   dynamic to;
   dynamic from;
-
+  List<dynamic> collection = [];
   bool autostart = false;
 
-  TweenOptions({required this.target, required this.property, required this.to, from, autostart, animationProperties}) {
+  TweenOptions({required this.target, required this.property, required this.to, collection, from, autostart, animationProperties}) {
     this.animationProperties = animationProperties ?? AnimationProperties();
     this.autostart = autostart ?? false;
     this.from = from ?? null;
+    this.collection = collection ?? [];
   }
 
   getOptions() {
@@ -43,8 +44,11 @@ class TweenManager {
   AnimationController addTween(TweenOptions options, Function? completeFn, Function? updateFn) {
     AnimationController controller = AnimationController(vsync: this.ticker, duration: Duration(milliseconds: options.animationProperties!.duration.toInt()));
 
+    // find the target via ID
+    var target = options.collection.firstWhere((element) => element.id == options.target);
+
     var tween = new Tween(
-      begin: options.from == null ? options.target.getProperty(options.property) : options.from,
+      begin: options.from == null ? target.getProperty(options.property) : options.from,
       end: options.to,
     ).animate(new CurvedAnimation(
       parent: controller,
@@ -53,7 +57,7 @@ class TweenManager {
 
     tween.addListener(() => {
           print(tween.value),
-          options.target.setProperty(options.property, tween.value),
+          target.setProperty(options.property, tween.value),
           if (updateFn != null)
             {
               updateFn(),
