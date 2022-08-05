@@ -137,9 +137,7 @@ class Utils {
     const c1 = 1.70158;
     const c2 = c1 * 1.525;
 
-    return x < 0.5
-        ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
-        : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+    return x < 0.5 ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
   }
 
   void delayedPrint(String str) {
@@ -162,8 +160,7 @@ class Utils {
     ByteData data,
   ) async {
     try {
-      ui.Codec codec =
-          await ui.instantiateImageCodec(data.buffer.asUint8List());
+      ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       ui.FrameInfo frameInfo = await codec.getNextFrame();
       return frameInfo.image;
     } catch (error) {
@@ -253,16 +250,14 @@ class Utils {
     * @param {number} [lerp=0.05] - The lerp value to add to the current angle.
     * @return {number} The adjusted angle.
     */
-  double rotateToAngle(double currentAngle, double targetAngle,
-      {double lerp = 0.05}) {
+  double rotateToAngle(double currentAngle, double targetAngle, {double lerp = 0.05}) {
     const PI2 = pi * 2;
 
     if (currentAngle == targetAngle) {
       return currentAngle;
     }
 
-    if ((targetAngle - currentAngle).abs() <= lerp ||
-        (targetAngle - currentAngle).abs() >= (PI2 - lerp)) {
+    if ((targetAngle - currentAngle).abs() <= lerp || (targetAngle - currentAngle).abs() >= (PI2 - lerp)) {
       currentAngle = targetAngle;
     } else {
       if ((targetAngle - currentAngle).abs() > pi) {
@@ -314,11 +309,7 @@ class Utils {
  */
   bool contains(Circle circle, double x, double y) {
     //  Check if x/y are within the bounds first
-    if (circle.radius > 0 &&
-        x >= circle.left &&
-        x <= circle.right &&
-        y >= circle.top &&
-        y <= circle.bottom) {
+    if (circle.radius > 0 && x >= circle.left && x <= circle.right && y >= circle.top && y <= circle.bottom) {
       var dx = (circle.x - x) * (circle.x - x);
       var dy = (circle.y - y) * (circle.y - y);
 
@@ -350,8 +341,7 @@ class Utils {
     var x = r * cos(t);
     var y = r * sin(t);
 
-    _out =
-        Point(circle.x + (x * circle.radius), circle.y + (y * circle.radius));
+    _out = Point(circle.x + (x * circle.radius), circle.y + (y * circle.radius));
 
     return _out;
   }
@@ -370,8 +360,7 @@ class Utils {
  *
  * @return {Phaser.Geom.Point[]} An array of Point objects pertaining to the points around the circumference of the circle.
  */
-  List<Point> getPoints(
-      Circle circle, double quantity, double stepRate, List<Point> out) {
+  List<Point> getPoints(Circle circle, double quantity, double stepRate, List<Point> out) {
     List<Point> _out = [];
 
     //  If quantity is a falsey value (false, null, 0, undefined, etc) then we calculate it based on the stepRate instead.
@@ -431,8 +420,7 @@ class Utils {
   Point circumferencePoint(Circle circle, double angle, Point? out) {
     Point _out = out ?? Point(0, 0);
 
-    _out = Point(circle.x + (circle.radius * cos(angle)),
-        circle.y + (circle.radius * sin(angle)));
+    _out = Point(circle.x + (circle.radius * cos(angle)), circle.y + (circle.radius * sin(angle)));
 
     return _out;
   }
@@ -471,8 +459,7 @@ class Utils {
     return max(minValue, min(maxValue, value));
   }
 
-  Point<double> calculateXY(
-      int canvasWidth, int canvasHeight, int width, int height, double angle) {
+  Point<double> calculateXY(int canvasWidth, int canvasHeight, int width, int height, double angle) {
     //calculate where the top left corner of the object would be relative to center of the canvas
     //if the object had no rotation and was centered
     double x = -width / 2;
@@ -558,10 +545,7 @@ class Utils {
 */
   union(Rectangle a, Rectangle b) {
     return Rectangle(
-        x: min(a.x, b.x),
-        y: min(a.y, b.y),
-        width: max(a.right, b.right) - min(a.left, b.left),
-        height: max(a.bottom, b.bottom) - min(a.top, b.top));
+        x: min(a.x, b.x), y: min(a.y, b.y), width: max(a.right, b.right) - min(a.left, b.left), height: max(a.bottom, b.bottom) - min(a.top, b.top));
   }
 
   /**
@@ -573,10 +557,7 @@ class Utils {
 * @return {boolean} A value of true if the two Rectangles have exactly the same values for the x, y, width and height properties; otherwise false.
 */
   equals(Rectangle a, Rectangle b) {
-    return (a.x == b.x &&
-        a.y == b.y &&
-        a.width == b.width &&
-        a.height == b.height);
+    return (a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height);
   }
 
   /**
@@ -653,8 +634,7 @@ class Utils {
       }
     });
 
-    Rectangle out =
-        Rectangle(x: xMin, y: yMin, width: xMax - xMin, height: yMax - yMin);
+    Rectangle out = Rectangle(x: xMin, y: yMin, width: xMax - xMin, height: yMax - yMin);
 
     return out;
   }
@@ -669,12 +649,8 @@ class Utils {
 * @param {number} tolerance - A tolerance value to allow for an intersection test with padding, default to 0
 * @return {boolean} A value of true if the specified object intersects with the Rectangle; otherwise false.
 */
-  intersectsRaw(Rectangle a, double left, double right, double top,
-      double bottom, double tolerance) {
-    return !(left > a.right + tolerance ||
-        right < a.left - tolerance ||
-        top > a.bottom + tolerance ||
-        bottom < a.top - tolerance);
+  intersectsRaw(Rectangle a, double left, double right, double top, double bottom, double tolerance) {
+    return !(left > a.right + tolerance || right < a.left - tolerance || top > a.bottom + tolerance || bottom < a.top - tolerance);
   }
 
 /**
@@ -690,10 +666,7 @@ class Utils {
       return false;
     }
 
-    return !(a.right < b.x ||
-        a.bottom < b.y ||
-        a.x > b.right ||
-        a.y > b.bottom);
+    return !(a.right < b.x || a.bottom < b.y || a.x > b.right || a.y > b.bottom);
   }
 
 /**
@@ -707,8 +680,7 @@ class Utils {
 * @param {number} y - The y coordinate of the point to test.
 * @return {boolean} A value of true if the Rectangle object contains the specified point; otherwise false.
 */
-  bool containsRaw(
-      double rx, double ry, double rw, double rh, double x, double y) {
+  bool containsRaw(double rx, double ry, double rw, double rh, double x, double y) {
     return (x >= rx && x < (rx + rw) && y >= ry && y < (ry + rh));
   }
 
@@ -734,10 +706,7 @@ class Utils {
       return false;
     }
 
-    return (a.x >= b.x &&
-        a.y >= b.y &&
-        a.right < b.right &&
-        a.bottom < b.bottom);
+    return (a.x >= b.x && a.y >= b.y && a.right < b.right && a.bottom < b.bottom);
   }
 
 /**
@@ -756,8 +725,7 @@ class Utils {
   extendLine(double distance, Point a, Point b) {
     // Find Slope of the line
     double lenAB = sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0));
-    Point<double> result = Point(b.x + (b.x - a.x) / lenAB * distance,
-        b.y + (b.y - a.y) / lenAB * distance);
+    Point<double> result = Point(b.x + (b.x - a.x) / lenAB * distance, b.y + (b.y - a.y) / lenAB * distance);
 
     return result;
   }
@@ -767,5 +735,32 @@ class Utils {
    */
   int sortByDepth(dynamic childA, dynamic childB) {
     return childA.zIndex - childB.zIndex;
+  }
+
+  /**
+     * Ensures that the value always stays between min and max, by wrapping the value around.
+     *
+     * If `max` is not larger than `min` the result is 0.
+     *
+     * @method Phaser.Math#wrap
+     * @param {number} value - The value to wrap.
+     * @param {number} min - The minimum the value is allowed to be.
+     * @param {number} max - The maximum the value is allowed to be, should be larger than `min`.
+     * @return {number} The wrapped value.
+     */
+  wrap(double value, double min, double max) {
+    var range = max - min;
+
+    if (range <= 0) {
+      return 0;
+    }
+
+    var result = (value - min) % range;
+
+    if (result < 0) {
+      result += range;
+    }
+
+    return result + min;
   }
 }
