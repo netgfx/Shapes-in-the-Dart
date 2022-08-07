@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/sprite_archetype.dart';
+import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/action_manager.dart';
 import 'package:flutter_shaders/helpers/sprite_cache.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
@@ -30,15 +31,13 @@ class TDSpriteAnimator with SpriteArchetype {
   Paint _paint = new Paint();
   bool? startAlive = false;
   int timeDecay = 0;
-  SpriteCache? cache;
 
   // constructor
   TDSpriteAnimator({
-    required position,
     required textureName,
     required this.currentFrame,
-    required this.cache,
     required this.loop,
+    position,
     this.fps,
     this.startAlive,
     scale,
@@ -47,7 +46,7 @@ class TDSpriteAnimator with SpriteArchetype {
     onEvent,
     id,
   }) {
-    this.position = position;
+    this.position = position ?? Point(0.0, 0.0);
     this.textureName = textureName;
     this.zIndex = zIndex ?? 0;
     this.interactive = interactive;
@@ -58,24 +57,16 @@ class TDSpriteAnimator with SpriteArchetype {
     if (this.startAlive == true) {
       this.alive = true;
     }
-    Map<String, dynamic>? cacheItem = cache!.getItem(textureName);
-    if (cacheItem != null) {
-      this.texture = cacheItem["texture"];
-      this.spriteData = cacheItem["spriteData"];
-      var img = spriteData[currentFrame]![currentIndex];
-      this.size = Size(img["width"].toDouble() * this.scale,
-          img["height"].toDouble() * this.scale);
-    }
   }
 
   @override
-  void update(Canvas canvas,
-      {double elapsedTime = 0.0, bool shouldUpdate = true}) {
+  void update(Canvas canvas, {double elapsedTime = 0.0, bool shouldUpdate = true}) {
     if (alive == true) {
+      if (this.texture == null) {
+        setCache();
+      }
       var img = spriteData[currentFrame]![currentIndex];
-      Point<double> pos = Point(
-          position.x - img["width"].toDouble() * scale / 2,
-          position.y - img["height"].toDouble() * scale / 2);
+      Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2, position.y - img["height"].toDouble() * scale / 2);
 
       /// this component needs its own tick
       if (elapsedTime - this.currentTime >= timeDecay) {
@@ -100,13 +91,11 @@ class TDSpriteAnimator with SpriteArchetype {
     }
   }
 
-  void renderSprite(
-      Canvas canvas, Point<double> pos, Map<String, dynamic> img) {
+  void renderSprite(Canvas canvas, Point<double> pos, Map<String, dynamic> img) {
     updateCanvas(canvas, pos.x, pos.y, scale, () {
       canvas.drawImageRect(
         this.texture!,
-        Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(),
-            img["width"].toDouble(), img["height"].toDouble()),
+        Rect.fromLTWH(img["x"].toDouble(), img["y"].toDouble(), img["width"].toDouble(), img["height"].toDouble()),
         Rect.fromLTWH(
           0,
           0,
@@ -118,14 +107,23 @@ class TDSpriteAnimator with SpriteArchetype {
     }, translate: false);
   }
 
+  void setCache() {
+    Map<String, dynamic>? cacheItem = GameObject.shared.getSpriteCache().getItem(textureName);
+    if (cacheItem != null) {
+      this.texture = cacheItem["texture"];
+      this.spriteData = cacheItem["spriteData"];
+      var img = spriteData[currentFrame]![currentIndex];
+      this.size = Size(img["width"].toDouble() * this.scale, img["height"].toDouble() * this.scale);
+    }
+  }
+
   setPosition(Point<double> value) {
     this.position = value;
   }
 
   Point<double> getPosition() {
     var img = spriteData[currentFrame]![currentIndex];
-    Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2,
-        position.y - img["height"].toDouble() * scale / 2);
+    Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2, position.y - img["height"].toDouble() * scale / 2);
     return pos;
   }
 

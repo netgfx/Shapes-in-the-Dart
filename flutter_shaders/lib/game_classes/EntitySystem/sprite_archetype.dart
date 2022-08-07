@@ -17,10 +17,9 @@ mixin SpriteArchetype {
   ui.Image? texture;
   Canvas? canvas;
   bool _alive = false;
-  SpriteCache? cache;
   String _id = "";
   String textureName = "";
-  Point<double> position = Point(0, 0);
+  Point<double> _position = Point(0, 0);
   Size _size = Size(0, 0);
   bool _interactive = false;
   Function? _onEvent;
@@ -81,6 +80,14 @@ mixin SpriteArchetype {
 
   int get zIndex {
     return this._zIndex;
+  }
+
+  void set position(Point<double> value) {
+    this._position = value;
+  }
+
+  Point<double> get position {
+    return this._position;
   }
 
   void updateCanvas(Canvas canvas, double? x, double? y, double? scale, VoidCallback callback, {bool translate = false}) {

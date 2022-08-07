@@ -14,6 +14,7 @@ import 'package:flutter_shaders/game_classes/EntitySystem/Camera.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/ShapeMaker.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSprite.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDSpriteAnimator.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/group_controller.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/sprite_archetype.dart';
 import 'package:flutter_shaders/game_classes/sprite_driver.dart';
 import 'package:flutter_shaders/helpers/action_manager.dart';
@@ -59,6 +60,10 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
 
       // cache
       cache.addItem(
+        "mage1",
+        texturePath: "assets/mage1.png",
+      );
+      cache.addItem(
         "boom",
         texturePath: "assets/boom.png",
         dataPath: "assets/boom.json",
@@ -94,11 +99,21 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   void init() {
     List<dynamic> sprites = [];
 
+    // GroupController group = GroupController(position: Point(100.0, 100.0));
+    // group.zIndex = 1;
+    // group.addItem(
+    //   TDSprite(
+    //     position: Point<double>(0.0, 0.0),
+    //     textureName: "mage1",
+    //     startAlive: true,
+    //     scale: 0.8,
+    //   ),
+    // );
+
     sprites = [
       TDSprite(
         position: Point<double>(0.0, 0.0),
         textureName: "bg",
-        cache: this.cache,
         startAlive: true,
         scale: 1.0,
       ),
@@ -106,7 +121,6 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
         position: Point<double>(200.0, 180.0),
         textureName: "bat",
         currentFrame: "fly/Fly2_Bats",
-        cache: cache,
         id: "bat",
         loop: LoopMode.Repeat,
         scale: 0.5,
@@ -146,6 +160,7 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
         },
         startAlive: true,
       ),
+      //group
     ];
 
     setState(() {

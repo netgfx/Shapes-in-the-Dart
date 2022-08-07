@@ -8,6 +8,7 @@ class SpriteCache {
   String textureLoadState = "none";
   Map<String, dynamic> _cache = {};
   FutureGroup _group = FutureGroup();
+  // constructor
   SpriteCache() {}
 
   /**

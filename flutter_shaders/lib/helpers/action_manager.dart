@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
+enum PointerEvents { CLICK, DRAG_START, DRAG_MOVE, DRAG_END, TAP, LONG_TAP }
+
 class ActionManager {
   StreamController actionController = new StreamController.broadcast();
   StreamSubscription? listenable;
@@ -26,7 +28,19 @@ class ActionManager {
 
   sendClick(double x, double y) {
     //actionController.sink.add({x, y});
-    actionController.add({"type": 'click', "data": Point<double>(x, y)});
+    actionController.add({"type": PointerEvents.CLICK, "data": Point<double>(x, y)});
+  }
+
+  sendDragStart(double x, double y) {
+    actionController.add({"type": PointerEvents.DRAG_START, "data": Point<double>(x, y)});
+  }
+
+  sendDragMove(double x, double y) {
+    actionController.add({"type": PointerEvents.DRAG_MOVE, "data": Point<double>(x, y)});
+  }
+
+  sendDragEnd(double x, double y) {
+    actionController.add({"type": PointerEvents.DRAG_END, "data": Point<double>(x, y)});
   }
 
   sendTop() {

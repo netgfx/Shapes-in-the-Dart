@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_shaders/helpers/Rectangle.dart';
+import 'package:flutter_shaders/helpers/sprite_cache.dart';
 
 import '../../helpers/utils.dart';
 
@@ -11,9 +12,18 @@ class TDWorld {
   Map<String, List<dynamic>> groups = {};
   Map<String, int> dictionary = {};
   Canvas? _canvas = null;
+  SpriteCache _cache = SpriteCache();
   Size _worldBounds = Size(0, 0);
   TDWorld() {
     print("world init");
+  }
+
+  set cache(SpriteCache value) {
+    this._cache = value;
+  }
+
+  SpriteCache get cache {
+    return this._cache;
   }
 
   Canvas? get canvas {

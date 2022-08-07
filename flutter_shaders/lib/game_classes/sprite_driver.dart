@@ -88,6 +88,7 @@ class SpriteDriverCanvas extends CustomPainter {
       this._world!.worldBounds = Size(this.worldBounds.width, this.worldBounds.height);
       GameObject.shared.setWorld(this._world!);
     }
+    GameObject.shared.setSpriteCache(this.cache);
 
     if (this.cameraProps != null) {
       if (this.cameraProps!.enabled == true) {
@@ -160,7 +161,9 @@ class SpriteDriverCanvas extends CustomPainter {
                     this.eventPoint.y,
                   );
 
-                  results.add(sprite);
+                  if (result == true) {
+                    results.add(sprite);
+                  }
                 }
               }
             }
@@ -177,12 +180,12 @@ class SpriteDriverCanvas extends CustomPainter {
             this.eventPoint = Point<double>(0, 0);
           }
         } else {
-          for (var sprite in this.sprites) {
-            if (sprite.alive == true) {
+          for (var item in this.sprites) {
+            if (item.alive == true) {
               //depth sort
               this.depthSort();
               // update
-              sprite.update(canvas, elapsedTime: this.currentTime.toDouble(), shouldUpdate: false);
+              item.update(canvas, elapsedTime: this.currentTime.toDouble(), shouldUpdate: false);
             }
           }
         }
@@ -230,7 +233,7 @@ class SpriteDriverCanvas extends CustomPainter {
       } else {
         addSpriteByType("TDSpriteAnimator", coords, spriteName, frame);
       }
-    } else if (event["type"] == "click") {
+    } else if (event["type"] == PointerEvents.CLICK) {
       // do a check on all elements that have interactive enabled and are alive
       this.shouldCheckEvent = true;
       this.eventPoint = Point(event["data"].x, event["data"].y);
@@ -246,7 +249,6 @@ class SpriteDriverCanvas extends CustomPainter {
             position: coords,
             textureName: name,
             currentFrame: frame,
-            cache: this.cache,
             loop: LoopMode.Single,
             startAlive: true,
           ));

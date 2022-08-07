@@ -22,8 +22,11 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - Custom events on canvas elements 🏭
 - keyboard events (https://api.flutter.dev/flutter/widgets/KeyboardListener-class.html)
 - Depth sorting ✔️
+  - Event honoring depth, so only first is supported ✔️
+  - Make drag event 
 - Tweens 🏭
   - Add enumerable properties e.g (x, y) or make it read dot notation
+  - Tween working with item Id now (so all items should have an id)
 - Sprite rotation
 - Pooling 🚩
 - port Arcade physics ❗
@@ -38,14 +41,10 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
   - need to test with scrolling sprite (WIP)
   - need to test moving sprite
 - Get name for library...❗
-  - Proto engine
+  - Prime engine
   - Archengine
-  - Halaro engine
-  - Shadow
-  - Shaderon
-  - Skiastron
   - Arcus ✔️
-  - Arcturus
+
 
 ### Sample games for v0.1
 

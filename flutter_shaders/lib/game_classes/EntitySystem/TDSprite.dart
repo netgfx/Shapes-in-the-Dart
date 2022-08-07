@@ -22,40 +22,28 @@ class TDSprite with SpriteArchetype {
   int textureHeight = 0;
   TDWorld? world = GameObject.shared.getWorld();
   String textureName = "";
-  Point<double> position = Point(0, 0);
   double _angle = 0;
   Canvas? canvas;
   bool _alive = false;
   bool? startAlive = false;
-  //
-  SpriteCache? cache;
 
   ///
   TDSprite({
-    required this.position,
     required this.textureName,
-    required this.cache,
+    position,
     this.startAlive,
     interactive,
     onEvent,
     scale,
     id,
   }) {
+    this.position = position ?? Point(0.0, 0.0);
     this.interactive = interactive ?? false;
     this.onEvent = onEvent ?? null;
     this.scale = scale ?? 1.0;
     this.id = id ?? UniqueKey().toString();
     if (this.startAlive == true) {
       this.alive = true;
-    }
-    Map<String, dynamic>? cacheItem = cache!.getItem(textureName);
-    if (cacheItem != null) {
-      this.texture = cacheItem["texture"];
-      this.textureWidth = cacheItem["textureWidth"];
-      this.textureHeight = cacheItem["textureHeight"];
-      if (this.texture != null) {
-        setSize();
-      }
     }
   }
 
@@ -82,8 +70,10 @@ class TDSprite with SpriteArchetype {
   }
 
   @override
-  void update(Canvas canvas,
-      {double elapsedTime = 0, bool shouldUpdate = true}) {
+  void update(Canvas canvas, {double elapsedTime = 0, bool shouldUpdate = true}) {
+    if (this.texture == null) {
+      setCache();
+    }
     if (this.texture != null) {
       drawSprite(canvas);
     }
@@ -100,37 +90,33 @@ class TDSprite with SpriteArchetype {
       if (GameObject.shared.world != null) {
         Size bounds = GameObject.shared.getWorld()!.worldBounds;
         final FittedSizes sizes = applyBoxFit(BoxFit.cover, this.size, bounds);
-        final Rect inputSubrect =
-            Alignment.center.inscribe(sizes.source, Offset.zero & this.size);
-        final Rect outputSubrect =
-            Alignment.center.inscribe(sizes.destination, Offset.zero & bounds);
+        final Rect inputSubrect = Alignment.center.inscribe(sizes.source, Offset.zero & this.size);
+        final Rect outputSubrect = Alignment.center.inscribe(sizes.destination, Offset.zero & bounds);
         canvas.drawImageRect(this.texture!, inputSubrect, outputSubrect, paint);
       }
-      // canvas.drawImageRect(
-      //   this.texture!,
-      //   Rect.fromLTWH(0, 0, textureWidth.toDouble(), textureHeight.toDouble()),
-      //   Rect.fromLTWH(0, 0, size.width, size.height),
-      //   paint,
-      // );
     });
+  }
+
+  void setCache() {
+    Map<String, dynamic>? cacheItem = GameObject.shared.getSpriteCache().getItem(textureName);
+    if (cacheItem != null) {
+      this.texture = cacheItem["texture"];
+      this.textureWidth = cacheItem["textureWidth"];
+      this.textureHeight = cacheItem["textureHeight"];
+      if (this.texture != null) {
+        setSize();
+      }
+    }
   }
 
   Rectangle getRect() {
     Size _size = getSize();
-    return Rectangle(
-        x: this.position.x,
-        y: this.position.y,
-        width: _size.width,
-        height: _size.height);
+    return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
   }
 
   Rectangle getBounds() {
     Size _size = getSize();
-    return Rectangle(
-        x: this.position.x,
-        y: this.position.y,
-        width: _size.width,
-        height: _size.height);
+    return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
   }
 
   ui.Image? get textureImage {
@@ -156,8 +142,7 @@ class TDSprite with SpriteArchetype {
   Point<double> get center {
     Size size = this.getSize();
 
-    return Point(this.position.x + size.width * 0.5,
-        this.position.y + size.height * 0.5);
+    return Point(this.position.x + size.width * 0.5, this.position.y + size.height * 0.5);
   }
 
   Point<double> getPosition() {

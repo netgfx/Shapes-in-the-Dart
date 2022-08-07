@@ -6,6 +6,7 @@
 
 import 'dart:math';
 
+import 'package:flutter_shaders/game_classes/EntitySystem/LinePoint.dart';
 import 'package:flutter_shaders/helpers/Rectangle.dart';
 import 'package:flutter_shaders/helpers/utils.dart';
 
@@ -27,12 +28,12 @@ class Line {
   /**
      * @property {Phaser.Point} start - The start point of the line.
      */
-  Point start = Point(0, 0);
+  LinePoint start = LinePoint(0, 0);
 
   /**
      * @property {Phaser.Point} end - The end point of the line.
      */
-  Point end = Point(0, 0);
+  LinePoint end = LinePoint(0, 0);
 
   /**
      * @property {number} type - The const type of this object.
@@ -69,7 +70,7 @@ class Line {
      * @param {any} end - A {@link Phaser.Point} or point-like object.
      * @return {Phaser.Line} - This line object.
      */
-  fromPoints(Point start, Point end) {
+  fromPoints(LinePoint start, LinePoint end) {
     this.setTo(start.x, start.y, end.x, end.y);
   }
 
@@ -106,8 +107,8 @@ class Line {
      * @return {Phaser.Line} This line object
      */
   fromAngle(double x, double y, int angle, int length) {
-    this.start = Point(x, y);
-    this.end = Point(x + (cos(angle) * length), y + (sin(angle) * length));
+    this.start = LinePoint(x, y);
+    this.end = LinePoint(x + (cos(angle) * length), y + (sin(angle) * length));
   }
 
   /**
@@ -183,9 +184,9 @@ class Line {
      * @return {Phaser.Point} A Phaser.Point object with the x and y values set to the center of the line segment.
      */
   midPoint() {
-    Point out = Point(0, 0);
+    LinePoint out = LinePoint(0, 0);
 
-    out = Point((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
+    out = LinePoint((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
 
     return out;
   }
@@ -208,8 +209,8 @@ class Line {
     var tx = x - cx;
     var ty = y - cy;
 
-    this.start = Point<double>(this.start.x + tx, this.start.y + ty);
-    this.end = Point<double>(this.end.x + tx, this.end.y + ty);
+    this.start = LinePoint(this.start.x + tx, this.start.y + ty);
+    this.end = LinePoint(this.end.x + tx, this.end.y + ty);
   }
 
   /**
@@ -252,12 +253,12 @@ class Line {
      * @return {Phaser.Point} An object containing the random point in its `x` and `y` properties.
      */
   random(out) {
-    Point out = Point(0, 0);
+    LinePoint out = LinePoint(0, 0);
 
     var _rand = new Random();
     var t = _rand.nextDouble();
 
-    out = Point(this.start.x + t * (this.end.x - this.start.x), this.start.y + t * (this.end.y - this.start.y));
+    out = LinePoint(this.start.x + t * (this.end.x - this.start.x), this.start.y + t * (this.end.y - this.start.y));
 
     return out;
   }
@@ -320,7 +321,7 @@ class Line {
      * @return {Phaser.Line} The cloned Line object.
      */
   clone() {
-    Line output = Line(this.start.x, this.start.y, this.end.x, this.end.y);
+    Line output = Line(x1: this.start.x, y1: this.start.y, x2: this.end.x, y2: this.end.y);
 
     return output;
   }
