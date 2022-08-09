@@ -35,6 +35,7 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - loader class for all assets ✔️
 - audio (https://pub.dev/packages/audioplayers)
 - Shapes ✔️
+- Group component 🏭
 - Proper tilemap and culling
 - Autoscroll tile-sprite
 - Camera 🏭

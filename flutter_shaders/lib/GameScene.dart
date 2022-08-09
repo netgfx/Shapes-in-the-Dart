@@ -99,16 +99,24 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   void init() {
     List<dynamic> sprites = [];
 
-    // GroupController group = GroupController(position: Point(100.0, 100.0));
-    // group.zIndex = 1;
-    // group.addItem(
-    //   TDSprite(
-    //     position: Point<double>(0.0, 0.0),
-    //     textureName: "mage1",
-    //     startAlive: true,
-    //     scale: 0.8,
-    //   ),
-    // );
+    GroupController group = GroupController(
+      position: Point(100.0, 400.0),
+      startAlive: true,
+    );
+    group.zIndex = 1;
+    group.enableDebug = true;
+
+    group.addItem(
+      Point<double>(0.0, 0.0),
+      TDSprite(
+        position: Point<double>(0.0, 0.0),
+        textureName: "mage1",
+        startAlive: true,
+        scale: 0.8,
+        fitParent: false,
+        centerOffset: Offset(0, 0),
+      ),
+    );
 
     sprites = [
       TDSprite(
@@ -118,10 +126,11 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
         scale: 1.0,
       ),
       TDSpriteAnimator(
-        position: Point<double>(200.0, 180.0),
+        position: Point<double>(100.0, 100.0),
         textureName: "bat",
         currentFrame: "fly/Fly2_Bats",
         id: "bat",
+        centerOffset: Offset(0.0, 0.0),
         loop: LoopMode.Repeat,
         scale: 0.5,
         zIndex: 2,
@@ -160,7 +169,7 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
         },
         startAlive: true,
       ),
-      //group
+      group
     ];
 
     setState(() {

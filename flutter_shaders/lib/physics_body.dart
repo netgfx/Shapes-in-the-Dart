@@ -999,7 +999,7 @@ class Body{
         this.moveTarget.setTo(this.x, this.y, this.x, this.y);
 
         //  Avoid sin/cos
-        if (direction === 0 || direction === 180)
+        if (direction == 0 || direction === 180)
         {
             this.velocity.set(Math.cos(angle) * speed, 0);
         }

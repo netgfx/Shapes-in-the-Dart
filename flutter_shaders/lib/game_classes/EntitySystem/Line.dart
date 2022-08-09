@@ -59,8 +59,8 @@ class Line {
      * @return {Phaser.Line} This line object
      */
   void setTo(double x1, double y1, double x2, double y2) {
-    this.start = Point(x1, y1);
-    this.end = Point(x2, y2);
+    this.start = LinePoint(x1, y1);
+    this.end = LinePoint(x2, y2);
   }
 
   /**
@@ -128,8 +128,8 @@ class Line {
     var cx = (this.start.x + this.end.x) / 2;
     var cy = (this.start.y + this.end.y) / 2;
 
-    this.start.rotate(cx, cy, angle, asDegrees);
-    this.end.rotate(cx, cy, angle, asDegrees);
+    this.start.rotate(this.start, cx, cy, angle, asDegrees);
+    this.end.rotate(this.end, cx, cy, angle, asDegrees);
   }
 
   /**
@@ -145,8 +145,8 @@ class Line {
      * @return {Phaser.Line} This line object
      */
   rotateAround(double x, double y, double angle, bool asDegrees) {
-    this.start.rotate(x, y, angle, asDegrees);
-    this.end.rotate(x, y, angle, asDegrees);
+    this.start.rotate(this.start, x, y, angle, asDegrees);
+    this.end.rotate(this.end, x, y, angle, asDegrees);
   }
 
   /**
@@ -160,8 +160,8 @@ class Line {
      * @param {Phaser.Point} [result] - A Point object to store the result in, if not given a new one will be created.
      * @return {Phaser.Point} The intersection segment of the two lines as a Point, or null if there is no intersection.
      */
-  intersects(Line line, asSegment, result) {
-    return intersectsPointsInner(this.start, this.end, line.start, line.end, asSegment, result);
+  intersects(Line line, asSegment) {
+    return intersectsPointsInner(this.start, this.end, line.start, line.end, asSegment);
   }
 
   /**
@@ -235,13 +235,13 @@ class Line {
      * @param {number} [epsilon=0] - Range for a fuzzy comparison, e.g., 0.0001.
      * @return {boolean} True if the point is on the line and segment, false if not.
      */
-  pointOnSegment(double x, double y, bool epsilon) {
+  pointOnSegment(double x, double y, double epsilon) {
     var xMin = min(this.start.x, this.end.x);
     var xMax = max(this.start.x, this.end.x);
     var yMin = min(this.start.y, this.end.y);
     var yMax = max(this.start.y, this.end.y);
 
-    return (this.pointOnLine(x, y, epsilon) && (x >= xMin && x <= xMax) && (y >= yMin && y <= yMax));
+    return (this.pointOnLine(x.toInt(), y.toInt(), epsilon) && (x >= xMin && x <= xMax) && (y >= yMin && y <= yMax));
   }
 
   /**
@@ -343,7 +343,7 @@ class Line {
  * @readonly
  */
   double get angle {
-    return LinePoint.angle(this.end, this.start);
+    return atan2(this.end.y - this.start.y, this.end.x - this.start.x);
   }
 
 /**
@@ -531,8 +531,8 @@ class Line {
  * @param {Phaser.Point} [result] - A Point object to store the result in, if not given a new one will be created.
  * @return {Phaser.Point} The intersection segment of the two lines as a Point, or null if there is no intersection.
  */
-  intersects(a, b, asSegment, result) {
-    return intersectsPoints(a.start, a.end, b.start, b.end, asSegment, result);
+  intersectsPoint(a, b, asSegment) {
+    return intersectsPointsInner(a.start, a.end, b.start, b.end, asSegment);
   }
 
 /**

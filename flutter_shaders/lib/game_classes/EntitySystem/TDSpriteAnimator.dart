@@ -31,6 +31,7 @@ class TDSpriteAnimator with SpriteArchetype {
   Paint _paint = new Paint();
   bool? startAlive = false;
   int timeDecay = 0;
+  Offset _centerOffset = Offset(0, 0);
 
   // constructor
   TDSpriteAnimator({
@@ -45,8 +46,10 @@ class TDSpriteAnimator with SpriteArchetype {
     interactive,
     onEvent,
     id,
+    centerOffset,
   }) {
     this.position = position ?? Point(0.0, 0.0);
+    this._centerOffset = centerOffset ?? Offset(0, 0);
     this.textureName = textureName;
     this.zIndex = zIndex ?? 0;
     this.interactive = interactive;
@@ -66,7 +69,8 @@ class TDSpriteAnimator with SpriteArchetype {
         setCache();
       }
       var img = spriteData[currentFrame]![currentIndex];
-      Point<double> pos = Point(position.x - img["width"].toDouble() * scale / 2, position.y - img["height"].toDouble() * scale / 2);
+      Point<double> pos =
+          Point(position.x - img["width"].toDouble() * scale * _centerOffset.dx, position.y - img["height"].toDouble() * scale * _centerOffset.dy);
 
       /// this component needs its own tick
       if (elapsedTime - this.currentTime >= timeDecay) {

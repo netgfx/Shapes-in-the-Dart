@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:core';
 import 'dart:ui' as ui;
 import 'dart:ui';
 import 'package:flutter/services.dart';
@@ -762,5 +763,26 @@ class Utils {
     }
 
     return result + min;
+  }
+
+  /**
+     * Truncates a number, removing any fractional part.
+     * Same as round-towards-zero.
+     *
+     * @method Phaser.Math#trunc
+     * @param {number} value - The value to truncate.
+     * @return {number} The truncated value.
+     */
+  trunc(value) {
+    if (!(value).isFinite) {
+      return value;
+    }
+
+    return (value - value % 1) ||
+        (value < 0
+            ? -0
+            : value == 0
+                ? value
+                : 0);
   }
 }

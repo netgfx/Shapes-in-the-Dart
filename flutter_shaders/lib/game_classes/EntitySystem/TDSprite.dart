@@ -26,18 +26,13 @@ class TDSprite with SpriteArchetype {
   Canvas? canvas;
   bool _alive = false;
   bool? startAlive = false;
+  bool? _fitParent = true;
+  Offset _centerOffset = Offset(0, 0);
 
   ///
-  TDSprite({
-    required this.textureName,
-    position,
-    this.startAlive,
-    interactive,
-    onEvent,
-    scale,
-    id,
-  }) {
+  TDSprite({required this.textureName, position, this.startAlive, interactive, onEvent, scale, id, fitParent, centerOffset}) {
     this.position = position ?? Point(0.0, 0.0);
+    this._centerOffset = centerOffset ?? Offset(0, 0);
     this.interactive = interactive ?? false;
     this.onEvent = onEvent ?? null;
     this.scale = scale ?? 1.0;
@@ -45,6 +40,7 @@ class TDSprite with SpriteArchetype {
     if (this.startAlive == true) {
       this.alive = true;
     }
+    this._fitParent = fitParent ?? true;
   }
 
   ///
@@ -84,17 +80,41 @@ class TDSprite with SpriteArchetype {
       ..filterQuality = FilterQuality.high
       ..isAntiAlias = false;
 
-    Size fitSize = Size(size.width, size.height);
+    if (this._fitParent == true) {
+      Size fitSize = Size(size.width, size.height);
 
+      updateCanvas(canvas, position.x, position.y, scale, () {
+        if (GameObject.shared.world != null) {
+          Size bounds = GameObject.shared.getWorld()!.worldBounds;
+          final FittedSizes sizes = applyBoxFit(BoxFit.cover, this.size, bounds);
+          final Rect inputSubrect = Alignment.center.inscribe(sizes.source, Offset.zero & this.size);
+          final Rect outputSubrect = Alignment.center.inscribe(sizes.destination, Offset.zero & bounds);
+          canvas.drawImageRect(this.texture!, inputSubrect, outputSubrect, paint);
+        }
+      });
+    } else {
+      Point<double> pos = Point(
+        position.x - this.textureWidth.toDouble() * scale * this._centerOffset.dx,
+        position.y - this.textureHeight.toDouble() * scale * this._centerOffset.dy,
+      );
+      renderSprite(canvas, pos, paint);
+    }
+  }
+
+  void renderSprite(Canvas canvas, Point<double> pos, Paint paint) {
     updateCanvas(canvas, position.x, position.y, scale, () {
-      if (GameObject.shared.world != null) {
-        Size bounds = GameObject.shared.getWorld()!.worldBounds;
-        final FittedSizes sizes = applyBoxFit(BoxFit.cover, this.size, bounds);
-        final Rect inputSubrect = Alignment.center.inscribe(sizes.source, Offset.zero & this.size);
-        final Rect outputSubrect = Alignment.center.inscribe(sizes.destination, Offset.zero & bounds);
-        canvas.drawImageRect(this.texture!, inputSubrect, outputSubrect, paint);
-      }
-    });
+      canvas.drawImageRect(
+        this.texture!,
+        Rect.fromLTWH(0, 0, this.textureWidth.toDouble(), this.textureHeight.toDouble()),
+        Rect.fromLTWH(
+          0,
+          0,
+          this.textureWidth.toDouble(),
+          this.textureHeight.toDouble(),
+        ),
+        paint,
+      );
+    }, translate: false);
   }
 
   void setCache() {
