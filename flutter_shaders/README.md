@@ -36,6 +36,7 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - audio (https://pub.dev/packages/audioplayers)
 - Shapes ✔️
 - Group component 🏭
+- Plugin template
 - Proper tilemap and culling
 - Autoscroll tile-sprite
 - Camera 🏭
