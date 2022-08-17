@@ -49,19 +49,24 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tween = TweenManager(ticker: this);
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_spriteController = AnimationController(vsync: this, duration: Duration(seconds: 1));
     //_controller.addListener(() {setState(() {});}); no need to setState
     //_controller.drive(CurveTween(curve: Curves.bounceIn));
     //_spriteController.repeat();
 
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       _controller.repeat();
 
       // cache
       cache.addItem(
         "mage1",
         texturePath: "assets/mage1.png",
+      );
+      cache.addItem(
+        "redblock",
+        texturePath: "assets/red.png",
       );
       cache.addItem(
         "boom",
@@ -119,6 +124,15 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
     );
 
     sprites = [
+      TDSprite(
+          position: Point<double>(250.0, 40.0),
+          textureName: "redblock",
+          scale: 0.28,
+          zIndex: 2,
+          enablePhysics: true,
+          startAlive: true,
+          fitParent: false,
+          centerOffset: Offset(0, 0)),
       TDSprite(
         position: Point<double>(0.0, 0.0),
         textureName: "bg",
@@ -224,7 +238,8 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
           //         ),
           //       )),
           // ),
-          body: LayoutBuilder(builder: (BuildContext context, BoxConstraints viewportConstraints) {
+          body: LayoutBuilder(builder:
+              (BuildContext context, BoxConstraints viewportConstraints) {
             this.viewportConstraints = viewportConstraints;
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -258,8 +273,10 @@ class _GameSceneState extends State<GameScene> with TickerProviderStateMixin {
                                     viewportConstraints.maxWidth,
                                     viewportConstraints.maxHeight,
                                   ),
-                                  mapSize: Size(viewportConstraints.maxWidth, viewportConstraints.maxHeight),
-                                  followObject: Rect.fromLTWH(200.0, 180.0, 80, 80),
+                                  mapSize: Size(viewportConstraints.maxWidth,
+                                      viewportConstraints.maxHeight),
+                                  followObject:
+                                      Rect.fromLTWH(200.0, 180.0, 80, 80),
                                   offset: Point<double>(0.0, 0.0),
                                 ),
                               ),

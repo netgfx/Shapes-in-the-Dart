@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDWorld.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/physics_body_simple.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/sprite_archetype.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/vector_little.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/sprite_cache.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -27,23 +29,50 @@ class TDSprite with SpriteArchetype {
   bool _alive = false;
   bool? startAlive = false;
   bool? _fitParent = true;
+
   Offset _centerOffset = Offset(0, 0);
 
   ///
-  TDSprite({required this.textureName, position, this.startAlive, interactive, onEvent, scale, id, fitParent, centerOffset}) {
+  TDSprite(
+      {required this.textureName,
+      position,
+      this.startAlive,
+      interactive,
+      onEvent,
+      scale,
+      id,
+      fitParent,
+      centerOffset,
+      zIndex,
+      enablePhysics}) {
     this.position = position ?? Point(0.0, 0.0);
     this._centerOffset = centerOffset ?? Offset(0, 0);
     this.interactive = interactive ?? false;
     this.onEvent = onEvent ?? null;
     this.scale = scale ?? 1.0;
     this.id = id ?? UniqueKey().toString();
+    this.zIndex = zIndex ?? 0;
     if (this.startAlive == true) {
       this.alive = true;
     }
     this._fitParent = fitParent ?? true;
+    this.enablePhysics = enablePhysics ?? false;
+
+    if (this.enablePhysics == true) {
+      setupPhysicsBody();
+    }
   }
 
   ///
+  setupPhysicsBody() {
+    this.world = GameObject.shared.getWorld();
+    if (this.world != null) {
+      this.physicsBody = PhysicsBodySimple(
+          object: this,
+          pos: Vector2(x: this.position.x, y: this.position.y),
+          world: this.world!);
+    }
+  }
 
   Size getSize() {
     return size;
@@ -66,9 +95,18 @@ class TDSprite with SpriteArchetype {
   }
 
   @override
-  void update(Canvas canvas, {double elapsedTime = 0, bool shouldUpdate = true}) {
+  void update(Canvas canvas,
+      {double elapsedTime = 0, bool shouldUpdate = true}) {
     if (this.texture == null) {
       setCache();
+    }
+    if (this.enablePhysics == true && this.physicsBody == null) {
+      setupPhysicsBody();
+    }
+    if (this.physicsBody != null) {
+      this
+          .physicsBody
+          .update(canvas, elapsedTime: elapsedTime, shouldUpdate: shouldUpdate);
     }
     if (this.texture != null) {
       drawSprite(canvas);
@@ -86,16 +124,22 @@ class TDSprite with SpriteArchetype {
       updateCanvas(canvas, position.x, position.y, scale, () {
         if (GameObject.shared.world != null) {
           Size bounds = GameObject.shared.getWorld()!.worldBounds;
-          final FittedSizes sizes = applyBoxFit(BoxFit.cover, this.size, bounds);
-          final Rect inputSubrect = Alignment.center.inscribe(sizes.source, Offset.zero & this.size);
-          final Rect outputSubrect = Alignment.center.inscribe(sizes.destination, Offset.zero & bounds);
-          canvas.drawImageRect(this.texture!, inputSubrect, outputSubrect, paint);
+          final FittedSizes sizes =
+              applyBoxFit(BoxFit.cover, this.size, bounds);
+          final Rect inputSubrect =
+              Alignment.center.inscribe(sizes.source, Offset.zero & this.size);
+          final Rect outputSubrect = Alignment.center
+              .inscribe(sizes.destination, Offset.zero & bounds);
+          canvas.drawImageRect(
+              this.texture!, inputSubrect, outputSubrect, paint);
         }
       });
     } else {
       Point<double> pos = Point(
-        position.x - this.textureWidth.toDouble() * scale * this._centerOffset.dx,
-        position.y - this.textureHeight.toDouble() * scale * this._centerOffset.dy,
+        position.x -
+            this.textureWidth.toDouble() * scale * this._centerOffset.dx,
+        position.y -
+            this.textureHeight.toDouble() * scale * this._centerOffset.dy,
       );
       renderSprite(canvas, pos, paint);
     }
@@ -105,7 +149,8 @@ class TDSprite with SpriteArchetype {
     updateCanvas(canvas, position.x, position.y, scale, () {
       canvas.drawImageRect(
         this.texture!,
-        Rect.fromLTWH(0, 0, this.textureWidth.toDouble(), this.textureHeight.toDouble()),
+        Rect.fromLTWH(
+            0, 0, this.textureWidth.toDouble(), this.textureHeight.toDouble()),
         Rect.fromLTWH(
           0,
           0,
@@ -118,7 +163,8 @@ class TDSprite with SpriteArchetype {
   }
 
   void setCache() {
-    Map<String, dynamic>? cacheItem = GameObject.shared.getSpriteCache().getItem(textureName);
+    Map<String, dynamic>? cacheItem =
+        GameObject.shared.getSpriteCache().getItem(textureName);
     if (cacheItem != null) {
       this.texture = cacheItem["texture"];
       this.textureWidth = cacheItem["textureWidth"];
@@ -131,12 +177,20 @@ class TDSprite with SpriteArchetype {
 
   Rectangle getRect() {
     Size _size = getSize();
-    return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
+    return Rectangle(
+        x: this.position.x,
+        y: this.position.y,
+        width: _size.width,
+        height: _size.height);
   }
 
   Rectangle getBounds() {
     Size _size = getSize();
-    return Rectangle(x: this.position.x, y: this.position.y, width: _size.width, height: _size.height);
+    return Rectangle(
+        x: this.position.x,
+        y: this.position.y,
+        width: _size.width,
+        height: _size.height);
   }
 
   ui.Image? get textureImage {
@@ -162,7 +216,8 @@ class TDSprite with SpriteArchetype {
   Point<double> get center {
     Size size = this.getSize();
 
-    return Point(this.position.x + size.width * 0.5, this.position.y + size.height * 0.5);
+    return Point(this.position.x + size.width * 0.5,
+        this.position.y + size.height * 0.5);
   }
 
   Point<double> getPosition() {

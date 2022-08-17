@@ -14,8 +14,18 @@ class TDWorld {
   Canvas? _canvas = null;
   SpriteCache _cache = SpriteCache();
   Size _worldBounds = Size(0, 0);
+  List<dynamic> engineObjectsCollide = [];
+
   TDWorld() {
     print("world init");
+  }
+
+  List<dynamic> getEngineObjectsCollide() {
+    return engineObjectsCollide = this
+        .displayList
+        .where((o) =>
+            o.physicsBody != null ? o.physicsBody.collideSolidObjects : false)
+        .toList();
   }
 
   set cache(SpriteCache value) {
@@ -102,10 +112,12 @@ class TDWorld {
   void checkCollisions(List<Map<String, dynamic>> colliders) {
     int length = colliders.length;
     for (var i = 0; i < length; i++) {
-      if (colliders[i]['a'].type == "solo" && colliders[i]['b'].type == "solo") {
+      if (colliders[i]['a'].type == "solo" &&
+          colliders[i]['b'].type == "solo") {
         var objA = this.displayList[this.dictionary[colliders[i]['a'].name]!];
         var objB = this.displayList[this.dictionary[colliders[i]['b'].name]!];
-        bool result = Utils.shared.intersects(objA.getBounds(), objB.getBounds());
+        bool result =
+            Utils.shared.intersects(objA.getBounds(), objB.getBounds());
         //print(result);
       }
     }

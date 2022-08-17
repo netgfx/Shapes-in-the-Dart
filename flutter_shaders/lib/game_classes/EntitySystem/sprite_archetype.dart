@@ -24,6 +24,8 @@ mixin SpriteArchetype {
   bool _interactive = false;
   Function? _onEvent;
   int _zIndex = 0;
+  bool _enablePhysics = false;
+  dynamic _physicsBody = null;
 
   // SpriteArchetype({
   //   required this.position,
@@ -32,7 +34,8 @@ mixin SpriteArchetype {
   //   scale,
   // }) {}
 
-  void update(Canvas canvas, {double elapsedTime = 0.0, bool shouldUpdate = true}) {}
+  void update(Canvas canvas,
+      {double elapsedTime = 0.0, bool shouldUpdate = true}) {}
 
   String get id {
     return this._id;
@@ -90,7 +93,25 @@ mixin SpriteArchetype {
     return this._position;
   }
 
-  void updateCanvas(Canvas canvas, double? x, double? y, double? scale, VoidCallback callback, {bool translate = false}) {
+  bool get enablePhysics {
+    return this._enablePhysics;
+  }
+
+  void set enablePhysics(bool value) {
+    this._enablePhysics = value;
+  }
+
+  dynamic get physicsBody {
+    return this._physicsBody;
+  }
+
+  void set physicsBody(dynamic value) {
+    this._physicsBody = value;
+  }
+
+  void updateCanvas(
+      Canvas canvas, double? x, double? y, double? scale, VoidCallback callback,
+      {bool translate = false}) {
     double _x = x ?? 0;
     double _y = y ?? 0;
     canvas.save();
