@@ -834,19 +834,19 @@ class Utils {
             ? max
             : v;
 
-    min + clamp(p) * (max - min);
+    return min + clamp(p) * (max - min);
   }
 
   isOverlapping(pA, sA, pB, sB) {
-    ((pA.x - pB.x).abs() * 2 < sA.x + sB.x) &
+    return ((pA.x - pB.x).abs() * 2 < sA.x + sB.x) &
         ((pA.y - pB.y).abs() * 2 < sA.y + sB.y);
   }
 
   /** Returns a copy of this vector minus the vector passed in
      *  @param {Vector2} vector
      *  @return {Vector2} */
-  subtract(Point<double> source, v) {
-    return Vector2(source.x - v.x, source.y - v.y);
+  subtract(source, v) {
+    return vector2.Vector2(x: source.x - v.x, y: source.y - v.y);
   }
 
   /** Returns a random Vector2 with the passed in length
@@ -863,11 +863,11 @@ class Utils {
  *  @return {Number}
  *  @memberof Random */
   rand({a = 1, b = 0}) {
-    b + (a - b) * this._random.nextDouble();
+    return b + (a - b) * this._random.nextDouble();
   }
 
   simpleClamp(v, {min = 0, max = 1}) {
-    v < min
+    return v < min
         ? min
         : v > max
             ? max

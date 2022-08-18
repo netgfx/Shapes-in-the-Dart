@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shaders/game_classes/EntitySystem/TDWorld.dart';
+import 'package:flutter_shaders/game_classes/EntitySystem/physics_body_simple.dart';
 import 'package:flutter_shaders/helpers/GameObject.dart';
 import 'package:flutter_shaders/helpers/sprite_cache.dart';
 import 'package:vector_math/vector_math.dart' as vectorMath;
@@ -25,7 +26,7 @@ mixin SpriteArchetype {
   Function? _onEvent;
   int _zIndex = 0;
   bool _enablePhysics = false;
-  dynamic _physicsBody = null;
+  PhysicsBodySimple? _physicsBody = null;
 
   // SpriteArchetype({
   //   required this.position,
@@ -101,12 +102,16 @@ mixin SpriteArchetype {
     this._enablePhysics = value;
   }
 
-  dynamic get physicsBody {
+  PhysicsBodySimple? get physicsBody {
     return this._physicsBody;
   }
 
-  void set physicsBody(dynamic value) {
+  void set physicsBody(PhysicsBodySimple? value) {
     this._physicsBody = value;
+  }
+
+  bool onCollide(dynamic item) {
+    return true;
   }
 
   void updateCanvas(

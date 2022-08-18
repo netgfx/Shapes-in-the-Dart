@@ -23,13 +23,16 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
 - keyboard events (https://api.flutter.dev/flutter/widgets/KeyboardListener-class.html)
 - Depth sorting ✔️
   - Event honoring depth, so only first is supported ✔️
-  - Make drag event 
+  - Make drag event
 - Tweens 🏭
   - Add enumerable properties e.g (x, y) or make it read dot notation
   - Tween working with item Id now (so all items should have an id)
 - Sprite rotation
 - Pooling 🚩
 - port Arcade physics ❗
+  - Simple physics 🏭
+  - generalize the collision
+  - fix collide with bounds
 - create master Sprite class for all game objects to inherit basic properties via mixin ✔️
 - cache ✔️
 - loader class for all assets ✔️
@@ -46,7 +49,6 @@ Experiments with Shaders, Custom Draw, Canvas and Sprites
   - Prime engine
   - Archengine
   - Arcus ✔️
-
 
 ### Sample games for v0.1
 

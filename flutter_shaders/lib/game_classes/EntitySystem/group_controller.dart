@@ -15,16 +15,20 @@ class GroupController {
   bool _alive = false;
   Offset _centerOffset = Offset(0, 0);
   bool enableDebug = false;
+  dynamic _physicsBody = null;
+  bool enablePhysics = false;
 
-  GroupController(
-      {required this.position,
-      interactive,
-      onEvent,
-      zIndex,
-      items,
-      startAlive,
-      centerOffset,
-      enableDebug}) {
+  GroupController({
+    required this.position,
+    interactive,
+    onEvent,
+    zIndex,
+    items,
+    startAlive,
+    centerOffset,
+    enablePhysics,
+    enableDebug,
+  }) {
     this.interactive = interactive ?? false;
     this.onEvent = onEvent ?? null;
     this.zIndex = zIndex ?? 0;
@@ -32,6 +36,7 @@ class GroupController {
     this._centerOffset = centerOffset ?? Offset(0, 0);
     this.enableDebug = enableDebug ?? false;
     this.size = this._calculateSize();
+    this.enablePhysics = enablePhysics ?? false;
   }
 
   String get id {
@@ -80,6 +85,14 @@ class GroupController {
 
   int get zIndex {
     return this._zIndex;
+  }
+
+  dynamic get physicsBody {
+    return _physicsBody;
+  }
+
+  set physicsBody(dynamic value) {
+    _physicsBody = value;
   }
 
   void addItem(Point<double> position, dynamic item) {

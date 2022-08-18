@@ -29,22 +29,24 @@ class TDSprite with SpriteArchetype {
   bool _alive = false;
   bool? startAlive = false;
   bool? _fitParent = true;
-
   Offset _centerOffset = Offset(0, 0);
+  Function? _onCollide = null;
 
   ///
-  TDSprite(
-      {required this.textureName,
-      position,
-      this.startAlive,
-      interactive,
-      onEvent,
-      scale,
-      id,
-      fitParent,
-      centerOffset,
-      zIndex,
-      enablePhysics}) {
+  TDSprite({
+    required this.textureName,
+    position,
+    this.startAlive,
+    interactive,
+    onEvent,
+    scale,
+    id,
+    fitParent,
+    centerOffset,
+    zIndex,
+    enablePhysics,
+    onCollide,
+  }) {
     this.position = position ?? Point(0.0, 0.0);
     this._centerOffset = centerOffset ?? Offset(0, 0);
     this.interactive = interactive ?? false;
@@ -57,9 +59,9 @@ class TDSprite with SpriteArchetype {
     }
     this._fitParent = fitParent ?? true;
     this.enablePhysics = enablePhysics ?? false;
-
     if (this.enablePhysics == true) {
       setupPhysicsBody();
+      this._onCollide = onCollide ?? () {};
     }
   }
 
@@ -70,7 +72,11 @@ class TDSprite with SpriteArchetype {
       this.physicsBody = PhysicsBodySimple(
           object: this,
           pos: Vector2(x: this.position.x, y: this.position.y),
-          world: this.world!);
+          world: this.world!,
+          size: Vector2(x: this.size.width, y: this.size.height),
+          velocity: Vector2(x: 40, y: 0),
+          onCollision: this.onCollide,
+          restitution: 0.30);
     }
   }
 
@@ -100,13 +106,18 @@ class TDSprite with SpriteArchetype {
     if (this.texture == null) {
       setCache();
     }
+
+    /// Physics
     if (this.enablePhysics == true && this.physicsBody == null) {
       setupPhysicsBody();
     }
     if (this.physicsBody != null) {
       this
-          .physicsBody
+          .physicsBody!
           .update(canvas, elapsedTime: elapsedTime, shouldUpdate: shouldUpdate);
+
+      /// apply the physics pos to the actual object
+      this.position = Point(this.physicsBody!.pos.x, this.physicsBody!.pos.y);
     }
     if (this.texture != null) {
       drawSprite(canvas);
@@ -222,5 +233,14 @@ class TDSprite with SpriteArchetype {
 
   Point<double> getPosition() {
     return this.position;
+  }
+
+  @override
+  bool onCollide(item) {
+    /// run our own collide fn
+    if (this._onCollide != null) {
+      this._onCollide!(item);
+    }
+    return super.onCollide(item);
   }
 }

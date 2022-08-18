@@ -7,7 +7,8 @@ import 'package:flutter_shaders/helpers/utils.dart';
 
 class PhysicsBodySimple {
   Vector2 pos = Vector2(x: 0, y: 0);
-  Vector2 _size = Vector2(x: 0, y: 0);
+
+  Vector2 size = Vector2(x: 0, y: 0);
   /** @property {Number} [mass=objectDefaultMass]                 - How heavy the object is, static if 0 */
   double mass = 1;
   /** @property {Number} [damping=objectDefaultDamping]           - How much to slow down velocity each frame (0-1) */
@@ -15,7 +16,7 @@ class PhysicsBodySimple {
   /** @property {Number} [angleDamping=objectDefaultAngleDamping] - How much to slow down rotation each frame (0-1) */
   double angleDamping = 0.99;
   /** @property {Number} [elasticity=objectDefaultElasticity]     - How bouncy the object is when colliding (0-1) */
-  double elasticity = 0;
+  double elasticity = 0.15;
   /** @property {Number} [friction=objectDefaultFriction]         - How much friction to apply when sliding (0-1) */
   double friction = 0.8;
   /** @property {Number} [gravityScale=1]                         - How much to scale gravity by for this object */
@@ -34,20 +35,23 @@ class PhysicsBodySimple {
   /** Clamp max speed to avoid fast objects missing collisions
  *  @default
  *  @memberof Settings */
-  double objectMaxSpeed = 1.0;
-  double gravity = 0;
+  double objectMaxSpeed = 10.0;
+  double gravity = 1.81;
   dynamic groundObject;
   /** Enable physics solver for collisions between objects
  *  @default
  *  @memberof Settings */
   bool enablePhysicsSolver = true;
   TDWorld world;
+  Function? onCollision = null;
+  bool collideWorldBounds = true;
+  double restitution = 0.99;
 
   PhysicsBodySimple({
     required this.object,
     required this.pos,
     required this.world,
-    size,
+    required this.size,
     mass,
     damping,
     angleDamping,
@@ -56,20 +60,26 @@ class PhysicsBodySimple {
     gravityScale,
     renderOrder,
     velocity,
+    restitution,
     angleVelocity,
     collideSolidObjects,
+    collideOnWorldBounds,
+    onCollision,
   }) {
     this.mass = mass ?? 1;
     this.damping = damping ?? 0.99;
     this.angleDamping = angleDamping ?? 0.99;
-    this.elasticity = elasticity ?? 0;
+    this.elasticity = elasticity ?? 0.15;
     this.friction = friction ?? 0.8;
     this.gravityScale = gravityScale ?? 1;
     this.renderOrder = renderOrder ?? 0;
     this.velocity = velocity ?? Vector2(x: 0, y: 0);
     this.angleVelocity = angleVelocity ?? 0;
+    this.restitution = restitution ?? 0.99;
     this.collideSolidObjects = collideSolidObjects ?? true;
-    this.size = size ?? Vector2(x: 0, y: 0);
+    //this.size = size ?? Vector2(x: 0, y: 0);
+    this.onCollision = onCollision ?? () {};
+    this.collideWorldBounds = collideOnWorldBounds ?? true;
   }
 
   double get angle {
@@ -94,14 +104,6 @@ class PhysicsBodySimple {
 
   void set angleVelocity(double value) {
     this._angleVelocity = value;
-  }
-
-  Vector2 get size {
-    return this._size;
-  }
-
-  void set size(Vector2 value) {
-    this._size = value;
   }
 
   bool get immovable {
@@ -133,7 +135,79 @@ class PhysicsBodySimple {
   }
 
   collideWithObject(o) {
+    if (this.onCollision != null) {
+      this.onCollision!(o);
+    }
     return 1;
+  }
+
+  double getRestitution() {
+    return this.restitution;
+  }
+
+  /// NOTE: this assumes world bounds starting from 0,0
+  String detectEdgeCollisions(PhysicsBodySimple obj) {
+    Size worldBounds = this.world.worldBounds;
+    String isColliding = 'none';
+    // Check for left and right
+    if (obj.pos.x < 0) {
+      obj.velocity.x = (obj.velocity.x).abs() * obj.getRestitution();
+      obj.pos.x = 0.0;
+      isColliding = 'left';
+    } else if (obj.pos.x > worldBounds.width - obj.size.x.toDouble()) {
+      obj.velocity.x = -(obj.velocity.x).abs() * obj.getRestitution();
+      obj.pos.x = worldBounds.width - obj.size.x;
+      isColliding = 'right';
+    }
+
+    // Check for bottom and top
+    if (obj.pos.y > worldBounds.height - obj.size.y) {
+      obj.velocity.y = -(obj.velocity.y).abs() * obj.getRestitution();
+      obj.pos.y = worldBounds.height - (obj.size.y);
+      isColliding = "bottom";
+    } else if (obj.pos.y < 0) {
+      obj.velocity.y = (obj.velocity.y).abs() * obj.getRestitution();
+      obj.pos.y = obj.size.y;
+      isColliding = "top";
+    }
+
+    return isColliding;
+  }
+
+  /// Obj2 can be a wall
+  void calculatePhysicsWithBounds(PhysicsBodySimple obj1, dynamic obj2) {
+    var vCollision = {
+      "x": obj2["pos"].x - obj1.pos.x,
+      "y": obj2["pos"].y - obj1.pos.y
+    };
+    var distance = sqrt(
+        (obj2["pos"].x - obj1.pos.x) * (obj2["pos"].x - obj1.pos.x) +
+            (obj2["pos"].y - obj1.pos.y) * (obj2["pos"].y - obj1.pos.y));
+    var vCollisionNorm = {
+      "x": vCollision["x"] / distance,
+      "y": vCollision["y"] / distance
+    };
+    Map<String, dynamic> vRelativeVelocity = {
+      "x": obj1.velocity.x - obj2["velocity"].x,
+      "y": obj1.velocity.y - obj2["velocity"].y
+    };
+    var speed = vRelativeVelocity["x"] * vCollisionNorm["x"] +
+        vRelativeVelocity["y"] * vCollisionNorm["y"];
+
+    speed *= min(obj1.restitution, obj2["restitution"] as double);
+    //delayedPrint(speed.toString());
+    if (speed < 0) {
+      return;
+    }
+
+    var impulse = 2 * speed / (obj1.mass + obj2["mass"]);
+    obj1.velocity.x -= (impulse * obj2["mass"] * vCollisionNorm["x"]);
+    obj1.velocity.y -= (impulse * obj2["mass"] * vCollisionNorm["y"]);
+    //obj1.velocity.y *= -this.restitution;
+    // inelastic collision
+
+    obj2["velocity"].x = 0;
+    obj2["velocity"].y = 0;
   }
 
   update(Canvas canvas, {double elapsedTime = 0.0, bool shouldUpdate = true}) {
@@ -148,13 +222,13 @@ class PhysicsBodySimple {
     // }
 
     // limit max speed to prevent missing collisions
-    this.velocity.x =
-        Utils.shared.clamp(this.velocity.x, -objectMaxSpeed, objectMaxSpeed);
-    this.velocity.y =
-        Utils.shared.clamp(this.velocity.y, -objectMaxSpeed, objectMaxSpeed);
+    // this.velocity.x =
+    //     Utils.shared.clamp(this.velocity.x, -objectMaxSpeed, objectMaxSpeed);
+    // this.velocity.y =
+    //     Utils.shared.clamp(this.velocity.y, -objectMaxSpeed, objectMaxSpeed);
 
-    // apply physics
-    var oldPos = Point<double>(this.pos.x.toDouble(), this.pos.y.toDouble());
+    // // apply physics
+    var oldPos = Vector2(x: this.pos.x.toDouble(), y: this.pos.y.toDouble());
     this.velocity.x = this.damping * this.velocity.x;
     this.velocity.y =
         this.damping * this.velocity.y + gravity * this.gravityScale;
@@ -167,41 +241,105 @@ class PhysicsBodySimple {
     this.angle += this.angleVelocity *= this.angleDamping;
 
     // physics sanity checks
-    //ASSERT(this.angleDamping >= 0 && this.angleDamping <= 1);
-    //ASSERT(this.damping >= 0 && this.damping <= 1);
 
-    if (!this.enablePhysicsSolver ||
-        this.mass == 0) // do not update collision for fixed objects
-      return;
+    // if (!this.enablePhysicsSolver ||
+    //     this.mass == 0) // do not update collision for fixed objects
+    //   return;
 
     var wasMovingDown = this.velocity.y < 0;
-    if (this.groundObject != null) {
-      // apply friction in local space of ground object
-      var groundSpeed =
-          this.groundObject!.velocity ? this.groundObject!.velocity.x : 0;
-      this.velocity.x =
-          groundSpeed + (this.velocity.x - groundSpeed) * this.friction;
-      this.groundObject = 0;
-      //debugOverlay && debugPhysics && debugPoint(this.pos.subtract(vec2(0,this.size.y/2)), '#0f0');
+    // if (this.groundObject != null) {
+    //   // apply friction in local space of ground object
+    //   var groundSpeed = this.groundObject!["velocity"] != null
+    //       ? this.groundObject!["velocity"].x
+    //       : 0;
+    //   this.velocity.x =
+    //       groundSpeed + (this.velocity.x - groundSpeed) * this.friction;
+    //   this.groundObject = null;
+    // }
+
+    /// add world collision
+    Size worldBounds = this.world.worldBounds;
+    const epsilon = 1e-3; // necessary to push slightly outside of the collision
+    if (this.collideWorldBounds) {
+      Map<String, Map<String, dynamic>> bounds = {
+        /// top
+        "top": {
+          "pos": Point(0, 0),
+          "size": Vector2(
+            x: worldBounds.width,
+            y: 10,
+          ),
+          "velocity": Vector2(x: 0, y: 0),
+          "mass": 5,
+          "restitution": 0.99
+        },
+
+        /// bottom
+        "bottom": {
+          "pos": Point(0, worldBounds.height),
+          "size": Vector2(
+            x: worldBounds.width,
+            y: 10,
+          ),
+          "velocity": Vector2(x: 0, y: 0),
+          "mass": 5,
+          "restitution": 0.99
+        },
+
+        /// left
+        "left": {
+          "pos": Point(0, 0),
+          "size": Vector2(
+            x: 10,
+            y: worldBounds.height,
+          ),
+          "velocity": Vector2(x: 0, y: 0),
+          "mass": 5,
+          "restitution": 0.99
+        },
+
+        /// right
+        "right": {
+          "pos": Point(worldBounds.width, 0),
+          "size": Vector2(
+            x: 10,
+            y: worldBounds.height,
+          ),
+          "velocity": Vector2(x: 0, y: 0),
+          "mass": 5,
+          "restitution": 0.99
+        },
+      };
+
+      String wallCollision = detectEdgeCollisions(this);
+      if (wallCollision != "none") {
+        //calculatePhysicsWithBounds(this, bounds[wallCollision]);
+
+        return;
+      }
+
+      //return;
     }
 
     if (this.collideSolidObjects) {
+      //print("${this.pos}, ${this.velocity}");
       // check collisions against solid objects
-      const epsilon =
-          1e-3; // necessary to push slightly outside of the collision
-      for (var o in this.world.getEngineObjectsCollide()) {
+
+      for (var item in this.world.getEngineObjectsCollide()) {
+        var o = item.physicsBody;
+        //print("${o.immovable}, ${o.object.alive}, ${o.object.id}, ${this.object.id}");
         // non solid objects don't collide with eachother
         if (!this.immovable & !o.immovable ||
-            o.destroyed ||
-            o.parent ||
-            o == this) continue;
+            !o.object.alive ||
+            o.object.id == this.object.id) continue;
 
         // check collision
         if (!Utils.shared.isOverlapping(this.pos, this.size, o.pos, o.size))
           continue;
 
         // pass collision to objects
-        if (!this.collideWithObject(o) | !o.collideWithObject(this)) continue;
+        this.object.collideWithObject(o);
+        o.object.collideWithObject(this);
 
         if (Utils.shared.isOverlapping(oldPos, this.size, o.pos, o.size)) {
           // if already was touching, try to push away
@@ -226,19 +364,18 @@ class PhysicsBodySimple {
         var isBlockedX = (oldPos.y - o.pos.y).abs() * 2 < sizeBoth.y;
         var isBlockedY = (oldPos.x - o.pos.x).abs() * 2 < sizeBoth.x;
 
-        if (smallStepUp || isBlockedY || !isBlockedX) // resolve y collision
-        {
+        if (smallStepUp || isBlockedY || !isBlockedX) {
           // push outside object collision
           this.pos.y = o.pos.y +
               (sizeBoth.y / 2 + epsilon) *
                   Utils.shared.sign(oldPos.y - o.pos.y);
-          if (o.groundObject && wasMovingDown || !o.mass) {
+          if (o.groundObject != null && wasMovingDown || !o.mass) {
             // set ground object if landed on something
             if (wasMovingDown) this.groundObject = o;
 
             // bounce if other object is fixed or grounded
             this.velocity.y *= -this.elasticity;
-          } else if (o.mass) {
+          } else if (o.mass != null) {
             // inelastic collision
             var inelastic =
                 (this.mass * this.velocity.y + o.mass * o.velocity.y) /

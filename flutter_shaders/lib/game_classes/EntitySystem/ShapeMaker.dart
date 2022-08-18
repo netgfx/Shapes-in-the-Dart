@@ -40,6 +40,7 @@ class ShapeMaker {
   Function? _onEvent;
   String _id = "";
   dynamic _physicsBody = null;
+  bool enablePhysics = false;
 
   ShapeMaker(
       {required this.type,
@@ -62,6 +63,7 @@ class ShapeMaker {
     this.id = id ?? UniqueKey().toString();
     this.zIndex = zIndex ?? 0;
     this.interactive = interactive ?? false;
+    this.enablePhysics = enablePhysics ?? false;
     //
     if (startAlive == true) {
       this.alive = true;
