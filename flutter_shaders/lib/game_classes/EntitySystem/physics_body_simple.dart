@@ -18,7 +18,7 @@ class PhysicsBodySimple {
   /** @property {Number} [elasticity=objectDefaultElasticity]     - How bouncy the object is when colliding (0-1) */
   double elasticity = 0.15;
   /** @property {Number} [friction=objectDefaultFriction]         - How much friction to apply when sliding (0-1) */
-  double friction = 0.8;
+  double friction = 0.25;
   /** @property {Number} [gravityScale=1]                         - How much to scale gravity by for this object */
   double gravityScale = 1;
   /** @property {Number} [renderOrder=0]                          - Objects are sorted by render order */
@@ -46,6 +46,7 @@ class PhysicsBodySimple {
   Function? onCollision = null;
   bool collideWorldBounds = true;
   double restitution = 0.99;
+  String isCollidingAt = "none";
 
   PhysicsBodySimple({
     required this.object,
@@ -70,7 +71,7 @@ class PhysicsBodySimple {
     this.damping = damping ?? 0.99;
     this.angleDamping = angleDamping ?? 0.99;
     this.elasticity = elasticity ?? 0.15;
-    this.friction = friction ?? 0.8;
+    this.friction = friction ?? 0.95;
     this.gravityScale = gravityScale ?? 1;
     this.renderOrder = renderOrder ?? 0;
     this.velocity = velocity ?? Vector2(x: 0, y: 0);
@@ -232,6 +233,10 @@ class PhysicsBodySimple {
     this.velocity.x = this.damping * this.velocity.x;
     this.velocity.y =
         this.damping * this.velocity.y + gravity * this.gravityScale;
+
+    if (this.isCollidingAt == "bottom") {
+      this.velocity.x = (this.velocity.x) * this.friction;
+    }
     this.pos = Vector2(
         x: this.pos.x + this.damping * this.velocity.x,
         y: this.pos.y +
@@ -239,8 +244,6 @@ class PhysicsBodySimple {
             gravity * this.gravityScale);
 
     this.angle += this.angleVelocity *= this.angleDamping;
-
-    // physics sanity checks
 
     // if (!this.enablePhysicsSolver ||
     //     this.mass == 0) // do not update collision for fixed objects
@@ -313,16 +316,12 @@ class PhysicsBodySimple {
 
       String wallCollision = detectEdgeCollisions(this);
       if (wallCollision != "none") {
-        //calculatePhysicsWithBounds(this, bounds[wallCollision]);
-
+        this.isCollidingAt = wallCollision;
         return;
       }
-
-      //return;
     }
 
     if (this.collideSolidObjects) {
-      //print("${this.pos}, ${this.velocity}");
       // check collisions against solid objects
 
       for (var item in this.world.getEngineObjectsCollide()) {

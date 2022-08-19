@@ -74,7 +74,7 @@ class TDSprite with SpriteArchetype {
           pos: Vector2(x: this.position.x, y: this.position.y),
           world: this.world!,
           size: Vector2(x: this.size.width, y: this.size.height),
-          velocity: Vector2(x: 40, y: 0),
+          velocity: Vector2(x: 20, y: 0),
           onCollision: this.onCollide,
           restitution: 0.30);
     }
